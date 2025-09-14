@@ -21,8 +21,9 @@ export default function HomePage() {
   const auth = useSelector(selectAuthLogin);
 
   useEffect(() => {
-    // Log user info from Redux
-    if (auth?.userProfile?.firstName) {
+    console.log("HomePage mounted", auth);
+
+    if (auth?.userProfile) {
       console.log("User from Redux:", auth.userProfile);
     }
   }, [auth]);
