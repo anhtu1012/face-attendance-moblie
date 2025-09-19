@@ -1,3 +1,6 @@
+import MonthlyTimesheet from "@/pages/MonthlyTimesheet";
+import StatsTimesheet from "@/pages/StatsTimesheet";
+import WeeklyTimesheet from "@/pages/WeeklyTimesheet";
 import { AntDesign, Feather, MaterialIcons } from "@expo/vector-icons";
 import { createMaterialTopTabNavigator } from "@react-navigation/material-top-tabs";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,30 +14,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-
-// Placeholder components for timesheet views
-const MonthlyTimesheet = () => (
-  <View style={styles.tabContent}>
-    <Text style={styles.tabTitle}>Công tháng</Text>
-    <Text style={styles.tabDescription}>Hiển thị bảng công theo tháng</Text>
-  </View>
-);
-
-const WeeklyTimesheet = () => (
-  <View style={styles.tabContent}>
-    <Text style={styles.tabTitle}>Công tuần</Text>
-    <Text style={styles.tabDescription}>Hiển thị bảng công theo tuần</Text>
-  </View>
-);
-
-const StatsTimesheet = () => (
-  <View style={styles.tabContent}>
-    <Text style={styles.tabTitle}>Thống kê</Text>
-    <Text style={styles.tabDescription}>
-      Thống kê giờ làm việc và hiệu suất
-    </Text>
-  </View>
-);
 
 const { width } = Dimensions.get("window");
 const TopTab = createMaterialTopTabNavigator();
@@ -56,7 +35,7 @@ export default function TimesheetScreen() {
     ({ color }: { color: string }) => (
       <Feather name="calendar" size={18} color={color} style={styles.tabIcon} />
     ),
-    []
+    [],
   );
 
   const renderWeeklyIcon = useCallback(
@@ -68,7 +47,7 @@ export default function TimesheetScreen() {
         style={styles.tabIcon}
       />
     ),
-    []
+    [],
   );
 
   const renderStatsIcon = useCallback(
@@ -80,7 +59,7 @@ export default function TimesheetScreen() {
         style={styles.tabIcon}
       />
     ),
-    []
+    [],
   );
 
   // Tab screen options
@@ -112,7 +91,7 @@ export default function TimesheetScreen() {
         height: 50,
       },
     }),
-    []
+    [],
   );
 
   return (

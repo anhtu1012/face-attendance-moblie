@@ -88,11 +88,11 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      onKeyboardShow
+      onKeyboardShow,
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      onKeyboardHide
+      onKeyboardHide,
     );
 
     return () => {
