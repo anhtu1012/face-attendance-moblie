@@ -53,6 +53,7 @@
     "expo-device": "~8.0.8",
     "@expo/config-plugins": "~54.0.1",
     "expo-dev-client": "~6.0.12"
+    "expo-local-authentication": "~17.0.7"
   },
   "devDependencies": {
     "@types/react": "~19.1.0",
