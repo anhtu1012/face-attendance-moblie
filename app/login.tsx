@@ -117,6 +117,10 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       });
       console.log("Login response:", response.data.userProfile);
       await AsyncStorage.setItem("token", response.data.accessToken);
+      await AsyncStorage.setItem(
+        "userProfile",
+        JSON.stringify(response.data.userProfile),
+      );
       dispatch(setAuthData(response.data));
       router.replace("/(drawer)" as any);
     } catch (error: any) {

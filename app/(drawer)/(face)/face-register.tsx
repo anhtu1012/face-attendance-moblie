@@ -12,14 +12,12 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import * as LocalAuthentication from "expo-local-authentication";
 import { router } from "expo-router";
-import { useIsFocused } from "@react-navigation/native";
 
 export default function FaceRegisterPage() {
   const insets = useSafeAreaInsets();
   const [registrationStep, setRegistrationStep] = useState(0);
   const [isRegistered, setIsRegistered] = useState(false);
-  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
-  const isFocused = useIsFocused();
+  const [isBiometricSuccess, setIsBiometricSuccess] = useState(false);
 
   const steps = [
     {
@@ -46,7 +44,6 @@ export default function FaceRegisterPage() {
 
   const handleBiometricAuth = async () => {
     const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
-
     if (!isBiometricAvailable) {
       Alert.alert(
         "Thiết bị không hỗ trợ vân tay",
@@ -60,19 +57,22 @@ export default function FaceRegisterPage() {
       supportedBiometrics =
         await LocalAuthentication.supportedAuthenticationTypesAsync();
     }
-
     const savedBiometrics = await LocalAuthentication.isEnrolledAsync();
     if (!savedBiometrics) {
       Alert.alert("Vân tay không trùng khớp!", "Vui lòng thử lại", [
         { text: "Quay về trang chủ", onPress: () => router.navigate("/") },
       ]);
     }
-
     const biometricAuth = await LocalAuthentication.authenticateAsync({
       promptMessage: "Xác nhận vân tay",
       cancelLabel: "Hủy",
       disableDeviceFallback: true,
     });
+    if (biometricAuth.success) {
+      setIsBiometricSuccess(true);
+      startRegistration();
+      router.push("/(drawer)/(face)/camera");
+    }
   };
 
   const handleStartRegistration = () => {
@@ -86,14 +86,12 @@ export default function FaceRegisterPage() {
             text: "Đăng ký lại",
             onPress: () => {
               handleBiometricAuth();
-              startRegistration();
             },
           },
         ],
       );
     } else {
       handleBiometricAuth();
-      startRegistration();
     }
   };
 
