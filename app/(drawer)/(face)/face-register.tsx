@@ -10,7 +10,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import * as LocalAuthentication from "expo-local-authentication";
 import { router } from "expo-router";
 
 export default function FaceRegisterPage() {
@@ -33,7 +32,7 @@ export default function FaceRegisterPage() {
     {
       title: "Xử lý",
       description: "Hệ thống đang xử lý và lưu trữ dữ liệu",
-      icon: "loading3",
+      icon: "loading",
     },
     {
       title: "Hoàn thành",
@@ -41,39 +40,6 @@ export default function FaceRegisterPage() {
       icon: "check-circle",
     },
   ];
-
-  const handleBiometricAuth = async () => {
-    const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
-    if (!isBiometricAvailable) {
-      Alert.alert(
-        "Thiết bị không hỗ trợ vân tay",
-        "Vui lòng dùng thiết bị khác để xác nhận vân tay",
-        [{ text: "Quay về trang chủ", onPress: () => router.navigate("/") }],
-      );
-    }
-
-    let supportedBiometrics;
-    if (isBiometricAvailable) {
-      supportedBiometrics =
-        await LocalAuthentication.supportedAuthenticationTypesAsync();
-    }
-    const savedBiometrics = await LocalAuthentication.isEnrolledAsync();
-    if (!savedBiometrics) {
-      Alert.alert("Vân tay không trùng khớp!", "Vui lòng thử lại", [
-        { text: "Quay về trang chủ", onPress: () => router.navigate("/") },
-      ]);
-    }
-    const biometricAuth = await LocalAuthentication.authenticateAsync({
-      promptMessage: "Xác nhận vân tay",
-      cancelLabel: "Hủy",
-      disableDeviceFallback: true,
-    });
-    if (biometricAuth.success) {
-      setIsBiometricSuccess(true);
-      startRegistration();
-      router.push("/(drawer)/(face)/camera");
-    }
-  };
 
   const handleStartRegistration = () => {
     if (isRegistered) {
@@ -85,13 +51,15 @@ export default function FaceRegisterPage() {
           {
             text: "Đăng ký lại",
             onPress: () => {
-              handleBiometricAuth();
+              router.replace("/(drawer)/(face)/camera");
+              // handleBiometricAuth();
             },
           },
         ],
       );
     } else {
-      handleBiometricAuth();
+      router.replace("/(drawer)/(face)/camera");
+      // handleBiometricAuth();
     }
   };
 

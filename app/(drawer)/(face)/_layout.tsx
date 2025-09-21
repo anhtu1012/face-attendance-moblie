@@ -4,7 +4,7 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 const FaceLayout = () => {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
-      <Stack>
+      <Stack initialRouteName="face-register">
         <Stack.Screen
           name="face-register"
           options={{

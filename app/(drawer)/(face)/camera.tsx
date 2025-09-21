@@ -1,13 +1,17 @@
-import {
-  AntDesign,
-  Feather,
-  FontAwesome6,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { CameraMode, CameraType, CameraView } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRef, useState } from "react";
-import { Animated, Pressable, StyleSheet, Text, View } from "react-native";
+import {
+  Alert,
+  Animated,
+  Pressable,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
+import * as LocalAuthentication from "expo-local-authentication";
+import { router } from "expo-router";
 
 const CameraPage = () => {
   const ref = useRef<CameraView>(null);
@@ -19,44 +23,68 @@ const CameraPage = () => {
   const [recording, setRecording] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const cornerAnim = useRef(new Animated.Value(0)).current;
+  const [ready, setReady] = useState(false);
 
   const takePicture = async () => {
-    const photo = await ref.current?.takePictureAsync();
-    setUri(photo!.uri);
-    if (userProfile.faceImg) {
-      setIsUpdatingFace(false);
+    const result = await handleBiometricAuth();
+    if (result) {
+      const photo = await ref.current?.takePictureAsync();
+      setUri(photo!.uri);
+      if (userProfile.faceImg) {
+        setIsUpdatingFace(false);
+      }
     }
   };
 
-  const recordVideo = async () => {
-    if (recording) {
-      setRecording(false);
-      ref.current?.stopRecording();
-      return;
-    }
-    setRecording(true);
-    const video = await ref.current?.recordAsync();
-    console.log({ video });
-  };
   const toggleFacing = () => {
     setFacing((prev) => (prev === "back" ? "front" : "back"));
   };
 
-  const toggleMode = () => {
-    setMode((prev) => (prev === "picture" ? "video" : "picture"));
+  const handleBiometricAuth = async () => {
+    const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
+    if (!isBiometricAvailable) {
+      Alert.alert(
+        "Thiết bị không hỗ trợ vân tay",
+        "Vui lòng dùng thiết bị khác để xác nhận vân tay",
+        [{ text: "Quay về trang chủ", onPress: () => router.navigate("/") }],
+      );
+    }
+
+    let supportedBiometrics;
+    if (isBiometricAvailable) {
+      supportedBiometrics =
+        await LocalAuthentication.supportedAuthenticationTypesAsync();
+    }
+    const savedBiometrics = await LocalAuthentication.isEnrolledAsync();
+    if (!savedBiometrics) {
+      Alert.alert("Vân tay không trùng khớp!", "Vui lòng thử lại", [
+        { text: "Quay về trang chủ", onPress: () => router.navigate("/") },
+      ]);
+    }
+    const biometricAuth = await LocalAuthentication.authenticateAsync({
+      promptMessage: "Xác nhận vân tay",
+      cancelLabel: "Hủy",
+      disableDeviceFallback: true,
+    });
+    if (biometricAuth.success) {
+      return true;
+    }
+    return false;
   };
 
   return (
-    <View style={styles.cameraWrapper}>
-      <CameraView
-        style={styles.camera}
-        ref={ref}
-        mode={mode}
-        facing={facing}
-        mute={false}
-        mirror={facing === "front"}
-        responsiveOrientationWhenOrientationLocked
-      />
+    <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
+      {ready && (
+        <CameraView
+          style={styles.camera}
+          ref={ref}
+          mode={mode}
+          facing={facing}
+          mute={false}
+          mirror={facing === "front"}
+          responsiveOrientationWhenOrientationLocked
+        />
+      )}
       {/* Face Detection Overlay */}
       <View style={styles.overlay}>
         <LinearGradient
@@ -150,27 +178,7 @@ const CameraPage = () => {
 
         {/* Bottom Controls */}
         <View style={styles.shutterContainer}>
-          <Pressable style={styles.modeToggle} onPress={toggleMode}>
-            {({ pressed }) => (
-              <View
-                style={[
-                  styles.modernModeToggle,
-                  pressed && styles.controlPressed,
-                ]}
-              >
-                {mode === "picture" ? (
-                  <Feather name="video" size={24} color="white" />
-                ) : (
-                  <AntDesign name="picture" size={24} color="white" />
-                )}
-                <Text style={styles.modeToggleText}>
-                  {mode === "picture" ? "Video" : "Ảnh"}
-                </Text>
-              </View>
-            )}
-          </Pressable>
-
-          <Pressable onPress={mode === "picture" ? takePicture : recordVideo}>
+          <Pressable onPress={takePicture}>
             {({ pressed }) => (
               <Animated.View
                 style={[
@@ -219,7 +227,6 @@ const CameraPage = () => {
 const styles = StyleSheet.create({
   cameraWrapper: {
     flex: 1,
-    position: "relative",
   },
   camera: {
     flex: 1,
@@ -390,8 +397,7 @@ const styles = StyleSheet.create({
   shutterContainer: {
     flexDirection: "row",
     alignItems: "center",
-    justifyContent: "space-between",
-    paddingHorizontal: 35,
+    justifyContent: "center",
   },
   modeToggle: {
     alignItems: "center",
