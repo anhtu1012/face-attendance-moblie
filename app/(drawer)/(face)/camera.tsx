@@ -1,7 +1,7 @@
 import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { CameraMode, CameraType, CameraView } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
@@ -12,6 +12,9 @@ import {
 } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
 import { router } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { getMissingPose } from "@/services/face/api";
+import { Pose } from "@/constants/face";
 
 const CameraPage = () => {
   const ref = useRef<CameraView>(null);
@@ -19,20 +22,35 @@ const CameraPage = () => {
   const [facing, setFacing] = useState<CameraType>("front");
   const [uri, setUri] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [isUpdatingFace, setIsUpdatingFace] = useState(false);
   const [recording, setRecording] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const cornerAnim = useRef(new Animated.Value(0)).current;
   const [ready, setReady] = useState(false);
+  const [missingPose, setMissingPose] = useState([]);
+
+  useEffect(() => {
+    const getUserProfile = async () => {
+      let userDataStr = await AsyncStorage.getItem("userProfile");
+
+      if (userDataStr) {
+        const user = JSON.parse(userDataStr);
+
+        // let missingPoseRes = await getMissingPose(user.id);
+
+        // setMissingPose(missingPoseRes.data.missingPose);
+
+        setUserProfile(user);
+      }
+    };
+
+    getUserProfile();
+  }, []);
 
   const takePicture = async () => {
     const result = await handleBiometricAuth();
     if (result) {
       const photo = await ref.current?.takePictureAsync();
       setUri(photo!.uri);
-      if (userProfile.faceImg) {
-        setIsUpdatingFace(false);
-      }
     }
   };
 
@@ -72,6 +90,20 @@ const CameraPage = () => {
     return false;
   };
 
+  const renderpose = (poseNum: Pose) => {
+    if (poseNum == Pose.UP) {
+      return "ngẫng đầu lên ";
+    } else if (poseNum == Pose.DOWN) {
+      return "cuối đầu xuống";
+    } else if (poseNum == Pose.LEFT) {
+      return "quay đầu sang trái";
+    } else if (poseNum == Pose.RIGHT) {
+      return "quay đầu sang phải";
+    } else {
+      return "nhìn thẳng";
+    }
+  };
+
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
       {ready && (
@@ -107,6 +139,12 @@ const CameraPage = () => {
           <Text style={styles.modernInstructionText}>
             Đặt khuôn mặt vào khung hình để đăng ký
           </Text>
+
+          {missingPose.length > 0 && (
+            <Text style={styles.modernInstructionText}>
+              {"Hãy " + renderpose(missingPose[0]) + "để chụp ảnh"}
+            </Text>
+          )}
         </LinearGradient>
 
         {/* Face Detection Guide */}
@@ -216,8 +254,6 @@ const CameraPage = () => {
               </Animated.View>
             )}
           </Pressable>
-
-          <View style={styles.placeholder} />
         </View>
       </View>
     </View>
