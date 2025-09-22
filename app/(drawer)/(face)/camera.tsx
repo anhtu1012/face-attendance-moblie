@@ -1,5 +1,5 @@
 import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
-import { CameraMode, CameraType, CameraView } from "expo-camera";
+import { CameraType, CameraView } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
 import { useEffect, useRef, useState } from "react";
 import {
@@ -15,15 +15,11 @@ import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getMissingPose, registerFace } from "@/services/face/api";
 import { Pose } from "@/constants/face";
-import { HttpStatusCode } from "axios";
 
 const CameraPage = () => {
   const ref = useRef<CameraView>(null);
-  const [mode, setMode] = useState<CameraMode>("picture");
   const [facing, setFacing] = useState<CameraType>("front");
-  const [uri, setUri] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<any>(null);
-  const [recording, setRecording] = useState(false);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const cornerAnim = useRef(new Animated.Value(0)).current;
   const [ready, setReady] = useState(false);
@@ -38,9 +34,6 @@ const CameraPage = () => {
 
         let missingPoseRes = await getMissingPose(user.id);
 
-        console.log("missing pose", missingPoseRes.data.missingPose);
-        console.log("front pose", Pose.FRONT);
-
         setMissingPose(missingPoseRes.data.missingPose);
 
         setUserProfile(user);
@@ -54,7 +47,6 @@ const CameraPage = () => {
     const result = await handleBiometricAuth();
     if (result) {
       const photo = await ref.current?.takePictureAsync();
-      setUri(photo!.uri);
       const faceFormData = new FormData();
       faceFormData.append("userId", userProfile.id);
       faceFormData.append("img", {
@@ -64,15 +56,21 @@ const CameraPage = () => {
       } as any);
 
       // register user's face
-      const res = await registerFace(faceFormData);
-      if (res.status != HttpStatusCode.Ok) {
-        Alert.alert("Không thể đăng ký khuôn mặt", res.data.message, [
-          { text: "Chụp lại", style: "cancel" },
-        ]);
-      }
-      // remove first pose in missingPose array
-      if (missingPose.length > 1) {
+      try {
+        await registerFace(faceFormData);
+
+        // remove first pose in missingPose array
         setMissingPose((prev) => prev.slice(1));
+      } catch (error: any) {
+        Alert.alert(
+          "Không thể đăng ký khuôn mặt",
+          error.response?.data?.message ?? "Lỗi không xác định",
+          [{ text: "Chụp lại", style: "cancel" }],
+        );
+
+        console.log(error);
+
+        console.log(error.response?.data?.message);
       }
     }
   };
@@ -135,7 +133,7 @@ const CameraPage = () => {
         <CameraView
           style={styles.camera}
           ref={ref}
-          mode={mode}
+          mode="picture"
           facing={facing}
           mute={false}
           mirror={facing === "front"}
@@ -150,14 +148,8 @@ const CameraPage = () => {
         >
           <View style={styles.statusContainer}>
             <View style={styles.modernModeIndicator}>
-              <MaterialIcons
-                name={mode === "picture" ? "camera-alt" : "videocam"}
-                size={18}
-                color="white"
-              />
-              <Text style={styles.modeText}>
-                {mode === "picture" ? "Ảnh" : "Video"}
-              </Text>
+              <MaterialIcons name={"camera-alt"} size={18} color="white" />
+              <Text style={styles.modeText}>Ảnh</Text>
             </View>
           </View>
 
@@ -263,24 +255,10 @@ const CameraPage = () => {
                   ]}
                 >
                   <LinearGradient
-                    colors={
-                      mode === "picture"
-                        ? ["#fff", "#f0f0f0"]
-                        : recording
-                          ? ["#ff6b6b", "#ff5252"]
-                          : ["#ff6b6b", "#ff5252"]
-                    }
+                    colors={["#fff", "#f0f0f0"]}
                     style={styles.shutterGradient}
                   />
-                  {recording && (
-                    <View style={styles.modernRecordingIndicator}>
-                      <View style={styles.recordingPulse} />
-                    </View>
-                  )}
                 </View>
-                {recording && (
-                  <Text style={styles.modernRecordingText}>REC</Text>
-                )}
               </Animated.View>
             )}
           </Pressable>
