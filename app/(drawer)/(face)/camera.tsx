@@ -35,9 +35,9 @@ const CameraPage = () => {
       if (userDataStr) {
         const user = JSON.parse(userDataStr);
 
-        // let missingPoseRes = await getMissingPose(user.id);
+        let missingPoseRes = await getMissingPose(user.id);
 
-        // setMissingPose(missingPoseRes.data.missingPose);
+        setMissingPose(missingPoseRes.data.missingPose);
 
         setUserProfile(user);
       }
