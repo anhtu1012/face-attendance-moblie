@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "face-attendance-mobile",
+    "name": "Face Attendance Mobile",
     "slug": "face-attendance-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -19,7 +19,9 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.huangphucc.faceattendancemobile",
+      "googleServicesFile": "./google-services.json"
     },
     "web": {
       "output": "static",
@@ -43,6 +45,12 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "3e0e0287-1ca0-45b1-b4cc-40be5f9b31e8"
+      }
     }
   }
 }

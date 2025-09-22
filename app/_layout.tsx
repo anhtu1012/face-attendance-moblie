@@ -5,13 +5,14 @@ import {
 } from "@react-navigation/native";
 import { Stack } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import React from "react";
+import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useColorScheme } from "@/hooks/use-color-scheme";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { Text, View } from "react-native";
 import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
@@ -26,7 +27,17 @@ export const unstable_settings = {
 
 export default function RootLayout() {
   const colorScheme = useColorScheme();
+  const { expoPushToken, notification } = usePushNotifications();
+  useEffect(() => {
+    if (expoPushToken) {
+      console.log("Token: ", expoPushToken.data ?? "");
+    }
 
+    if (notification) {
+      const data = JSON.stringify(notification, undefined, 2);
+      console.log("Data: ", data);
+    }
+  }, [expoPushToken, notification]);
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
