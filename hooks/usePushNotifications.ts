@@ -25,8 +25,8 @@ export const usePushNotifications = (): PushNotificationState => {
   const [notification, setNotification] = useState<
     Notifications.Notification | undefined
   >();
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | null>(null);
+  const responseListener = useRef<Notifications.Subscription | null>(null);
 
   async function registerForPushNotificationAsync() {
     let token;
@@ -73,10 +73,8 @@ export const usePushNotifications = (): PushNotificationState => {
       }
     );
     return () => {
-      Notifications.removeNotificationSubscription(
-        notificationListener.current!
-      );
-      Notifications.removeNotificationSubscription(responseListener.current!);
+      notificationListener.current && notificationListener.current.remove();
+      responseListener.current && responseListener.current.remove();
     };
   }, []);
   return {

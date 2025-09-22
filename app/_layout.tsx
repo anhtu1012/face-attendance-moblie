@@ -19,6 +19,7 @@ import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { persistor, store } from "../lib/store";
 // import { NotificationProvider } from '@/contexts/NotificationContext';
+import { LogBox } from "react-native";
 
 export const unstable_settings = {
   // Ensure any route can link back to `/`
@@ -26,6 +27,10 @@ export const unstable_settings = {
 };
 
 export default function RootLayout() {
+  LogBox.ignoreLogs([
+    "expo-notifications: Android Push notifications",
+    "functionality provided by expo-notifications was removed from Expo Go",
+  ]);
   const colorScheme = useColorScheme();
   const { expoPushToken, notification } = usePushNotifications();
   useEffect(() => {
@@ -38,6 +43,7 @@ export default function RootLayout() {
       console.log("Data: ", data);
     }
   }, [expoPushToken, notification]);
+
   return (
     <Provider store={store}>
       <PersistGate loading={null} persistor={persistor}>
