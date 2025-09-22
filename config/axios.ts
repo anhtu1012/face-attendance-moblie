@@ -12,9 +12,6 @@ api.interceptors.request.use(
     //chạy trước khi call api
     const token = store.getState().auth.accessToken;
     const refreshToken = store.getState().auth.refreshToken;
-    if (!token) {
-      return Promise.reject(new Error("No token"));
-    }
     try {
       const base64Url = token.split(".")[1];
       const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
