@@ -1,6 +1,7 @@
 import TodayWidget from "@/components/Home/TodayWidget";
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Dimensions,
@@ -118,7 +119,7 @@ function HomePage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuoteIndex(
-        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length
+        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length,
       );
     }, 5000);
 
@@ -174,7 +175,10 @@ function HomePage() {
                 </Text>
               </View>
             </View>
-            <TouchableOpacity style={styles.faceRegisterButton}>
+            <TouchableOpacity
+              style={styles.faceRegisterButton}
+              onPress={() => router.replace("/(drawer)/(face)/face-register")}
+            >
               <Text style={styles.faceRegisterButtonText}>Đăng ký ngay</Text>
               <AntDesign name="account-book" size={16} color="#fff" />
             </TouchableOpacity>

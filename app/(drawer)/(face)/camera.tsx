@@ -13,8 +13,9 @@ import {
 import * as LocalAuthentication from "expo-local-authentication";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getMissingPose } from "@/services/face/api";
+import { getMissingPose, registerFace } from "@/services/face/api";
 import { Pose } from "@/constants/face";
+import { HttpStatusCode } from "axios";
 
 const CameraPage = () => {
   const ref = useRef<CameraView>(null);
@@ -26,7 +27,7 @@ const CameraPage = () => {
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const cornerAnim = useRef(new Animated.Value(0)).current;
   const [ready, setReady] = useState(false);
-  const [missingPose, setMissingPose] = useState([]);
+  const [missingPose, setMissingPose] = useState<any[]>([]);
 
   useEffect(() => {
     const getUserProfile = async () => {
@@ -36,6 +37,9 @@ const CameraPage = () => {
         const user = JSON.parse(userDataStr);
 
         let missingPoseRes = await getMissingPose(user.id);
+
+        console.log("missing pose", missingPoseRes.data.missingPose);
+        console.log("front pose", Pose.FRONT);
 
         setMissingPose(missingPoseRes.data.missingPose);
 
@@ -51,6 +55,25 @@ const CameraPage = () => {
     if (result) {
       const photo = await ref.current?.takePictureAsync();
       setUri(photo!.uri);
+      const faceFormData = new FormData();
+      faceFormData.append("userId", userProfile.id);
+      faceFormData.append("img", {
+        uri: photo!.uri,
+        type: "image/jpeg",
+        name: "face.jpg",
+      } as any);
+
+      // register user's face
+      const res = await registerFace(faceFormData);
+      if (res.status != HttpStatusCode.Ok) {
+        Alert.alert("Không thể đăng ký khuôn mặt", res.data.message, [
+          { text: "Chụp lại", style: "cancel" },
+        ]);
+      }
+      // remove first pose in missingPose array
+      if (missingPose.length > 1) {
+        setMissingPose((prev) => prev.slice(1));
+      }
     }
   };
 
@@ -91,15 +114,17 @@ const CameraPage = () => {
   };
 
   const renderpose = (poseNum: Pose) => {
+    console.log("current pose", poseNum);
+
     if (poseNum == Pose.UP) {
-      return "ngẫng đầu lên ";
+      return "ngẫng đầu lên";
     } else if (poseNum == Pose.DOWN) {
       return "cuối đầu xuống";
     } else if (poseNum == Pose.LEFT) {
       return "quay đầu sang trái";
     } else if (poseNum == Pose.RIGHT) {
       return "quay đầu sang phải";
-    } else {
+    } else if (poseNum == Pose.FRONT) {
       return "nhìn thẳng";
     }
   };
@@ -136,13 +161,18 @@ const CameraPage = () => {
             </View>
           </View>
 
-          <Text style={styles.modernInstructionText}>
-            Đặt khuôn mặt vào khung hình để đăng ký
-          </Text>
-
+          {missingPose.length > 0 ? (
+            <Text style={styles.modernInstructionText}>
+              Đặt khuôn mặt vào khung hình để đăng ký
+            </Text>
+          ) : (
+            <Text style={styles.modernInstructionText}>
+              Bạn đã đăng ký đầy đủ hình ảnh!
+            </Text>
+          )}
           {missingPose.length > 0 && (
             <Text style={styles.modernInstructionText}>
-              {"Hãy " + renderpose(missingPose[0]) + "để chụp ảnh"}
+              {"Hãy " + renderpose(missingPose[0]) + " để chụp ảnh"}
             </Text>
           )}
         </LinearGradient>

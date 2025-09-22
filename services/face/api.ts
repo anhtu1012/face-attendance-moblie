@@ -20,6 +20,8 @@ export const getMissingPose = (userId: string) => {
 };
 
 export const registerFace = (values: FormData) => {
+  console.log(`${BASE_URL}/register`);
+
   return axios.post(`${BASE_URL}/register`, values, {
     headers: {
       "Content-Type": "multipart/form-data",

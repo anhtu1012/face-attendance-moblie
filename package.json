@@ -54,7 +54,7 @@
     "expo-notifications": "~0.32.11",
     "expo-device": "~8.0.8",
     "@expo/config-plugins": "~54.0.1",
-    "expo-dev-client": "~6.0.12"
+    "expo-dev-client": "~6.0.12",
     "expo-local-authentication": "~17.0.7"
   },
   "devDependencies": {
