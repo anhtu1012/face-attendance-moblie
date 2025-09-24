@@ -21,6 +21,7 @@ export const getMissingPose = (userId: string) => {
 
 export const registerFace = (values: FormData) => {
   console.log(`${BASE_URL}/register`);
+  console.log("form data: ", values);
 
   return axios.post(`${BASE_URL}/register`, values, {
     headers: {

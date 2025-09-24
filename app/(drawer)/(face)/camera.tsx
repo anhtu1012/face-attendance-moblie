@@ -15,9 +15,11 @@ import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getMissingPose, registerFace } from "@/services/face/api";
 import { Pose } from "@/constants/face";
+import { useIsFocused } from "@react-navigation/native";
 
 const CameraPage = () => {
   const ref = useRef<CameraView>(null);
+  const isFocused = useIsFocused();
   const [facing, setFacing] = useState<CameraType>("front");
   const [userProfile, setUserProfile] = useState<any>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -40,13 +42,17 @@ const CameraPage = () => {
       }
     };
 
-    getUserProfile();
-  }, []);
+    if (isFocused) getUserProfile();
+  }, [isFocused]);
 
   const takePicture = async () => {
     const result = await handleBiometricAuth();
     if (result) {
       const photo = await ref.current?.takePictureAsync();
+      console.log("uri: ", photo?.uri);
+      console.log("userId: ", userProfile.id);
+      console.log("chekcedPose: ", missingPose[0]);
+
       const faceFormData = new FormData();
       faceFormData.append("userId", userProfile.id);
       faceFormData.append("img", {
@@ -54,6 +60,7 @@ const CameraPage = () => {
         type: "image/jpeg",
         name: "face.jpg",
       } as any);
+      faceFormData.append("checkedPose", missingPose[0]);
 
       // register user's face
       try {
@@ -136,7 +143,6 @@ const CameraPage = () => {
           mode="picture"
           facing={facing}
           mute={false}
-          mirror={facing === "front"}
           responsiveOrientationWhenOrientationLocked
         />
       )}
