@@ -151,7 +151,7 @@ export default function DrawerLayout() {
         </View>
       );
     },
-    [handleLogout, notificationCount]
+    [handleLogout, notificationCount],
   );
 
   return (
@@ -188,7 +188,7 @@ export default function DrawerLayout() {
           }}
         />
         <Drawer.Screen
-          name="face-register"
+          name="(face)/face-register"
           options={{
             drawerLabel: "Đăng ký khuôn mặt",
             title: "Đăng ký khuôn mặt",
