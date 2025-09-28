@@ -129,7 +129,7 @@ export default function NotificationPage() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <LinearGradient colors={["#3674B5", "#2196F3"]} style={styles.header}>
         <Text style={styles.headerTitle}>Thông báo</Text>
         <Text style={styles.headerSubtitle}>
