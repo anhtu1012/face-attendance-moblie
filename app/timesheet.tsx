@@ -95,7 +95,7 @@ export default function TimesheetScreen() {
   );
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <LinearGradient
         colors={["#3674B5", "#2196F3"]}
         start={{ x: 0, y: 0 }}

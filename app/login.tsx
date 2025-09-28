@@ -19,7 +19,10 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
@@ -47,6 +50,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
   const [password, setPassword] = React.useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -66,6 +70,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
               type: "info",
               text1: "Phiên đăng nhập đã hết hạn",
               text1Style: { textAlign: "center", fontSize: 16 },
+              topOffset: insets.top + 10,
             });
           }
         }
@@ -110,11 +115,6 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
     try {
       console.log("Logging in with:", { userName, password });
       const response = await loginUser({ username: userName, password });
-      Toast.show({
-        type: "success",
-        text1: "Đăng nhập thành công!",
-        text1Style: { textAlign: "center", fontSize: 16 },
-      });
       console.log("Login response:", response.data.userProfile);
       await AsyncStorage.setItem("token", response.data.accessToken);
       await AsyncStorage.setItem(
@@ -130,6 +130,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
           error.response?.data?.message || error.message
         }`,
         text1Style: { textAlign: "center", fontSize: 16 },
+        topOffset: insets.top + 10,
       });
     }
   };
@@ -142,7 +143,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={[styles.container]}>
-          <StatusBar barStyle="light-content" />
+          <StatusBar barStyle="dark-content" />
           <LinearGradient
             colors={["#3674B5", "#2196F3"]}
             style={styles.gradientContainer}

@@ -102,7 +102,7 @@ export default function RootLayout() {
                     />
                   </Stack>
                 </SafeAreaView>
-                <StatusBar style="auto" />
+                <StatusBar style="dark" />
                 <Toast
                   config={{
                     SUCCESS: (props) => (

@@ -110,7 +110,7 @@ export default function ModalScreen() {
   };
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <LinearGradient colors={["#3674B5", "#2196F3"]} style={styles.header}>
         <TouchableOpacity style={styles.closeButton} onPress={handleGoHome}>
           <AntDesign name="close" size={24} color="#fff" />

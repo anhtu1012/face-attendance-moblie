@@ -1,5 +1,6 @@
 import TodayWidget from "@/components/Home/TodayWidget";
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
+import { getUserProfileFromStorage } from "@/utils/userProfileUtils";
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -70,7 +71,6 @@ const fakeSchedule: WorkingSchedule = {
   positionName: "Nhân viên",
   managerFullName: "Tran Thi B",
 };
-
 function HomePage() {
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   const [forms, setForms] = useState<FormDescription[]>([]);
@@ -119,13 +119,21 @@ function HomePage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuoteIndex(
-        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length,
+        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length
       );
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
-
+  useEffect(() => {
+    (async () => {
+      const userProfile = await getUserProfileFromStorage();
+      if (userProfile) {
+        console.log("user: ", userProfile);
+        setUserProfile(userProfile);
+      }
+    })();
+  }, []);
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
