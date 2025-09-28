@@ -88,11 +88,11 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      onKeyboardShow,
+      onKeyboardShow
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      onKeyboardHide,
+      onKeyboardHide
     );
 
     return () => {
@@ -119,7 +119,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       await AsyncStorage.setItem("token", response.data.accessToken);
       await AsyncStorage.setItem(
         "userProfile",
-        JSON.stringify(response.data.userProfile),
+        JSON.stringify(response.data.userProfile)
       );
       dispatch(setAuthData(response.data));
       router.replace("/(drawer)" as any);
@@ -141,7 +141,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={[styles.container, { marginBottom: keyboardOffset }]}>
+        <View style={[styles.container]}>
           <StatusBar barStyle="light-content" />
           <LinearGradient
             colors={["#3674B5", "#2196F3"]}
@@ -240,15 +240,6 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                     <Text style={styles.buttonText}>ĐĂNG NHẬP</Text>
                   </LinearGradient>
                 </TouchableOpacity>
-
-                <View style={styles.footerContainer}>
-                  <Text style={styles.footerText}>
-                    Chưa có tài khoản?{" "}
-                    <TouchableOpacity>
-                      <Text style={styles.registerText}>Đăng ký</Text>
-                    </TouchableOpacity>
-                  </Text>
-                </View>
               </View>
             </View>
           </LinearGradient>
