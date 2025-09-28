@@ -1,13 +1,15 @@
 import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
 import { CameraType, CameraView } from "expo-camera";
 import { LinearGradient } from "expo-linear-gradient";
+import Constants from "expo-constants";
+import * as Progress from "react-native-progress";
 import { useEffect, useRef, useState } from "react";
 import {
   Alert,
   Animated,
+  Text,
   Pressable,
   StyleSheet,
-  Text,
   View,
 } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
@@ -16,11 +18,23 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getMissingPose, registerFace } from "@/services/face/api";
 import { Pose } from "@/constants/face";
 import { useIsFocused } from "@react-navigation/native";
+import { GradientProgress } from "@/components/ui/GradientProgress";
+
+const FaceGuide = {
+  width: 30,
+  height: 30,
+  top: 125,
+  bottom: -60,
+  horizontal: 10,
+  borderVerticalWidth: 3,
+  borderHorizontalWidth: 3,
+  radius: 20,
+  color: "#fefcfb",
+};
 
 const CameraPage = () => {
   const ref = useRef<CameraView>(null);
   const isFocused = useIsFocused();
-  const [facing, setFacing] = useState<CameraType>("front");
   const [userProfile, setUserProfile] = useState<any>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
   const cornerAnim = useRef(new Animated.Value(0)).current;
@@ -82,10 +96,6 @@ const CameraPage = () => {
     }
   };
 
-  const toggleFacing = () => {
-    setFacing((prev) => (prev === "back" ? "front" : "back"));
-  };
-
   const handleBiometricAuth = async () => {
     const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
     if (!isBiometricAvailable) {
@@ -136,45 +146,19 @@ const CameraPage = () => {
 
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
+      <Text style={styles.title}>Đăng ký khuôn mặt</Text>
       {ready && (
         <CameraView
           style={styles.camera}
           ref={ref}
           mode="picture"
-          facing={facing}
+          facing="front"
           mute={false}
           responsiveOrientationWhenOrientationLocked
         />
       )}
       {/* Face Detection Overlay */}
       <View style={styles.overlay}>
-        <LinearGradient
-          colors={["rgba(0,0,0,0.7)", "transparent"]}
-          style={styles.topOverlay}
-        >
-          <View style={styles.statusContainer}>
-            <View style={styles.modernModeIndicator}>
-              <MaterialIcons name={"camera-alt"} size={18} color="white" />
-              <Text style={styles.modeText}>Ảnh</Text>
-            </View>
-          </View>
-
-          {missingPose.length > 0 ? (
-            <Text style={styles.modernInstructionText}>
-              Đặt khuôn mặt vào khung hình để đăng ký
-            </Text>
-          ) : (
-            <Text style={styles.modernInstructionText}>
-              Bạn đã đăng ký đầy đủ hình ảnh!
-            </Text>
-          )}
-          {missingPose.length > 0 && (
-            <Text style={styles.modernInstructionText}>
-              {"Hãy " + renderpose(missingPose[0]) + " để chụp ảnh"}
-            </Text>
-          )}
-        </LinearGradient>
-
         {/* Face Detection Guide */}
         <View style={styles.faceGuideContainer}>
           <View style={styles.faceGuide}>
@@ -214,36 +198,39 @@ const CameraPage = () => {
                 },
               ]}
             />
-            <View style={styles.scanLine} />
           </View>
         </View>
+      </View>
+      <View style={styles.textContainer}>
+        {missingPose.length > 0 ? (
+          <Text style={styles.modernInstructionText}>
+            {"Hãy " + renderpose(missingPose[0]) + " để chụp ảnh"}
+          </Text>
+        ) : (
+          <Text style={styles.modernInstructionText}>
+            Bạn đã đăng ký đầy đủ hình ảnh!
+          </Text>
+        )}
+      </View>
 
-        <LinearGradient
-          colors={["transparent", "rgba(0,0,0,0.7)"]}
-          style={styles.bottomOverlay}
+      {/* Progress bar */}
+      <View style={{ alignItems: "center", marginTop: 20 }}>
+        <GradientProgress
+          progress={(5 - missingPose.length) / 5}
+          width={250}
+          height={12}
+          duration={600} // animation speed
         />
       </View>
 
       {/* Camera Controls */}
       <View style={styles.controlsContainer}>
         {/* Top Controls */}
-        <View style={styles.topControls}>
-          <Pressable style={styles.controlButton} onPress={toggleFacing}>
-            {({ pressed }) => (
-              <View
-                style={[
-                  styles.modernControlButton,
-                  pressed && styles.controlPressed,
-                ]}
-              >
-                <FontAwesome6 name="rotate" size={20} color="white" />
-              </View>
-            )}
-          </Pressable>
-        </View>
+        <View style={styles.topControls}></View>
 
         {/* Bottom Controls */}
         <View style={styles.shutterContainer}>
+          {/*  
           <Pressable onPress={takePicture}>
             {({ pressed }) => (
               <Animated.View
@@ -260,14 +247,11 @@ const CameraPage = () => {
                     },
                   ]}
                 >
-                  <LinearGradient
-                    colors={["#fff", "#f0f0f0"]}
-                    style={styles.shutterGradient}
-                  />
                 </View>
               </Animated.View>
             )}
           </Pressable>
+          */}
         </View>
       </View>
     </View>
@@ -277,10 +261,22 @@ const CameraPage = () => {
 const styles = StyleSheet.create({
   cameraWrapper: {
     flex: 1,
+    backgroundColor: "#ffffff",
+  },
+  title: {
+    color: "#292834",
+    fontSize: 17,
+    fontWeight: "600",
+    textAlign: "center",
+    letterSpacing: 0.5,
+    marginTop: "15%",
+    marginBottom: "5%",
   },
   camera: {
-    flex: 1,
-    width: "100%",
+    height: "50%",
+    width: "90%",
+    marginHorizontal: "auto",
+    borderRadius: 25,
   },
 
   // Modern overlay styles
@@ -316,26 +312,26 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
   },
+  textContainer: {
+    marginTop: 30,
+  },
   modeText: {
     color: "white",
     fontSize: 15,
     fontWeight: "600",
   },
   modernInstructionText: {
-    color: "white",
-    fontSize: 15,
-    fontWeight: "600",
+    color: "#292834",
+    fontSize: 17,
+    fontWeight: "800",
     textAlign: "center",
-    textShadowColor: "rgba(0,0,0,0.8)",
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 4,
     letterSpacing: 0.5,
+    marginTop: "10%",
   },
   // Enhanced face detection guide
   faceGuideContainer: {
     alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: 50,
+    justifyContent: "flex-start",
   },
   faceGuide: {
     width: 300,
@@ -344,57 +340,57 @@ const styles = StyleSheet.create({
   },
   cornerTopLeft: {
     position: "absolute",
-    top: 0,
-    left: 0,
-    width: 50,
-    height: 50,
-    borderTopWidth: 5,
-    borderLeftWidth: 5,
-    borderColor: "#4facfe",
-    borderTopLeftRadius: 12,
-    shadowColor: "#4facfe",
+    top: FaceGuide.top,
+    left: FaceGuide.horizontal,
+    width: FaceGuide.width,
+    height: FaceGuide.height,
+    borderTopWidth: FaceGuide.borderVerticalWidth,
+    borderLeftWidth: FaceGuide.borderHorizontalWidth,
+    borderColor: FaceGuide.color,
+    borderTopLeftRadius: FaceGuide.radius,
+    shadowColor: FaceGuide.color,
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 8,
   },
   cornerTopRight: {
     position: "absolute",
-    top: 0,
-    right: 0,
-    width: 50,
-    height: 50,
-    borderTopWidth: 5,
-    borderRightWidth: 5,
-    borderColor: "#4facfe",
-    borderTopRightRadius: 12,
-    shadowColor: "#4facfe",
+    top: FaceGuide.top,
+    right: FaceGuide.horizontal,
+    width: FaceGuide.width,
+    height: FaceGuide.height,
+    borderTopWidth: FaceGuide.borderVerticalWidth,
+    borderRightWidth: FaceGuide.borderHorizontalWidth,
+    borderColor: FaceGuide.color,
+    borderTopRightRadius: FaceGuide.radius,
+    shadowColor: FaceGuide.color,
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 8,
   },
   cornerBottomLeft: {
     position: "absolute",
-    bottom: 50,
-    left: 0,
-    width: 50,
-    height: 50,
-    borderBottomWidth: 5,
-    borderLeftWidth: 5,
-    borderColor: "#4facfe",
-    borderBottomLeftRadius: 12,
-    shadowColor: "#4facfe",
+    bottom: FaceGuide.bottom,
+    left: FaceGuide.horizontal,
+    width: FaceGuide.width,
+    height: FaceGuide.height,
+    borderBottomWidth: FaceGuide.borderVerticalWidth,
+    borderLeftWidth: FaceGuide.borderHorizontalWidth,
+    borderColor: FaceGuide.color,
+    borderBottomLeftRadius: FaceGuide.radius,
+    shadowColor: FaceGuide.color,
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 8,
   },
   cornerBottomRight: {
     position: "absolute",
-    bottom: 50,
-    right: 0,
-    width: 50,
-    height: 50,
-    borderBottomWidth: 5,
-    borderRightWidth: 5,
-    borderColor: "#4facfe",
-    borderBottomRightRadius: 12,
-    shadowColor: "#4facfe",
+    bottom: FaceGuide.bottom,
+    right: FaceGuide.horizontal,
+    width: FaceGuide.width,
+    height: FaceGuide.height,
+    borderBottomWidth: FaceGuide.borderVerticalWidth,
+    borderRightWidth: FaceGuide.borderHorizontalWidth,
+    borderColor: FaceGuide.color,
+    borderBottomRightRadius: FaceGuide.radius,
+    shadowColor: FaceGuide.color,
     shadowOffset: { width: 0, height: 0 },
     shadowRadius: 8,
   },
