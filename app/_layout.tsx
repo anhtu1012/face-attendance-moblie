@@ -8,7 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import { SafeAreaProvider } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useColorScheme } from "@/hooks/use-color-scheme";
@@ -54,49 +54,54 @@ export default function RootLayout() {
               <ThemeProvider
                 value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
               >
-                <Stack>
-                  <Stack.Screen
-                    name="login"
-                    options={{
-                      headerShown: false,
-                      gestureEnabled: false,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="(drawer)"
-                    options={{
-                      headerShown: false,
-                      gestureEnabled: false,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="timesheet"
-                    options={{
-                      headerShown: false,
-                      presentation: "modal",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="form-detail"
-                    options={{
-                      headerShown: false,
-                      presentation: "modal",
-                    }}
-                  />
-                  <Stack.Screen
-                    name="form-list"
-                    options={{
-                      headerShown: false,
-                    }}
-                  />
-                  <Stack.Screen
-                    name="form-detail-view"
-                    options={{
-                      headerShown: false,
-                      presentation: "modal",
-                    }}
-                  />
-                </Stack>
+                <SafeAreaView
+                  style={{ flex: 1 }}
+                  edges={["top", "left", "right", "bottom"]}
+                >
+                  <Stack>
+                    <Stack.Screen
+                      name="login"
+                      options={{
+                        headerShown: false,
+                        gestureEnabled: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="(drawer)"
+                      options={{
+                        headerShown: false,
+                        gestureEnabled: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="timesheet"
+                      options={{
+                        headerShown: false,
+                        presentation: "modal",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="form-detail"
+                      options={{
+                        headerShown: false,
+                        presentation: "modal",
+                      }}
+                    />
+                    <Stack.Screen
+                      name="form-list"
+                      options={{
+                        headerShown: false,
+                      }}
+                    />
+                    <Stack.Screen
+                      name="form-detail-view"
+                      options={{
+                        headerShown: false,
+                        presentation: "modal",
+                      }}
+                    />
+                  </Stack>
+                </SafeAreaView>
                 <StatusBar style="auto" />
                 <Toast
                   config={{

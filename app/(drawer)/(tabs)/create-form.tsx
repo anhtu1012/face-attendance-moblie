@@ -95,7 +95,7 @@ export default function CreateFormPage() {
 
   return (
     <ScrollView
-      style={[styles.container, { paddingTop: insets.top }]}
+      style={[styles.container]}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
