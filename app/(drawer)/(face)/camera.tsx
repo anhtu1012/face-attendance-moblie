@@ -1,17 +1,6 @@
-import { FontAwesome6, MaterialIcons } from "@expo/vector-icons";
-import { CameraType, CameraView } from "expo-camera";
-import { LinearGradient } from "expo-linear-gradient";
-import Constants from "expo-constants";
-import * as Progress from "react-native-progress";
+import { CameraView } from "expo-camera";
 import { useEffect, useRef, useState } from "react";
-import {
-  Alert,
-  Animated,
-  Text,
-  Pressable,
-  StyleSheet,
-  View,
-} from "react-native";
+import { Alert, Animated, Text, StyleSheet, View } from "react-native";
 import * as LocalAuthentication from "expo-local-authentication";
 import { router } from "expo-router";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -19,6 +8,18 @@ import { getMissingPose, registerFace } from "@/services/face/api";
 import { Pose } from "@/constants/face";
 import { useIsFocused } from "@react-navigation/native";
 import { GradientProgress } from "@/components/ui/GradientProgress";
+import {
+  Camera,
+  runAsync,
+  useCameraDevice,
+  useFrameProcessor,
+} from "react-native-vision-camera";
+import {
+  Face,
+  useFaceDetector,
+  FaceDetectionOptions,
+} from "react-native-vision-camera-face-detector";
+import { Worklets } from "react-native-worklets-core";
 
 const FaceGuide = {
   width: 30,
@@ -40,6 +41,52 @@ const CameraPage = () => {
   const cornerAnim = useRef(new Animated.Value(0)).current;
   const [ready, setReady] = useState(false);
   const [missingPose, setMissingPose] = useState<any[]>([]);
+  const faceDetectionOptions = useRef<FaceDetectionOptions>({
+    // detection options
+  }).current;
+
+  const device = useCameraDevice("front");
+  const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
+
+  useEffect(() => {
+    return () => {
+      // you must call `stopListeners` when current component is unmounted
+      stopListeners();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!device) {
+      // you must call `stopListeners` when `Camera` component is unmounted
+      stopListeners();
+      return;
+    }
+
+    (async () => {
+      const status = await Camera.requestCameraPermission();
+      console.log({ status });
+    })();
+  }, [device]);
+
+  const handleDetectedFaces = Worklets.createRunOnJS((faces: Face[]) => {
+    console.log("faces detected", faces);
+  });
+
+  const frameProcessor = useFrameProcessor(
+    (frame) => {
+      "worklet";
+      runAsync(frame, () => {
+        "worklet";
+        const faces = detectFaces(frame);
+        // ... chain some asynchronous frame processor
+        // ... do something asynchronously with frame
+        handleDetectedFaces(faces);
+      });
+      // ... chain frame processors
+      // ... do something with frame
+    },
+    [handleDetectedFaces],
+  );
 
   useEffect(() => {
     const getUserProfile = async () => {
@@ -147,14 +194,20 @@ const CameraPage = () => {
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
       <Text style={styles.title}>Đăng ký khuôn mặt</Text>
-      {ready && (
-        <CameraView
+      {ready && device && (
+        // <CameraView
+        //   style={styles.camera}
+        //   ref={ref}
+        //   mode="picture"
+        //   facing="front"
+        //   mute={false}
+        //   responsiveOrientationWhenOrientationLocked
+        // />
+        <Camera
           style={styles.camera}
-          ref={ref}
-          mode="picture"
-          facing="front"
-          mute={false}
-          responsiveOrientationWhenOrientationLocked
+          device={device}
+          isActive={true}
+          frameProcessor={frameProcessor}
         />
       )}
       {/* Face Detection Overlay */}
