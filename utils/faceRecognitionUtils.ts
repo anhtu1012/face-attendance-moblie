@@ -1,14 +1,9 @@
 import { Pose } from "@/constants/face";
 
-export const classifyPose = (
-  yaw: number,
-  pitch: number,
-  yaw_thresh = 20,
-  pitch_thresh = 15,
-) => {
-  if (yaw > yaw_thresh) return Pose.RIGHT;
-  else if (yaw < -yaw_thresh) return Pose.LEFT;
-  else if (pitch > pitch_thresh) return Pose.UP;
-  else if (pitch < -pitch_thresh) return Pose.DOWN;
+export const classifyPose = (yaw: number, pitch: number) => {
+  if (yaw < -15) return Pose.LEFT;
+  if (yaw > 15) return Pose.RIGHT;
+  if (pitch < -10) return Pose.DOWN;
+  if (pitch > 10) return Pose.UP;
   else return Pose.FRONT;
 };

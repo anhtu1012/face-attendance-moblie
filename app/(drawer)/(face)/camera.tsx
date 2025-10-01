@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Text, StyleSheet, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getMissingPose, registerFace } from "@/services/face/api";
@@ -18,6 +18,8 @@ import {
 } from "react-native-vision-camera-face-detector";
 import { Worklets } from "react-native-worklets-core";
 import { classifyPose } from "@/utils/faceRecognitionUtils";
+import * as Brightness from "expo-brightness";
+import { useFocusEffect } from "expo-router";
 
 const FaceGuide = {
   width: 30,
@@ -44,6 +46,32 @@ const CameraPage = () => {
   const device = useCameraDevice("front");
   const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
 
+  useFocusEffect(
+    useCallback(() => {
+      let previousBrightness: number;
+
+      Brightness.getSystemBrightnessAsync().then((value) => {
+        previousBrightness = value;
+        Brightness.setSystemBrightnessAsync(1); // set to max when focused
+      });
+
+      return () => {
+        if (previousBrightness !== undefined) {
+          Brightness.setSystemBrightnessAsync(previousBrightness);
+        } else {
+          Brightness.restoreSystemBrightnessAsync(); // fallback
+        }
+      };
+    }, []),
+  );
+
+  // load brightness
+  useEffect(() => {
+    (async () => {
+      await Brightness.requestPermissionsAsync();
+    })();
+  }, []);
+
   useEffect(() => {
     return () => {
       // you must call `stopListeners` when current component is unmounted
@@ -51,6 +79,7 @@ const CameraPage = () => {
     };
   }, []);
 
+  // Load camera permission
   useEffect(() => {
     if (!device) {
       // you must call `stopListeners` when `Camera` component is unmounted
@@ -81,6 +110,7 @@ const CameraPage = () => {
     // Get current pose
     const face = faces[0];
     const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
+    // console.log(face);
 
     // check if current pose match missing pose
     const handleRegisterFace = async () => {
@@ -157,9 +187,9 @@ const CameraPage = () => {
     } else if (poseNum == Pose.DOWN) {
       return "cuối đầu xuống";
     } else if (poseNum == Pose.LEFT) {
-      return "quay đầu sang trái";
-    } else if (poseNum == Pose.RIGHT) {
       return "quay đầu sang phải";
+    } else if (poseNum == Pose.RIGHT) {
+      return "quay đầu sang trái";
     } else if (poseNum == Pose.FRONT) {
       return "nhìn thẳng";
     }
