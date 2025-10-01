@@ -20,6 +20,7 @@ import { Worklets } from "react-native-worklets-core";
 import { classifyPose } from "@/utils/faceRecognitionUtils";
 import * as Brightness from "expo-brightness";
 import { useFocusEffect } from "expo-router";
+import * as Haptics from "expo-haptics";
 
 const FaceGuide = {
   width: 30,
@@ -134,13 +135,14 @@ const CameraPage = () => {
       try {
         await registerFace(faceFormData);
 
-        console.log("Register pose!");
+        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+
+        console.log("✅ Register pose!");
 
         // remove first pose in missingPose array
         setMissingPose((prev) => prev.slice(1));
       } catch (error: any) {
         console.log(error);
-
         console.log(error.response?.data?.message);
       } finally {
         isRegistering = false;
