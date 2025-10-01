@@ -20,6 +20,7 @@ import {
   FaceDetectionOptions,
 } from "react-native-vision-camera-face-detector";
 import { Worklets } from "react-native-worklets-core";
+import { classify_pose } from "@/utils/faceRecognitionUtils";
 
 const FaceGuide = {
   width: 30,
@@ -44,7 +45,6 @@ const CameraPage = () => {
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
     // detection options
   }).current;
-
   const device = useCameraDevice("front");
   const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
 
@@ -69,7 +69,15 @@ const CameraPage = () => {
   }, [device]);
 
   const handleDetectedFaces = Worklets.createRunOnJS((faces: Face[]) => {
-    console.log("faces detected", faces);
+    const face = faces[0];
+    if (faces.length > 1) console.log("Multiple faces detected");
+    else {
+      console.log(
+        face
+          ? classify_pose(face.yawAngle, face.pitchAngle)
+          : "No face detected",
+      );
+    }
   });
 
   const frameProcessor = useFrameProcessor(
@@ -203,12 +211,14 @@ const CameraPage = () => {
         //   mute={false}
         //   responsiveOrientationWhenOrientationLocked
         // />
-        <Camera
-          style={styles.camera}
-          device={device}
-          isActive={true}
-          frameProcessor={frameProcessor}
-        />
+        <View style={styles.camera}>
+          <Camera
+            style={StyleSheet.absoluteFill}
+            device={device}
+            isActive={isFocused}
+            frameProcessor={isFocused ? frameProcessor : undefined}
+          />
+        </View>
       )}
       {/* Face Detection Overlay */}
       <View style={styles.overlay}>
@@ -330,6 +340,7 @@ const styles = StyleSheet.create({
     width: "90%",
     marginHorizontal: "auto",
     borderRadius: 25,
+    overflow: "hidden",
   },
 
   // Modern overlay styles
