@@ -1,8 +1,5 @@
-import { CameraView } from "expo-camera";
 import { useEffect, useRef, useState } from "react";
-import { Alert, Animated, Text, StyleSheet, View } from "react-native";
-import * as LocalAuthentication from "expo-local-authentication";
-import { router } from "expo-router";
+import { Animated, Text, StyleSheet, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getMissingPose, registerFace } from "@/services/face/api";
 import { Pose } from "@/constants/face";
@@ -20,7 +17,7 @@ import {
   FaceDetectionOptions,
 } from "react-native-vision-camera-face-detector";
 import { Worklets } from "react-native-worklets-core";
-import { classify_pose } from "@/utils/faceRecognitionUtils";
+import { classifyPose } from "@/utils/faceRecognitionUtils";
 
 const FaceGuide = {
   width: 30,
@@ -35,10 +32,9 @@ const FaceGuide = {
 };
 
 const CameraPage = () => {
-  const ref = useRef<CameraView>(null);
+  const cameraRef = useRef<Camera>(null);
   const isFocused = useIsFocused();
   const [userProfile, setUserProfile] = useState<any>(null);
-  const pulseAnim = useRef(new Animated.Value(1)).current;
   const cornerAnim = useRef(new Animated.Value(0)).current;
   const [ready, setReady] = useState(false);
   const [missingPose, setMissingPose] = useState<any[]>([]);
@@ -68,16 +64,59 @@ const CameraPage = () => {
     })();
   }, [device]);
 
+  let isRegistering = false;
   const handleDetectedFaces = Worklets.createRunOnJS((faces: Face[]) => {
-    const face = faces[0];
-    if (faces.length > 1) console.log("Multiple faces detected");
-    else {
-      console.log(
-        face
-          ? classify_pose(face.yawAngle, face.pitchAngle)
-          : "No face detected",
-      );
+    // Check if multiple faces detected
+    if (faces.length > 1) {
+      console.log("Multiple faces detected!");
+      return;
     }
+
+    // Check if no face detected
+    if (faces.length == 0) {
+      console.log("No face detected!");
+      return;
+    }
+
+    // Get current pose
+    const face = faces[0];
+    const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
+
+    // check if current pose match missing pose
+    const handleRegisterFace = async () => {
+      if (currentPose != missingPose[0]) return;
+
+      if (isRegistering) return;
+      isRegistering = true;
+
+      const photo = await cameraRef.current?.takePhoto();
+      if (!photo?.path || !userProfile.id) return;
+      const faceFormData = new FormData();
+      faceFormData.append("userId", userProfile.id);
+      faceFormData.append("img", {
+        uri: `file://${photo!.path}`,
+        type: "image/jpeg",
+        name: "face.jpg",
+      } as any);
+      faceFormData.append("checkedPose", missingPose[0]);
+
+      // register user's face
+      try {
+        await registerFace(faceFormData);
+
+        console.log("Register pose!");
+
+        // remove first pose in missingPose array
+        setMissingPose((prev) => prev.slice(1));
+      } catch (error: any) {
+        console.log(error);
+
+        console.log(error.response?.data?.message);
+      } finally {
+        isRegistering = false;
+      }
+    };
+    handleRegisterFace();
   });
 
   const frameProcessor = useFrameProcessor(
@@ -90,8 +129,6 @@ const CameraPage = () => {
         // ... do something asynchronously with frame
         handleDetectedFaces(faces);
       });
-      // ... chain frame processors
-      // ... do something with frame
     },
     [handleDetectedFaces],
   );
@@ -114,78 +151,7 @@ const CameraPage = () => {
     if (isFocused) getUserProfile();
   }, [isFocused]);
 
-  const takePicture = async () => {
-    const result = await handleBiometricAuth();
-    if (result) {
-      const photo = await ref.current?.takePictureAsync();
-      console.log("uri: ", photo?.uri);
-      console.log("userId: ", userProfile.id);
-      console.log("chekcedPose: ", missingPose[0]);
-
-      const faceFormData = new FormData();
-      faceFormData.append("userId", userProfile.id);
-      faceFormData.append("img", {
-        uri: photo!.uri,
-        type: "image/jpeg",
-        name: "face.jpg",
-      } as any);
-      faceFormData.append("checkedPose", missingPose[0]);
-
-      // register user's face
-      try {
-        await registerFace(faceFormData);
-
-        // remove first pose in missingPose array
-        setMissingPose((prev) => prev.slice(1));
-      } catch (error: any) {
-        Alert.alert(
-          "Không thể đăng ký khuôn mặt",
-          error.response?.data?.message ?? "Lỗi không xác định",
-          [{ text: "Chụp lại", style: "cancel" }],
-        );
-
-        console.log(error);
-
-        console.log(error.response?.data?.message);
-      }
-    }
-  };
-
-  const handleBiometricAuth = async () => {
-    const isBiometricAvailable = await LocalAuthentication.hasHardwareAsync();
-    if (!isBiometricAvailable) {
-      Alert.alert(
-        "Thiết bị không hỗ trợ vân tay",
-        "Vui lòng dùng thiết bị khác để xác nhận vân tay",
-        [{ text: "Quay về trang chủ", onPress: () => router.navigate("/") }],
-      );
-    }
-
-    let supportedBiometrics;
-    if (isBiometricAvailable) {
-      supportedBiometrics =
-        await LocalAuthentication.supportedAuthenticationTypesAsync();
-    }
-    const savedBiometrics = await LocalAuthentication.isEnrolledAsync();
-    if (!savedBiometrics) {
-      Alert.alert("Vân tay không trùng khớp!", "Vui lòng thử lại", [
-        { text: "Quay về trang chủ", onPress: () => router.navigate("/") },
-      ]);
-    }
-    const biometricAuth = await LocalAuthentication.authenticateAsync({
-      promptMessage: "Xác nhận vân tay",
-      cancelLabel: "Hủy",
-      disableDeviceFallback: true,
-    });
-    if (biometricAuth.success) {
-      return true;
-    }
-    return false;
-  };
-
   const renderpose = (poseNum: Pose) => {
-    console.log("current pose", poseNum);
-
     if (poseNum == Pose.UP) {
       return "ngẫng đầu lên";
     } else if (poseNum == Pose.DOWN) {
@@ -203,20 +169,14 @@ const CameraPage = () => {
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
       <Text style={styles.title}>Đăng ký khuôn mặt</Text>
       {ready && device && (
-        // <CameraView
-        //   style={styles.camera}
-        //   ref={ref}
-        //   mode="picture"
-        //   facing="front"
-        //   mute={false}
-        //   responsiveOrientationWhenOrientationLocked
-        // />
         <View style={styles.camera}>
           <Camera
+            ref={cameraRef}
             style={StyleSheet.absoluteFill}
             device={device}
             isActive={isFocused}
             frameProcessor={isFocused ? frameProcessor : undefined}
+            photo={true}
           />
         </View>
       )}
@@ -292,30 +252,7 @@ const CameraPage = () => {
         <View style={styles.topControls}></View>
 
         {/* Bottom Controls */}
-        <View style={styles.shutterContainer}>
-          {/*  
-          <Pressable onPress={takePicture}>
-            {({ pressed }) => (
-              <Animated.View
-                style={[
-                  styles.shutterButtonContainer,
-                  { transform: [{ scale: pulseAnim }] },
-                ]}
-              >
-                <View
-                  style={[
-                    styles.modernShutterBtn,
-                    {
-                      transform: [{ scale: pressed ? 0.9 : 1 }],
-                    },
-                  ]}
-                >
-                </View>
-              </Animated.View>
-            )}
-          </Pressable>
-          */}
-        </View>
+        <View style={styles.shutterContainer}></View>
       </View>
     </View>
   );
