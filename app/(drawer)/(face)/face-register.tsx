@@ -1,6 +1,7 @@
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useEffect, useState } from "react";
+import { router } from "expo-router";
+import React, { useState } from "react";
 import {
   Alert,
   ScrollView,
@@ -10,7 +11,6 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
 
 export default function FaceRegisterPage() {
   const insets = useSafeAreaInsets();
@@ -55,7 +55,7 @@ export default function FaceRegisterPage() {
               // handleBiometricAuth();
             },
           },
-        ],
+        ]
       );
     } else {
       router.replace("/(drawer)/(face)/camera");
@@ -84,7 +84,7 @@ export default function FaceRegisterPage() {
   ];
 
   return (
-    <ScrollView style={[styles.container, { paddingTop: insets.top }]}>
+    <ScrollView style={[styles.container]}>
       <LinearGradient colors={["#3674B5", "#2196F3"]} style={styles.header}>
         <MaterialIcons name="face-retouching-natural" size={60} color="#fff" />
         <Text style={styles.headerTitle}>Đăng ký khuôn mặt</Text>
@@ -177,8 +177,8 @@ export default function FaceRegisterPage() {
               registrationStep > 0
                 ? ["#ccc", "#999"]
                 : isRegistered
-                  ? ["#FF9800", "#F57C00"]
-                  : ["#4CAF50", "#45a049"]
+                ? ["#FF9800", "#F57C00"]
+                : ["#4CAF50", "#45a049"]
             }
             style={styles.actionButtonGradient}
           >
@@ -187,8 +187,8 @@ export default function FaceRegisterPage() {
                 registrationStep > 0
                   ? "hourglass-empty"
                   : isRegistered
-                    ? "refresh"
-                    : "face-retouching-natural"
+                  ? "refresh"
+                  : "face-retouching-natural"
               }
               size={20}
               color="#fff"
@@ -197,8 +197,8 @@ export default function FaceRegisterPage() {
               {registrationStep > 0
                 ? "Đang xử lý..."
                 : isRegistered
-                  ? "Đăng ký lại"
-                  : "Bắt đầu đăng ký"}
+                ? "Đăng ký lại"
+                : "Bắt đầu đăng ký"}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

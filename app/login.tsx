@@ -1,5 +1,3 @@
-import { setAuthData } from "@/lib/features/loginSlice";
-import { loginUser } from "@/services/auth/api";
 import { Feather } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { LinearGradient } from "expo-linear-gradient";
@@ -11,6 +9,7 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StatusBar,
   StyleSheet,
   Text,
@@ -19,11 +18,16 @@ import {
   TouchableWithoutFeedback,
   View,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { loginUser } from "../api/auth";
+import { setAuthData } from "../lib/features/loginSlice";
 
 import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
-
+import { LoginResponse } from "../models/auth/login";
 const { width, height } = Dimensions.get("window");
 
 export interface ILoginScreenProps {
@@ -46,7 +50,8 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = React.useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
 
   useEffect(() => {
@@ -66,6 +71,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
               type: "info",
               text1: "Phiên đăng nhập đã hết hạn",
               text1Style: { textAlign: "center", fontSize: 16 },
+              topOffset: insets.top + 10,
             });
           }
         }
@@ -79,20 +85,20 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
   useEffect(() => {
     const onKeyboardShow = (event: any) => {
-      setKeyboardOffset(event.endCoordinates.height);
+      setKeyboardHeight(event.endCoordinates.height);
     };
 
     const onKeyboardHide = () => {
-      setKeyboardOffset(0);
+      setKeyboardHeight(0);
     };
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      onKeyboardShow,
+      onKeyboardShow
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      onKeyboardHide,
+      onKeyboardHide
     );
 
     return () => {
@@ -110,19 +116,22 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
     try {
       console.log("Logging in with:", { userName, password });
       const response = await loginUser({ username: userName, password });
-      Toast.show({
-        type: "success",
-        text1: "Đăng nhập thành công!",
-        text1Style: { textAlign: "center", fontSize: 16 },
-      });
-      console.log("Login response:", response.data.userProfile);
-      await AsyncStorage.setItem("token", response.data.accessToken);
+      const loginResponse: LoginResponse = response.data;
+      await AsyncStorage.setItem("token", loginResponse.accessToken);
       await AsyncStorage.setItem(
         "userProfile",
-        JSON.stringify(response.data.userProfile),
+        JSON.stringify(loginResponse.userProfile)
       );
-      dispatch(setAuthData(response.data));
-      router.replace("/(drawer)" as any);
+      
+      dispatch(setAuthData(loginResponse));
+      const isOnboarded = false;
+      if (isOnboarded) {
+        console.log("Logged in...");
+        router.replace("/(drawer)" as any);
+      } else {
+        console.log("Onboarding...");
+        router.replace("/onboard" as any);
+      }
     } catch (error: any) {
       Toast.show({
         type: "error",
@@ -130,130 +139,131 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
           error.response?.data?.message || error.message
         }`,
         text1Style: { textAlign: "center", fontSize: 16 },
+        topOffset: insets.top + 10,
       });
     }
   };
 
   return (
     <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
+      style={styles.container}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={[styles.container, { marginBottom: keyboardOffset }]}>
-          <StatusBar barStyle="light-content" />
-          <LinearGradient
-            colors={["#3674B5", "#2196F3"]}
-            style={styles.gradientContainer}
+      <StatusBar barStyle="dark-content" />
+      <LinearGradient
+        colors={["#3674B5", "#2196F3"]}
+        style={styles.gradientContainer}
+      >
+        <SafeAreaView style={styles.safeArea}>
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+            bounces={false}
           >
-            <SafeAreaView style={styles.safeArea}>
-              {/* Logo and Header */}
-              <View style={styles.headerContainer}>
-                <Image
-                  source={require("@/assets/images/Psychologist.png")}
-                  style={styles.logo}
-                />
-                <Text style={styles.appTitle}>Attendance System</Text>
-                <Text style={styles.appSubtitle}>Employee Portal</Text>
-              </View>
-            </SafeAreaView>
-
-            {/* Login Form */}
-            <View style={styles.formContainer}>
-              <View style={styles.formCard}>
-                <Text style={styles.welcomeText}>Chào mừng trở lại!</Text>
-                <Text style={styles.loginPrompt}>Đăng nhập để tiếp tục</Text>
-
-                <View style={styles.inputContainer}>
-                  <View style={styles.iconContainer}>
-                    <Feather name="user" size={20} color="#3674B5" />
-                  </View>
-                  <TextInput
-                    onChangeText={setUserName}
-                    value={userName}
-                    placeholder="Tên đăng nhập"
-                    placeholderTextColor="#999"
-                    style={styles.input}
-                    autoCapitalize="none"
+            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+              <View style={styles.contentContainer}>
+                {/* Logo and Header */}
+                <View style={styles.headerContainer}>
+                  <Image
+                    source={require("@/assets/images/Psychologist.png")}
+                    style={styles.logo}
                   />
+                  <Text style={styles.appTitle}>Attendance System</Text>
+                  <Text style={styles.appSubtitle}>Employee Portal</Text>
                 </View>
 
-                <View style={styles.inputContainer}>
-                  <View style={styles.iconContainer}>
-                    <Feather name="lock" size={20} color="#3674B5" />
-                  </View>
-                  <TextInput
-                    onChangeText={setPassword}
-                    value={password}
-                    placeholder="Mật khẩu"
-                    placeholderTextColor="#999"
-                    style={styles.input}
-                    secureTextEntry={!isPasswordVisible}
-                  />
-                  <TouchableOpacity
-                    style={styles.eyeButton}
-                    onPress={handleEyePress}
-                  >
-                    <Feather
-                      name={isPasswordVisible ? "eye" : "eye-off"}
-                      size={20}
-                      color="#3674B5"
-                    />
-                  </TouchableOpacity>
-                </View>
+                {/* Login Form */}
+                <View style={styles.formContainer}>
+                  <View style={styles.formCard}>
+                    <Text style={styles.welcomeText}>Chào mừng trở lại!</Text>
+                    <Text style={styles.loginPrompt}>
+                      Đăng nhập để tiếp tục
+                    </Text>
 
-                <View style={styles.optionsRow}>
-                  <TouchableOpacity
-                    style={styles.rememberContainer}
-                    onPress={() => setRememberMe(!rememberMe)}
-                  >
-                    <View
-                      style={[
-                        styles.checkbox,
-                        rememberMe && styles.checkboxActive,
-                      ]}
-                    >
-                      {rememberMe && (
-                        <Feather name="check" size={12} color="#fff" />
-                      )}
+                    <View style={styles.inputContainer}>
+                      <View style={styles.iconContainer}>
+                        <Feather name="user" size={20} color="#3674B5" />
+                      </View>
+                      <TextInput
+                        onChangeText={setUserName}
+                        value={userName}
+                        placeholder="Tên đăng nhập"
+                        placeholderTextColor="#999"
+                        style={styles.input}
+                        autoCapitalize="none"
+                      />
                     </View>
-                    <Text style={styles.rememberText}>Nhớ mật khẩu</Text>
-                  </TouchableOpacity>
 
-                  <TouchableOpacity>
-                    <Text style={styles.forgotText}>Quên mật khẩu?</Text>
-                  </TouchableOpacity>
-                </View>
+                    <View style={styles.inputContainer}>
+                      <View style={styles.iconContainer}>
+                        <Feather name="lock" size={20} color="#3674B5" />
+                      </View>
+                      <TextInput
+                        onChangeText={setPassword}
+                        value={password}
+                        placeholder="Mật khẩu"
+                        placeholderTextColor="#999"
+                        style={styles.input}
+                        secureTextEntry={!isPasswordVisible}
+                      />
+                      <TouchableOpacity
+                        style={styles.eyeButton}
+                        onPress={handleEyePress}
+                      >
+                        <Feather
+                          name={isPasswordVisible ? "eye" : "eye-off"}
+                          size={20}
+                          color="#3674B5"
+                        />
+                      </TouchableOpacity>
+                    </View>
 
-                <TouchableOpacity
-                  style={styles.loginButton}
-                  onPress={handleLogin}
-                  activeOpacity={0.8}
-                >
-                  <LinearGradient
-                    colors={["#3674B5", "#2196F3"]}
-                    start={{ x: 0, y: 0 }}
-                    end={{ x: 1, y: 0 }}
-                    style={styles.buttonGradient}
-                  >
-                    <Text style={styles.buttonText}>ĐĂNG NHẬP</Text>
-                  </LinearGradient>
-                </TouchableOpacity>
+                    <View style={styles.optionsRow}>
+                      <TouchableOpacity
+                        style={styles.rememberContainer}
+                        onPress={() => setRememberMe(!rememberMe)}
+                      >
+                        <View
+                          style={[
+                            styles.checkbox,
+                            rememberMe && styles.checkboxActive,
+                          ]}
+                        >
+                          {rememberMe && (
+                            <Feather name="check" size={12} color="#fff" />
+                          )}
+                        </View>
+                        <Text style={styles.rememberText}>Nhớ mật khẩu</Text>
+                      </TouchableOpacity>
 
-                <View style={styles.footerContainer}>
-                  <Text style={styles.footerText}>
-                    Chưa có tài khoản?{" "}
-                    <TouchableOpacity>
-                      <Text style={styles.registerText}>Đăng ký</Text>
+                      <TouchableOpacity>
+                        <Text style={styles.forgotText}>Quên mật khẩu?</Text>
+                      </TouchableOpacity>
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.loginButton}
+                      onPress={handleLogin}
+                      activeOpacity={0.8}
+                    >
+                      <LinearGradient
+                        colors={["#3674B5", "#2196F3"]}
+                        start={{ x: 0, y: 0 }}
+                        end={{ x: 1, y: 0 }}
+                        style={styles.buttonGradient}
+                      >
+                        <Text style={styles.buttonText}>ĐĂNG NHẬP</Text>
+                      </LinearGradient>
                     </TouchableOpacity>
-                  </Text>
+                  </View>
                 </View>
               </View>
-            </View>
-          </LinearGradient>
-        </View>
-      </TouchableWithoutFeedback>
+            </TouchableWithoutFeedback>
+          </ScrollView>
+        </SafeAreaView>
+      </LinearGradient>
     </KeyboardAvoidingView>
   );
 };
@@ -268,10 +278,21 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
   },
+  scrollContainer: {
+    flexGrow: 1,
+    justifyContent: "center",
+    minHeight: height,
+    paddingBottom: 20,
+  },
+  contentContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
   headerContainer: {
     alignItems: "center",
     justifyContent: "center",
-    marginTop: height * 0.05,
+    marginTop: height * 0.03,
+    marginBottom: height * 0.02,
   },
   logo: {
     width: 120,
@@ -292,10 +313,12 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    marginTop: -height * 0.08,
+    paddingHorizontal: 20,
+    paddingBottom: 40,
   },
   formCard: {
-    width: width * 0.9,
+    width: "100%",
+    maxWidth: width * 0.9,
     backgroundColor: "#fff",
     borderRadius: 24,
     padding: 24,

@@ -38,7 +38,7 @@ export default function ChatAppPage() {
   ];
 
   return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
+    <View style={[styles.container]}>
       <LinearGradient colors={["#3674B5", "#2196F3"]} style={styles.header}>
         <Text style={styles.headerTitle}>Chat App</Text>
         <Text style={styles.headerSubtitle}>Kết nối với đồng nghiệp</Text>

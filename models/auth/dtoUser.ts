@@ -24,3 +24,18 @@ export interface dtoUserInfor {
   isActive?: boolean;
   note?: string;
 }
+export interface dtoUserOnboard {
+  fullName: string;
+  email: string;
+  phone: string;
+  currentAddress: string;
+  taxCode: string;
+  dependent: string; // Số người phụ thuộc
+  gender: "M" | "F";
+  birthday: Date | null;
+  citizenIdentityCard: string; // Số CMND/CCCD
+  issueDate: Date | null;
+  issueAt: string; // Nơi cấp
+  nationality: string;
+  permanentAddress: string; // Nơi thường trú
+}
