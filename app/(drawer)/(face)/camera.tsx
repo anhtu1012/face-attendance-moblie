@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Animated, Text, StyleSheet, View } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { getMissingPose, registerFace } from "@/services/face/api";
-import { Pose } from "@/constants/face";
 import { useIsFocused } from "@react-navigation/native";
 import { GradientProgress } from "@/components/ui/GradientProgress";
 import {
@@ -17,7 +16,11 @@ import {
   FaceDetectionOptions,
 } from "react-native-vision-camera-face-detector";
 import { Worklets } from "react-native-worklets-core";
-import { classifyPose } from "@/utils/faceRecognitionUtils";
+import {
+  classifyPose,
+  printCurrentPose,
+  renderpose,
+} from "@/utils/faceRecognitionUtils";
 import * as Brightness from "expo-brightness";
 import { useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
@@ -42,10 +45,13 @@ const CameraPage = () => {
   const [ready, setReady] = useState(false);
   const [missingPose, setMissingPose] = useState<any[]>([]);
   const faceDetectionOptions = useRef<FaceDetectionOptions>({
-    // detection options
+    cameraFacing: "front",
+    landmarkMode: "all",
   }).current;
   const device = useCameraDevice("front");
   const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
+  const [detectedFaces, setDetectedFaces] = useState<Face[]>([]);
+  const isRegisteringRef = useRef(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -66,14 +72,11 @@ const CameraPage = () => {
     }, []),
   );
 
-  // load brightness
   useEffect(() => {
+    // load brightness
     (async () => {
       await Brightness.requestPermissionsAsync();
     })();
-  }, []);
-
-  useEffect(() => {
     return () => {
       // you must call `stopListeners` when current component is unmounted
       stopListeners();
@@ -94,61 +97,67 @@ const CameraPage = () => {
     })();
   }, [device]);
 
-  let isRegistering = false;
-  const handleDetectedFaces = Worklets.createRunOnJS((faces: Face[]) => {
+  // flag variable to only allow one request at a time
+  const handleDetectedFaces = Worklets.createRunOnJS(async (faces: Face[]) => {
+    if (isRegisteringRef.current) return;
     // Check if multiple faces detected
+    setDetectedFaces(faces);
+
     if (faces.length > 1) {
-      console.log("Multiple faces detected!");
+      // console.log("Multiple faces detected!");
       return;
     }
 
     // Check if no face detected
     if (faces.length == 0) {
-      console.log("No face detected!");
+      // console.log("No face detected!");
       return;
     }
 
     // Get current pose
     const face = faces[0];
     const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
-    // console.log(face);
 
     // check if current pose match missing pose
-    const handleRegisterFace = async () => {
-      if (currentPose != missingPose[0]) return;
+    if (currentPose != missingPose[0]) return;
+    isRegisteringRef.current = true;
 
-      if (isRegistering) return;
-      isRegistering = true;
+    // check if photo exist
+    const photo = await cameraRef.current?.takePhoto();
+    if (!photo?.path || !userProfile.id) return;
 
-      const photo = await cameraRef.current?.takePhoto();
-      if (!photo?.path || !userProfile.id) return;
-      const faceFormData = new FormData();
-      faceFormData.append("userId", userProfile.id);
-      faceFormData.append("img", {
-        uri: `file://${photo!.path}`,
-        type: "image/jpeg",
-        name: "face.jpg",
-      } as any);
-      faceFormData.append("checkedPose", missingPose[0]);
+    // print current pose
+    console.log("current pose: ", printCurrentPose(currentPose));
+    console.log("checked pose: ", printCurrentPose(missingPose[0]));
 
-      // register user's face
-      try {
-        await registerFace(faceFormData);
+    // formdata body
+    const faceFormData = new FormData();
+    faceFormData.append("userId", userProfile.id);
+    faceFormData.append("img", {
+      uri: `file://${photo!.path}`,
+      type: "image/jpeg",
+      name: "face.jpg",
+    } as any);
+    faceFormData.append("checkedPose", missingPose[0]);
 
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+    // register user's face
+    try {
+      await registerFace(faceFormData);
 
-        console.log("✅ Register pose!");
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
-        // remove first pose in missingPose array
-        setMissingPose((prev) => prev.slice(1));
-      } catch (error: any) {
-        console.log(error);
-        console.log(error.response?.data?.message);
-      } finally {
-        isRegistering = false;
-      }
-    };
-    handleRegisterFace();
+      console.log("✅ Register pose!");
+
+      // remove first pose in missingPose array
+      setMissingPose((prev) => prev.slice(1));
+    } catch (error: any) {
+      console.log(error);
+      console.log(error.response?.data?.message);
+    } finally {
+      setTimeout(() => {
+        isRegisteringRef.current = false;
+      }, 1000);
+    }
   });
 
   const frameProcessor = useFrameProcessor(
@@ -174,6 +183,8 @@ const CameraPage = () => {
 
         let missingPoseRes = await getMissingPose(user.id);
 
+        console.log("missing pose: ", missingPoseRes.data);
+
         setMissingPose(missingPoseRes.data.missingPose);
 
         setUserProfile(user);
@@ -182,20 +193,6 @@ const CameraPage = () => {
 
     if (isFocused) getUserProfile();
   }, [isFocused]);
-
-  const renderpose = (poseNum: Pose) => {
-    if (poseNum == Pose.UP) {
-      return "ngẫng đầu lên";
-    } else if (poseNum == Pose.DOWN) {
-      return "cuối đầu xuống";
-    } else if (poseNum == Pose.LEFT) {
-      return "quay đầu sang phải";
-    } else if (poseNum == Pose.RIGHT) {
-      return "quay đầu sang trái";
-    } else if (poseNum == Pose.FRONT) {
-      return "nhìn thẳng";
-    }
-  };
 
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
@@ -210,6 +207,23 @@ const CameraPage = () => {
             frameProcessor={isFocused ? frameProcessor : undefined}
             photo={true}
           />
+
+          {/* Render bounding boxes 
+          {detectedFaces.map((face, index) => (
+            <View
+              key={index}
+              style={{
+                position: "absolute",
+                borderWidth: 2,
+                borderColor: "lime",
+                borderRadius: 8,
+                top: face.bounds.y * 0.7,
+                left: face.bounds.x * 0.7,
+                width: face.bounds.width * 0.7,
+                height: face.bounds.height * 0.7,
+              }}
+            />
+          ))}*/}
         </View>
       )}
       {/* Face Detection Overlay */}
@@ -263,7 +277,7 @@ const CameraPage = () => {
           </Text>
         ) : (
           <Text style={styles.modernInstructionText}>
-            Bạn đã đăng ký đầy đủ hình ảnh!
+            Bạn đã đăng ký đầy đủ hình ảnh
           </Text>
         )}
       </View>
@@ -271,7 +285,7 @@ const CameraPage = () => {
       {/* Progress bar */}
       <View style={{ alignItems: "center", marginTop: 20 }}>
         <GradientProgress
-          progress={(5 - missingPose.length) / 5}
+          progress={(6 - missingPose.length) / 6}
           width={250}
           height={12}
           duration={600} // animation speed
