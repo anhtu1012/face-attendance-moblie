@@ -1,5 +1,6 @@
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
+import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
@@ -15,6 +16,7 @@ export default function FaceRegisterPage() {
   const insets = useSafeAreaInsets();
   const [registrationStep, setRegistrationStep] = useState(0);
   const [isRegistered, setIsRegistered] = useState(false);
+  const [isBiometricSuccess, setIsBiometricSuccess] = useState(false);
 
   const steps = [
     {
@@ -30,7 +32,7 @@ export default function FaceRegisterPage() {
     {
       title: "Xử lý",
       description: "Hệ thống đang xử lý và lưu trữ dữ liệu",
-      icon: "loading3",
+      icon: "loading",
     },
     {
       title: "Hoàn thành",
@@ -46,11 +48,18 @@ export default function FaceRegisterPage() {
         "Bạn đã đăng ký khuôn mặt. Bạn có muốn đăng ký lại?",
         [
           { text: "Hủy", style: "cancel" },
-          { text: "Đăng ký lại", onPress: () => startRegistration() },
+          {
+            text: "Đăng ký lại",
+            onPress: () => {
+              router.replace("/(drawer)/(face)/camera");
+              // handleBiometricAuth();
+            },
+          },
         ]
       );
     } else {
-      startRegistration();
+      router.replace("/(drawer)/(face)/camera");
+      // handleBiometricAuth();
     }
   };
 
@@ -75,7 +84,7 @@ export default function FaceRegisterPage() {
   ];
 
   return (
-    <ScrollView style={[styles.container, { paddingTop: insets.top }]}>
+    <ScrollView style={[styles.container]}>
       <LinearGradient colors={["#3674B5", "#2196F3"]} style={styles.header}>
         <MaterialIcons name="face-retouching-natural" size={60} color="#fff" />
         <Text style={styles.headerTitle}>Đăng ký khuôn mặt</Text>

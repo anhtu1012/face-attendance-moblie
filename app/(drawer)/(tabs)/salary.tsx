@@ -83,7 +83,7 @@ export default function SalaryPage() {
 
   return (
     <ScrollView
-      style={[styles.container, { paddingTop: insets.top }]}
+      style={[styles.container]}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}
