@@ -143,7 +143,10 @@ function HomePage() {
             {userProfile?.fullName || "Người dùng"}
           </Text>
         </View>
-        <TouchableOpacity style={styles.avatarContainer}>
+        <TouchableOpacity
+          style={styles.avatarContainer}
+          onPress={() => router.push("/(drawer)/profile")}
+        >
           <Image
             source={
               userProfile?.faceImg
