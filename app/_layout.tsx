@@ -10,23 +10,24 @@ import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-import ErrorBoundary from "@/components/ErrorBoundary";
-import { useColorScheme } from "@/hooks/use-color-scheme";
-import { usePushNotifications } from "@/hooks/usePushNotifications";
-import { Text, View } from "react-native";
-import Toast from "react-native-toast-message";
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
+import ErrorBoundary from "../components/ErrorBoundary";
+import { useColorScheme } from "../hooks/use-color-scheme";
+import { usePushNotifications } from "../hooks/usePushNotifications";
 import { persistor, store } from "../lib/store";
 // import { NotificationProvider } from '@/contexts/NotificationContext';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LogBox } from "react-native";
-
 export const unstable_settings = {
   // Ensure any route can link back to `/`
   initialRouteName: "login",
 };
 
 export default function RootLayout() {
+  if (__DEV__) {
+    require("../ReactotronConfig");
+  }
   LogBox.ignoreLogs([
     "expo-notifications: Android Push notifications",
     "functionality provided by expo-notifications was removed from Expo Go",
@@ -43,150 +44,79 @@ export default function RootLayout() {
       console.log("Data: ", data);
     }
   }, [expoPushToken, notification]);
+  const queryClient = new QueryClient();
 
   return (
-    <Provider store={store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <SafeAreaProvider>
-            <ErrorBoundary>
-              {/* <NotificationProvider> */}
-              <ThemeProvider
-                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-              >
-                <SafeAreaView
-                  style={{ flex: 1 }}
-                  edges={["top", "left", "right", "bottom"]}
+    <SafeAreaProvider>
+      <ErrorBoundary>
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <QueryClientProvider client={queryClient}>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <ThemeProvider
+                  value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
                 >
-                  <Stack>
-                    <Stack.Screen
-                      name="login"
-                      options={{
-                        headerShown: false,
-                        gestureEnabled: false,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="(drawer)"
-                      options={{
-                        headerShown: false,
-                        gestureEnabled: false,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="timesheet"
-                      options={{
-                        headerShown: false,
-                        presentation: "modal",
-                      }}
-                    />
-                    <Stack.Screen
-                      name="form-detail"
-                      options={{
-                        headerShown: false,
-                        presentation: "modal",
-                      }}
-                    />
-                    <Stack.Screen
-                      name="form-list"
-                      options={{
-                        headerShown: false,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="form-detail-view"
-                      options={{
-                        headerShown: false,
-                        presentation: "modal",
-                      }}
-                    />
-                  </Stack>
-                </SafeAreaView>
-                <StatusBar style="dark" />
-                <Toast
-                  config={{
-                    SUCCESS: (props) => (
-                      <View
-                        style={{
-                          backgroundColor: "#4CAF50",
-                          padding: 15,
-                          borderRadius: 8,
-                          marginHorizontal: 16,
-                          marginTop: 20,
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.25,
-                          shadowRadius: 3.84,
-                          elevation: 5,
+                  <SafeAreaView
+                    style={{ flex: 1 }}
+                    edges={["top", "left", "right", "bottom"]}
+                  >
+                    <Stack>
+                      <Stack.Screen
+                        name="login"
+                        options={{
+                          headerShown: false,
+                          gestureEnabled: false,
                         }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            fontWeight: "bold",
-                            color: "#fff",
-                          }}
-                        >
-                          {props.text1}
-                        </Text>
-                        {props.text2 && (
-                          <Text
-                            style={{
-                              fontSize: 14,
-                              color: "#fff",
-                              marginTop: 4,
-                            }}
-                          >
-                            {props.text2}
-                          </Text>
-                        )}
-                      </View>
-                    ),
-                    NOTSUCCESS: (props) => (
-                      <View
-                        style={{
-                          backgroundColor: "#F44336",
-                          padding: 15,
-                          borderRadius: 8,
-                          marginHorizontal: 16,
-                          marginTop: 60,
-                          shadowColor: "#000",
-                          shadowOffset: { width: 0, height: 2 },
-                          shadowOpacity: 0.25,
-                          shadowRadius: 3.84,
-                          elevation: 5,
+                      />
+                      <Stack.Screen
+                        name="(drawer)"
+                        options={{
+                          headerShown: false,
+                          gestureEnabled: false,
                         }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 16,
-                            fontWeight: "bold",
-                            color: "#fff",
-                          }}
-                        >
-                          {props.text1}
-                        </Text>
-                        {props.text2 && (
-                          <Text
-                            style={{
-                              fontSize: 14,
-                              color: "#fff",
-                              marginTop: 4,
-                            }}
-                          >
-                            {props.text2}
-                          </Text>
-                        )}
-                      </View>
-                    ),
-                  }}
-                />
-              </ThemeProvider>
-              {/* </NotificationProvider> */}
-            </ErrorBoundary>
-          </SafeAreaProvider>
-        </GestureHandlerRootView>
-      </PersistGate>
-    </Provider>
+                      />
+                      <Stack.Screen
+                        name="timesheet"
+                        options={{
+                          headerShown: false,
+                          presentation: "modal",
+                        }}
+                      />
+                      <Stack.Screen
+                        name="form-detail"
+                        options={{
+                          headerShown: false,
+                          presentation: "modal",
+                        }}
+                      />
+                      <Stack.Screen
+                        name="form-list"
+                        options={{
+                          headerShown: false,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="onboard"
+                        options={{
+                          headerShown: false,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="form-detail-view"
+                        options={{
+                          headerShown: false,
+                          presentation: "modal",
+                        }}
+                      />
+                    </Stack>
+                  </SafeAreaView>
+                  <StatusBar style="dark" />
+                </ThemeProvider>
+              </GestureHandlerRootView>
+            </QueryClientProvider>
+          </PersistGate>
+        </Provider>
+      </ErrorBoundary>
+    </SafeAreaProvider>
   );
 }
