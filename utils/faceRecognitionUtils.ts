@@ -4,13 +4,13 @@ export const printCurrentPose = (currentPose: number) => {
   if (currentPose == Pose.TOP) {
     return "top";
   } else if (currentPose == Pose.TOP_RIGHT) {
-    return "top right";
-  } else if (currentPose == Pose.TOP_LEFT) {
     return "top left";
+  } else if (currentPose == Pose.TOP_LEFT) {
+    return "top right";
   } else if (currentPose == Pose.RIGHT) {
-    return "right";
-  } else if (currentPose == Pose.LEFT) {
     return "left";
+  } else if (currentPose == Pose.LEFT) {
+    return "right";
   } else if (currentPose == Pose.FRONT) {
     return "front";
   }

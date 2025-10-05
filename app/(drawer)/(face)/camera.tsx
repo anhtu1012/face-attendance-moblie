@@ -50,8 +50,9 @@ const CameraPage = () => {
   }).current;
   const device = useCameraDevice("front");
   const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
-  const [detectedFaces, setDetectedFaces] = useState<Face[]>([]);
   const isRegisteringRef = useRef(false);
+  const registrationGeneration = useRef(0);
+  const missingPoseRef = useRef<any[]>([]);
 
   useFocusEffect(
     useCallback(() => {
@@ -71,6 +72,10 @@ const CameraPage = () => {
       };
     }, []),
   );
+
+  useEffect(() => {
+    missingPoseRef.current = missingPose;
+  }, [missingPose]);
 
   useEffect(() => {
     // load brightness
@@ -100,63 +105,46 @@ const CameraPage = () => {
   // flag variable to only allow one request at a time
   const handleDetectedFaces = Worklets.createRunOnJS(async (faces: Face[]) => {
     if (isRegisteringRef.current) return;
-    // Check if multiple faces detected
-    setDetectedFaces(faces);
+    if (faces.length !== 1) return;
 
-    if (faces.length > 1) {
-      // console.log("Multiple faces detected!");
-      return;
-    }
-
-    // Check if no face detected
-    if (faces.length == 0) {
-      // console.log("No face detected!");
-      return;
-    }
-
-    // Get current pose
     const face = faces[0];
     const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
+    const currentMissingPose = missingPoseRef.current[0];
+    if (currentPose !== currentMissingPose) return;
 
-    // check if current pose match missing pose
-    if (currentPose != missingPose[0]) return;
+    console.log("currentPose: ", currentPose);
+    console.log("missingPose (ref): ", currentMissingPose);
+
+    const currentGeneration = ++registrationGeneration.current;
     isRegisteringRef.current = true;
 
-    // check if photo exist
-    const photo = await cameraRef.current?.takePhoto();
-    if (!photo?.path || !userProfile.id) return;
-
-    // print current pose
-    console.log("current pose: ", printCurrentPose(currentPose));
-    console.log("checked pose: ", printCurrentPose(missingPose[0]));
-
-    // formdata body
-    const faceFormData = new FormData();
-    faceFormData.append("userId", userProfile.id);
-    faceFormData.append("img", {
-      uri: `file://${photo!.path}`,
-      type: "image/jpeg",
-      name: "face.jpg",
-    } as any);
-    faceFormData.append("checkedPose", missingPose[0]);
-
-    // register user's face
     try {
+      const photo = await cameraRef.current?.takePhoto();
+      if (!photo?.path || !userProfile?.id) return;
+
+      const faceFormData = new FormData();
+      faceFormData.append("userId", userProfile.id);
+      faceFormData.append("img", {
+        uri: `file://${photo.path}`,
+        type: "image/jpeg",
+        name: "face.jpg",
+      } as any);
+      faceFormData.append("checkedPose", currentMissingPose);
+
       await registerFace(faceFormData);
 
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      if (currentGeneration !== registrationGeneration.current) return;
 
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       console.log("✅ Register pose!");
 
-      // remove first pose in missingPose array
       setMissingPose((prev) => prev.slice(1));
     } catch (error: any) {
-      console.log(error);
-      console.log(error.response?.data?.message);
+      console.log(`❌ ${error.response?.data?.message ?? error}`);
     } finally {
-      setTimeout(() => {
+      if (currentGeneration === registrationGeneration.current) {
         isRegisteringRef.current = false;
-      }, 1000);
+      }
     }
   });
 
@@ -166,8 +154,6 @@ const CameraPage = () => {
       runAsync(frame, () => {
         "worklet";
         const faces = detectFaces(frame);
-        // ... chain some asynchronous frame processor
-        // ... do something asynchronously with frame
         handleDetectedFaces(faces);
       });
     },
@@ -206,6 +192,7 @@ const CameraPage = () => {
             isActive={isFocused}
             frameProcessor={isFocused ? frameProcessor : undefined}
             photo={true}
+            isMirrored={false}
           />
 
           {/* Render bounding boxes 
