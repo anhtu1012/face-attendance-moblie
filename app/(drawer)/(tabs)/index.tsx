@@ -145,7 +145,7 @@ function HomePage() {
         </View>
         <TouchableOpacity
           style={styles.avatarContainer}
-          onPress={() => router.push("/(drawer)/profile")}
+          onPress={() => router.push("/(drawer)/(tabs)/profile")}
         >
           <Image
             source={

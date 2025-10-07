@@ -122,16 +122,9 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
         "userProfile",
         JSON.stringify(loginResponse.userProfile)
       );
-      
+
       dispatch(setAuthData(loginResponse));
-      const isOnboarded = false;
-      if (isOnboarded) {
-        console.log("Logged in...");
-        router.replace("/(drawer)" as any);
-      } else {
-        console.log("Onboarding...");
-        router.replace("/onboard" as any);
-      }
+      router.replace("/(drawer)" as any);
     } catch (error: any) {
       Toast.show({
         type: "error",

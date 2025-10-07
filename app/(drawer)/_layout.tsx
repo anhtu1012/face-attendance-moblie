@@ -64,7 +64,7 @@ export default function DrawerLayout() {
           </Pressable>
 
           <Pressable
-            onPress={() => router.push("/(drawer)/profile" as any)}
+            onPress={() => router.push("/(drawer)/(tabs)/profile" as any)}
             style={({ pressed }) => ({
               backgroundColor: pressed ? "#f0f0f0" : "transparent",
               borderRadius: 8,
@@ -72,7 +72,7 @@ export default function DrawerLayout() {
             })}
           >
             <Text style={{ fontSize: 16, color: "#333" }}>
-              Thông tin cá nhân
+              Thông tin nhân sự
             </Text>
           </Pressable>
 
@@ -151,7 +151,7 @@ export default function DrawerLayout() {
         </View>
       );
     },
-    [handleLogout, notificationCount],
+    [handleLogout, notificationCount]
   );
 
   return (
