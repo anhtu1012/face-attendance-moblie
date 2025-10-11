@@ -15,10 +15,10 @@ import {
 } from "react-native";
 import * as Yup from "yup";
 import { RadioGroup } from "../../../../components/ui/RadioButton";
-import { dtoUserOnboard } from "../../../../models/auth/dtoUser";
+import { dtoGetUser, dtoUpdateUser } from "../../../../models/auth/dtoUser";
 interface GeneralInfoProps {
-  userData: dtoUserOnboard;
-  onUpdateUserData: (data: dtoUserOnboard) => void;
+  userData: dtoGetUser | undefined;
+  onUpdateUserData: (data: dtoUpdateUser) => void;
 }
 
 const GeneralInfo: React.FC<GeneralInfoProps> = ({
@@ -35,15 +35,15 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
     { label: "Đã ly hôn", value: "Đã ly hôn" },
   ];
   const initialValues = {
-    fullName: userData.fullName || "--",
-    email: userData.email || "--",
-    phone: userData.phone || "--",
-    birthday: userData.birthday || "--",
-    gender: userData.gender || "--",
-    marriedStatus: userData.marriedStatus || "--",
-    bankingAccountNo: userData.bankingAccountNo || "--",
-    bankingAccountName: userData.bankingAccountName || "--",
-    bankingName: userData.bankingName || "--",
+    fullName: userData?.fullName || "--",
+    email: userData?.email || "--",
+    phone: userData?.phone || "--",
+    birthday: userData?.birthday || "--",
+    gender: userData?.gender || "--",
+    marriedStatus: userData?.marriedStatus || "--",
+    bankingAccountNo: userData?.bankingAccountNo || "--",
+    bankingAccountName: userData?.bankingAccountName || "--",
+    bankingName: userData?.bankingName || "--",
   };
   const validateSchema = Yup.object().shape({
     fullName: Yup.string()
@@ -109,12 +109,13 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
       bankingName: values.bankingName.trim(),
       gender: values.gender as "M" | "F",
       birthday: values.birthday,
+      dependent: [],
     };
-    const onboardData = { ...userData, ...trimmedValues };
+    const onboardData = { ...userData, ...trimmedValues } as dtoUpdateUser;
     console.log("Form submitted:", onboardData);
     updateUser.mutate({
       userId: "13",
-      onboardData: onboardData as dtoUserOnboard,
+      onboardData: onboardData,
     });
     onUpdateUserData(onboardData);
     setIsEditing(false);
@@ -199,7 +200,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
           error={formik.errors.fullName}
           icon="person-outline"
           label="Họ và tên"
-          value={formik.values.fullName}
+          value={formik.values.fullName || "--"}
           onChangeText={(text: string) =>
             formik.setFieldValue("fullName", text)
           }
@@ -211,7 +212,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
           error={formik.errors.email}
           icon="mail"
           label="Email"
-          value={formik.values.email}
+          value={formik.values.email || "--"}
           onChangeText={(text: string) => formik.setFieldValue("email", text)}
           iconColor="#E53E3E"
           keyboardType="email-address"
@@ -222,7 +223,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
           error={formik.errors.phone}
           icon="phone"
           label="Điện thoại"
-          value={formik.values.phone}
+          value={formik.values.phone || "--"}
           onChangeText={(text: string) => formik.setFieldValue("phone", text)}
           iconColor="#38A169"
           keyboardType="phone-pad"
@@ -233,7 +234,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
           error={formik.errors.birthday}
           icon="calendar"
           label="Ngày sinh"
-          value={formatDate(formik.values.birthday)}
+          value={formatDate(formik.values.birthday as Date)}
           iconColor="#D69E2E"
           isEditing={isEditing}
         />
@@ -274,7 +275,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
           error={formik.errors.marriedStatus}
           icon="heart"
           label="Tình trạng hôn nhân"
-          value={formik.values.marriedStatus}
+          value={formik.values.marriedStatus || "--"}
           options={MARRIED_STATUS_OPTIONS}
           onSelect={(value: string) =>
             formik.setFieldValue("marriedStatus", value)
@@ -347,7 +348,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
           error={formik.errors.bankingAccountNo}
           icon="credit-card"
           label="Số tài khoản"
-          value={formik.values.bankingAccountNo}
+          value={formik.values.bankingAccountNo || "--"}
           iconColor="#9C27B0"
           isEditing={isEditing}
         />
@@ -355,7 +356,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
           error={formik.errors.bankingAccountName}
           icon="user"
           label="Tên tài khoản"
-          value={formik.values.bankingAccountName}
+          value={formik.values.bankingAccountName || "--"}
           iconColor="#FF5722"
           isEditing={isEditing}
         />
@@ -363,7 +364,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
           error={formik.errors.bankingName}
           icon="building"
           label="Tên ngân hàng"
-          value={formik.values.bankingName}
+          value={formik.values.bankingName || "--"}
           iconColor="#607D8B"
           isEditing={isEditing}
         />

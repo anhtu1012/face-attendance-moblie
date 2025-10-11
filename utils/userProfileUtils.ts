@@ -8,7 +8,6 @@ export async function getUserProfileFromStorage() {
   try {
     const userProfileString = await AsyncStorage.getItem("userProfile");
     if (userProfileString) {
-      console.log("userProfileString:", userProfileString);
       return JSON.parse(userProfileString);
     }
     return null;

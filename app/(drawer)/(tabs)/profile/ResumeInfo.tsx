@@ -7,19 +7,22 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { dtoUserOnboard } from "../../../../models/auth/dtoUser";
+import { dtoGetUser, dtoUpdateUser } from "../../../../models/auth/dtoUser";
 import * as Yup from "yup";
 interface ResumeInfoProps {
-  userData: dtoUserOnboard;
-  onUpdateUserData: (data: dtoUserOnboard) => void;
+  userData: dtoGetUser | undefined;
+  onUpdateUserData: (data: dtoUpdateUser) => void;
 }
+export type MilitaryStatus = "Hoàn thành nghĩa vụ quân sự" | "Chưa hoàn thành nghĩa vụ quân sự" | "Không có nghĩa vụ quân sự";
+export type Nationality = "Việt Nam" | "Lào" | "Campuchia" | "Thái Lan" | "Myanmar";
+export type Nation = "Kinh" | "Tày" | "Hoa" | "Mường" | "Khmer" | "Cham" | "H'Mông" | "Thái" | "Dao" | "Chăm" | "H'Nôm" | "Cơ Duyên" | "Giáy" | "Chu Ru" | "Chuơng" | "Cơ Ho" | "Chu Miêu" | "Chu Muổi" | "Chu Phan";
 
 const ResumeInfo: React.FC<ResumeInfoProps> = ({
   userData,
   onUpdateUserData,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState<dtoUserOnboard>(userData);
+  const [editData, setEditData] = useState<dtoUpdateUser>(userData as dtoUpdateUser);
   const handleSave = () => {
     onUpdateUserData(editData);
     setIsEditing(false);
@@ -59,15 +62,15 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     </View>
   );
   const initialValues = {
-    citizenIdentityCard: userData.citizenIdentityCard || "--",
-    issueDate: userData.issueDate || "--",
-    issueAt: userData.issueAt || "--",
-    taxCode: userData.taxCode || "--",
-    nationality: userData.nationality || "--",
-    nation: userData.nation || "--",
-    permanentAddress: userData.permanentAddress || "--",
-    currentAddress: userData.currentAddress || "--",
-    militaryStatus: userData.militaryStatus || "--",
+    citizenIdentityCard: userData?.citizenIdentityCard || "--",
+    issueDate: userData?.issueDate || "--",
+    issueAt: userData?.issueAt || "--",
+    taxCode: userData?.taxCode || "--",
+    nationality: userData?.nationality || "--",
+    nation: userData?.nation || "--",
+    permanentAddress: userData?.permanentAddress || "--",
+    currentAddress: userData?.currentAddress || "--",
+    militaryStatus: userData?.militaryStatus || "--",
   };
   const validateSchema = Yup.object().shape({
     itizenIdentityCard: Yup.string()
@@ -130,7 +133,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           error={null}
           icon="credit-card"
           label="Số CCCD/CMND"
-          value={editData.citizenIdentityCard}
+          value={editData?.citizenIdentityCard || "--"}
           onChangeText={(text: string) =>
             setEditData({ ...editData, citizenIdentityCard: text })
           }
@@ -142,8 +145,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           icon="calendar"
           label="Ngày cấp"
           value={
-            editData.issueDate
-              ? editData.issueDate.toLocaleDateString("vi-VN")
+            editData?.issueDate
+              ? new Date(editData.issueDate).toLocaleDateString("vi-VN")
               : ""
           }
           iconColor="#38A169"
@@ -153,7 +156,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           error={null}
           icon="map-pin"
           label="Nơi cấp"
-          value={editData.issueAt}
+          value={editData?.issueAt || "--"}
           onChangeText={(text: string) => setEditData({ ...editData, issueAt: text })}
           iconColor="#3182CE"
         />
@@ -162,8 +165,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           error={null}
           icon="credit-card"
           label="Mã số thuế"
-          value={editData.taxCode}
-          onChangeText={(text) => setEditData({ ...editData, taxCode: text })}
+          value={editData?.taxCode || "--"}
+          onChangeText={(text: string) => setEditData({ ...editData, taxCode: text })}
           iconColor="#D69E2E"
         />
 
@@ -171,8 +174,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           error={null}
           icon="flag"
           label="Quốc tịch"
-          value={editData.nationality}
-          onChangeText={(text) =>
+          value={editData?.nationality || "--"}
+          onChangeText={(text: Nationality) =>
             setEditData({ ...editData, nationality: text })
           }
           iconColor="#9C27B0"
@@ -182,8 +185,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           error={null}
           icon="users"
           label="Dân tộc"
-          value={editData.nation}
-          onChangeText={(text) => setEditData({ ...editData, nation: text })}
+          value={editData?.nation || "--"}
+          onChangeText={(text: Nation) => setEditData({ ...editData, nation: text })}
           iconColor="#FF5722"
         />
 
@@ -191,8 +194,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           error={null}
           icon="home"
           label="Nơi thường trú"
-          value={editData.permanentAddress}
-          onChangeText={(text) =>
+          value={editData?.permanentAddress || "--"}
+          onChangeText={(text: string) =>
             setEditData({ ...editData, permanentAddress: text })
           }
           iconColor="#607D8B"
@@ -203,8 +206,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           error={null}
           icon="map-pin"
           label="Địa chỉ hiện tại"
-          value={editData.currentAddress}
-          onChangeText={(text) =>
+          value={editData?.currentAddress || "--"}
+          onChangeText={(text: string) =>
             setEditData({ ...editData, currentAddress: text })
           }
           iconColor="#795548"
@@ -215,9 +218,9 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           error={null}
           icon="shield"
           label="Tình trạng quân dịch"
-          value={editData.militaryStatus}
-          onChangeText={(text) =>
-            setEditData({ ...editData, militaryStatus: text })
+          value={editData?.militaryStatus || "--"}
+          onChangeText={(text: MilitaryStatus) =>
+            setEditData({ ...editData, militaryStatus: text as MilitaryStatus })
           }
           iconColor="#3F51B5"
         />

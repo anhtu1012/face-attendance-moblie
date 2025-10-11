@@ -2,11 +2,11 @@ import { MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { DependentList } from "../../../../components/ui/DependentCard";
-import { dtoDependent, dtoUserOnboard } from "../../../../models/auth/dtoUser";
+import { dtoDependent, dtoGetUser, dtoUpdateUser } from "../../../../models/auth/dtoUser";
 
 interface DependentInfoProps {
-  userData: dtoUserOnboard;
-  onUpdateUserData: (data: dtoUserOnboard) => void;
+  userData: dtoGetUser | undefined;
+  onUpdateUserData: (data: dtoUpdateUser) => void;
 }
 
 const DependentInfo: React.FC<DependentInfoProps> = ({
@@ -41,17 +41,18 @@ const DependentInfo: React.FC<DependentInfoProps> = ({
   const handleDeleteDependent = (dpUserId: string) => {
     // TODO: Delete dependent from API
     console.log("Delete dependent:", dpUserId);
-    const updatedDependents = userData.dependent.filter(
-      (dep) => dep.dpUserId !== dpUserId
+    const updatedDependents = userData?.dependent.filter(
+      (dep: dtoDependent) => dep.dpUserId !== dpUserId
     );
-    onUpdateUserData({ ...userData, dependent: updatedDependents });
+    onUpdateUserData({ ...userData, dependent: updatedDependents } as dtoGetUser);
   };
 
   const handleAddDependent = () => {
     // TODO: Add new dependent
     console.log("Add new dependent");
     const newDependent: dtoDependent = {
-      dpUserId: (userData.dependent.length + 1).toString(),
+      dpId: "",
+      dpUserId: (userData?.dependent?.length || 0 + 1).toString(),
       dpFullName: "",
       dpPhone: "",
       dpTaxCode: "",
@@ -61,9 +62,9 @@ const DependentInfo: React.FC<DependentInfoProps> = ({
       dependentDate: new Date(),
     };
     onUpdateUserData({
-      ...userData,
-      dependent: [...userData.dependent, newDependent],
-    });
+      ...userData as dtoUpdateUser,
+      dependent: [...(userData?.dependent || []), newDependent] as dtoDependent[],
+    } as dtoUpdateUser);
   };
 
   return (
@@ -71,7 +72,7 @@ const DependentInfo: React.FC<DependentInfoProps> = ({
       {/* Content */}
       <View style={styles.content}>
         <DependentList
-          dependents={userData.dependent}
+          dependents={userData?.dependent as dtoDependent[]}
           isEditing={isEditing}
           onEdit={handleEditDependent}
           onDelete={handleDeleteDependent}

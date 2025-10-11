@@ -16,7 +16,7 @@ import {
 } from "react-native";
 import * as Yup from "yup";
 import { useUpdateUser } from "../hooks/useUpdateUser";
-import { dtoUserOnboard } from "../models/auth/dtoUser";
+import { dtoUpdateUser } from "../models/auth/dtoUser";
 
 const GENDER_OPTIONS = [
   { label: "Nam", value: "M" },
@@ -182,7 +182,7 @@ const validateSchema = Yup.object().shape({
 const Onboard = () => {
   const scrollRef = useRef<ScrollView>(null);
   const updateUser = useUpdateUser();
-  const initialValues: dtoUserOnboard = {
+  const initialValues: dtoUpdateUser = {
     fullName: "",
     email: "",
     phone: "",

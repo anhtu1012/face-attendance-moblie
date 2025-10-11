@@ -1,6 +1,8 @@
+
+import { useUpdateUser } from "@/hooks/useUpdateUser";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -11,39 +13,29 @@ import {
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { sampleDtoUserOnboard } from "../../../models/auth/dtoUser";
+import { dtoUpdateUser } from "../../../models/auth/dtoUser";
 import DependentInfo from "./profile/DependentInfo";
 import GeneralInfo from "./profile/GeneralInfo";
 import ResumeInfo from "./profile/ResumeInfo";
 import WorkContractInfo from "./profile/WorkContractInfo";
-const sampleUserData = sampleDtoUserOnboard;
+import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 
 export default function ProfilePage() {
   const insets = useSafeAreaInsets();
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState(0);
-  const [userData, setUserData] = useState(sampleUserData);
-
+  const { userProfile, isLoading, error, refetch, userId } = useGetUserProfile();
+  const updateUserMutation = useUpdateUser();
   const tabs = [
     { id: 0, title: "Thông tin chung" },
     { id: 1, title: "Sơ yếu lý lịch" },
     { id: 2, title: "Người phụ thuộc" },
     { id: 3, title: "Hợp đồng" },
   ];
-
-  useEffect(() => {
-    const loadUserProfile = async () => {
-      console.log("Logged in...");
-      router.replace("/(drawer)" as any);
-      setLoading(true);
-      setUserData(sampleUserData);
-      setLoading(false);
-    };
-    loadUserProfile();
-  }, []);
-
-  const handleUpdateUserData = (updatedData: typeof userData) => {
-    setUserData(updatedData);
+  const handleUpdateUserData = (updatedData: dtoUpdateUser) => {
+    updateUserMutation.mutate({
+      userId: userId || "",
+      onboardData: updatedData,
+    });
   };
 
   const renderTabContent = () => {
@@ -51,42 +43,39 @@ export default function ProfilePage() {
       case 0:
         return (
           <GeneralInfo
-            userData={userData}
+            userData={userProfile}
             onUpdateUserData={handleUpdateUserData}
           />
         );
       case 1:
         return (
-          <ResumeInfo
-            userData={userData}
-            onUpdateUserData={handleUpdateUserData}
-          />
+          <ResumeInfo userData={userProfile} onUpdateUserData={handleUpdateUserData} />
         );
       case 2:
         return (
           <DependentInfo
-            userData={userData}
+            userData={userProfile}
             onUpdateUserData={handleUpdateUserData}
           />
         );
       case 3:
         return (
           <WorkContractInfo
-            userData={userData}
+            userData={userProfile}
             onUpdateUserData={handleUpdateUserData}
           />
         );
       default:
         return (
           <GeneralInfo
-            userData={userData}
+            userData={userProfile}
             onUpdateUserData={handleUpdateUserData}
           />
         );
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <View style={[styles.loadingContainer, { paddingTop: insets.top }]}>
         <ActivityIndicator size="large" color="#3674B5" />
@@ -97,6 +86,7 @@ export default function ProfilePage() {
 
   return (
     <View style={[styles.container]}>
+      
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -115,15 +105,15 @@ export default function ProfilePage() {
         <View style={styles.profileImageContainer}>
           <Image
             source={
-              userData.faceImg
-                ? { uri: userData.faceImg }
+              userProfile?.faceImg
+                ? { uri: userProfile?.faceImg }
                 : require("../../../assets/images/empty-avatar.png")
             }
             style={styles.profileImage}
           />
         </View>
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{userData.fullName}</Text>
+          <Text style={styles.profileName}>{userProfile?.fullName || "--"}</Text>
           <Text style={styles.profilePosition}>Nhân viên</Text>
           <Text style={styles.profileCode}>Mã: 12</Text>
           <View style={styles.statusContainer}>
@@ -141,7 +131,7 @@ export default function ProfilePage() {
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.tabScrollContent}
           decelerationRate="fast"
-          snapToInterval={120} 
+          snapToInterval={120}
           snapToAlignment="start"
         >
           {tabs.map((tab) => (

@@ -1,6 +1,7 @@
 import { updateUser } from "@/api/user";
-import { dtoUserOnboard } from "@/models/auth/dtoUser";
+import { dtoUpdateUser } from "@/models/auth/dtoUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { Alert } from "react-native";
 
 export function useUpdateUser() {
   const queryClient = useQueryClient();
@@ -10,12 +11,13 @@ export function useUpdateUser() {
       onboardData,
     }: {
       userId: string;
-      onboardData: dtoUserOnboard;
+      onboardData: dtoUpdateUser;
     }) => updateUser(userId, onboardData),
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["userProfile"] });
+    onSuccess: (_, { userId }) => {
+      queryClient.invalidateQueries({ queryKey: ["user", userId] });
     },
     onError: (error) => {
+      Alert.alert("Error updating user");
       console.error("Error updating user:", error);
     },
   });
