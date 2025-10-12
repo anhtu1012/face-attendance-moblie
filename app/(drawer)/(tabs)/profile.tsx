@@ -1,4 +1,4 @@
-
+import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { useUpdateUser } from "@/hooks/useUpdateUser";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
@@ -18,12 +18,12 @@ import DependentInfo from "./profile/DependentInfo";
 import GeneralInfo from "./profile/GeneralInfo";
 import ResumeInfo from "./profile/ResumeInfo";
 import WorkContractInfo from "./profile/WorkContractInfo";
-import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 
 export default function ProfilePage() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState(0);
-  const { userProfile, isLoading, error, refetch, userId } = useGetUserProfile();
+  const { userProfile, isLoading, error, refetch, userId } =
+    useGetUserProfile();
   const updateUserMutation = useUpdateUser();
   const tabs = [
     { id: 0, title: "Thông tin chung" },
@@ -49,7 +49,10 @@ export default function ProfilePage() {
         );
       case 1:
         return (
-          <ResumeInfo userData={userProfile} onUpdateUserData={handleUpdateUserData} />
+          <ResumeInfo
+            userData={userProfile}
+            onUpdateUserData={handleUpdateUserData}
+          />
         );
       case 2:
         return (
@@ -86,7 +89,6 @@ export default function ProfilePage() {
 
   return (
     <View style={[styles.container]}>
-      
       {/* Header */}
       <View style={styles.header}>
         <View style={styles.headerTop}>
@@ -113,7 +115,9 @@ export default function ProfilePage() {
           />
         </View>
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{userProfile?.fullName || "--"}</Text>
+          <Text style={styles.profileName}>
+            {userProfile?.fullName || "--"}
+          </Text>
           <Text style={styles.profilePosition}>Nhân viên</Text>
           <Text style={styles.profileCode}>Mã: 12</Text>
           <View style={styles.statusContainer}>
@@ -191,7 +195,7 @@ const styles = StyleSheet.create({
   header: {
     backgroundColor: "#fff",
     paddingTop: 0,
-    paddingBottom: 16,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
   },
@@ -199,95 +203,96 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingTop: 12,
   },
   backButton: {
     marginRight: 16,
     padding: 4,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: "600",
     color: "#333",
   },
   profileCard: {
-    backgroundColor: "#f8f9fa",
-    margin: 16,
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: "#fff",
+    marginHorizontal: 16,
+    marginVertical: 8,
+    borderRadius: 8,
+    padding: 12,
     flexDirection: "row",
     alignItems: "center",
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    borderLeftWidth: 4,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 2,
+    elevation: 2,
+    borderLeftWidth: 3,
     borderLeftColor: "#3674B5",
   },
   profileImageContainer: {
-    marginRight: 16,
+    marginRight: 12,
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+    width: 60,
+    height: 60,
+    borderRadius: 30,
   },
   profileInfo: {
     flex: 1,
   },
   profileName: {
-    fontSize: 18,
-    fontWeight: "bold",
+    fontSize: 16,
+    fontWeight: "600",
     color: "#333",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   profilePosition: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 2,
-  },
-  profileCode: {
     fontSize: 12,
     color: "#666",
-    marginBottom: 2,
+    marginBottom: 1,
+  },
+  profileCode: {
+    fontSize: 11,
+    color: "#999",
+    marginBottom: 4,
   },
   statusContainer: {
     alignSelf: "flex-start",
   },
   statusBadge: {
     backgroundColor: "#3674B5",
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
   },
   statusText: {
     color: "#fff",
-    fontSize: 12,
+    fontSize: 10,
     fontWeight: "600",
   },
   tabContainer: {
     backgroundColor: "#fff",
     borderBottomWidth: 1,
     borderBottomColor: "#e0e0e0",
-    paddingBottom: 4,
+    paddingBottom: 2,
   },
   tabScrollContent: {
     paddingHorizontal: 16,
     paddingRight: 40, // Extra space to indicate scrollable
   },
   tabButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    marginRight: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    marginRight: 6,
     position: "relative",
-    minWidth: 100, // Ensure minimum width for better touch targets
+    minWidth: 80, // Reduced minimum width
   },
   activeTabButton: {
     // No background color for active state
   },
   tabButtonText: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "500",
     color: "#666",
     textAlign: "center",
@@ -299,11 +304,11 @@ const styles = StyleSheet.create({
   activeTabIndicator: {
     position: "absolute",
     bottom: 0,
-    left: 16,
-    right: 16,
-    height: 3,
+    left: 12,
+    right: 12,
+    height: 2,
     backgroundColor: "#3674B5",
-    borderRadius: 2,
+    borderRadius: 1,
   },
   scrollIndicator: {
     position: "absolute",
@@ -322,10 +327,9 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    paddingHorizontal: 16,
   },
   scrollContent: {
-    paddingBottom: 100,
+    paddingBottom: 80,
     flexGrow: 1,
   },
 });

@@ -1,11 +1,11 @@
+import { dtoUpdateUser } from "@/models/auth/dtoUser";
 import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import { dtoUserOnboard } from "../../../../models/auth/dtoUser";
 
 interface WorkContractInfoProps {
-  userData: dtoUserOnboard;
-  onUpdateUserData: (data: dtoUserOnboard) => void;
+  userData: dtoUpdateUser | undefined;
+  onUpdateUserData: (data: dtoUpdateUser) => void;
 }
 
 const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
@@ -13,7 +13,9 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
   onUpdateUserData,
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState<dtoUserOnboard>(userData);
+  const [editData, setEditData] = useState<dtoUpdateUser>(
+    userData as dtoUpdateUser
+  );
 
   const handleSave = () => {
     onUpdateUserData(editData);
@@ -21,7 +23,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
   };
 
   const handleCancel = () => {
-    setEditData(userData);
+    setEditData(userData as dtoUpdateUser);
     setIsEditing(false);
   };
 

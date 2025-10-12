@@ -1,4 +1,5 @@
 import CustomProfileInput from "@/components/ui/CustomProfileInput";
+import { DatePickerInput } from "@/components/ui/DatePickerInput";
 import { useUpdateUser } from "@/hooks/useUpdateUser";
 import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { format } from "date-fns";
@@ -8,6 +9,7 @@ import React, { useState } from "react";
 import {
   FlatList,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -121,6 +123,11 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
     setIsEditing(false);
   };
 
+  const handleCancel = () => {
+    formik.resetForm();
+    setIsEditing(false);
+  };
+
   const formik = useFormik({
     initialValues,
     validate,
@@ -168,207 +175,232 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
 
   return (
     <View style={styles.container}>
-      {/* Header Actions */}
-      <View style={styles.headerActions}>
-        <Text style={styles.sectionTitle}>Thông tin chung</Text>
-        {isEditing ? (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity
-              style={styles.headerActionButtonSave}
-              onPress={formik.submitForm}
-            >
-              <MaterialIcons name="save" size={24} color="white" />
-              <Text style={styles.headerActionButtonSaveText}>
-                Lưu thay đổi
-              </Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <TouchableOpacity
-            style={styles.headerActionButtonEdit}
-            onPress={() => setIsEditing(true)}
-          >
-            <MaterialIcons name="edit" size={24} color="#3674B5" />
-            <Text style={styles.headerActionButtonEditText}>Chỉnh sửa</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-
-      {/* Content */}
-      <View style={styles.infoCard}>
-        <CustomProfileInput
-          error={formik.errors.fullName}
-          icon="person-outline"
-          label="Họ và tên"
-          value={formik.values.fullName || "--"}
-          onChangeText={(text: string) =>
-            formik.setFieldValue("fullName", text)
-          }
-          iconColor="#3674B5"
-          keyboardType="email-address"
-          isEditing={isEditing}
-        />
-        <CustomProfileInput
-          error={formik.errors.email}
-          icon="mail"
-          label="Email"
-          value={formik.values.email || "--"}
-          onChangeText={(text: string) => formik.setFieldValue("email", text)}
-          iconColor="#E53E3E"
-          keyboardType="email-address"
-          isEditing={isEditing}
-        />
-
-        <CustomProfileInput
-          error={formik.errors.phone}
-          icon="phone"
-          label="Điện thoại"
-          value={formik.values.phone || "--"}
-          onChangeText={(text: string) => formik.setFieldValue("phone", text)}
-          iconColor="#38A169"
-          keyboardType="phone-pad"
-          isEditing={isEditing}
-        />
-
-        <CustomProfileInput
-          error={formik.errors.birthday}
-          icon="calendar"
-          label="Ngày sinh"
-          value={formatDate(formik.values.birthday as Date)}
-          iconColor="#D69E2E"
-          isEditing={isEditing}
-        />
-        {/* Gender Selection */}
-        <View style={styles.infoItem}>
-          <View style={styles.infoIconContainer}>
-            <Ionicons name="person-outline" size={20} color="#4CAF50" />
-          </View>
-          <View style={styles.infoTextContainer}>
-            <Text style={styles.infoLabel}>Giới tính</Text>
-            {isEditing ? (
-              <RadioGroup
-                options={[
-                  { label: "Nam", value: "M" },
-                  { label: "Nữ", value: "F" },
-                ]}
-                selectedValue={formik.values.gender}
-                onValueChange={(value) =>
-                  formik.setFieldValue("gender", value as "M" | "F")
-                }
-                direction="row"
-                containerStyle={styles.radioGroupContainer}
-                itemStyle={styles.radioItem}
-              />
-            ) : (
-              <Text style={styles.infoValue}>
-                {formik.values.gender === "M"
-                  ? "Nam"
-                  : formik.values.gender === "F"
-                  ? "Nữ"
-                  : "Không xác định"}
-              </Text>
-            )}
-          </View>
-        </View>
-
-        <CustomDropdown
-          error={formik.errors.marriedStatus}
-          icon="heart"
-          label="Tình trạng hôn nhân"
-          value={formik.values.marriedStatus || "--"}
-          options={MARRIED_STATUS_OPTIONS}
-          onSelect={(value: string) =>
-            formik.setFieldValue("marriedStatus", value)
-          }
-          iconColor="#E91E63"
-          isEditing={isEditing}
-        />
-      </View>
-      <Modal
-        visible={showMarriedStatusDropdown}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowMarriedStatusDropdown(false)}
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowMarriedStatusDropdown(false)}
-        >
-          <View style={styles.dropdownModal}>
-            <View style={styles.dropdownHeader}>
-              <Text style={styles.dropdownTitle}>Chọn tình trạng hôn nhân</Text>
+        {/* Header Actions */}
+        <View style={styles.headerActions}>
+          <Text style={styles.sectionTitle}>Thông tin chung</Text>
+          {isEditing ? (
+            <View style={styles.actionButtons}>
               <TouchableOpacity
-                onPress={() => setShowMarriedStatusDropdown(false)}
-                style={styles.closeButton}
+                style={styles.headerActionButtonCancel}
+                onPress={handleCancel}
               >
-                <Feather name="x" size={20} color="#666" />
+                <MaterialIcons name="close" size={20} color="#666" />
+                <Text style={styles.headerActionButtonCancelText}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerActionButtonSave}
+                onPress={formik.submitForm}
+              >
+                <MaterialIcons name="save" size={20} color="white" />
+                <Text style={styles.headerActionButtonSaveText}>Lưu</Text>
               </TouchableOpacity>
             </View>
-            <FlatList
-              data={MARRIED_STATUS_OPTIONS}
-              keyExtractor={(item) => item.value}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.dropdownItem,
-                    formik.values.marriedStatus === item.value &&
-                      styles.selectedItem,
-                  ]}
-                  onPress={() => {
-                    formik.setFieldValue("marriedStatus", item.value);
-                    setShowMarriedStatusDropdown(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.dropdownItemText,
-                      formik.values.marriedStatus === item.value &&
-                        styles.selectedItemText,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                  {formik.values.marriedStatus === item.value && (
-                    <Feather name="check" size={16} color="#3674B5" />
-                  )}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
-      {/* Header Actions */}
-      <View style={styles.headerActions}>
-        <Text style={styles.sectionTitle}>Thông tin ngân hàng</Text>
-      </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.headerActionButtonEdit}
+              onPress={() => setIsEditing(true)}
+            >
+              <MaterialIcons name="edit" size={24} color="#3674B5" />
+              <Text style={styles.headerActionButtonEditText}>Chỉnh sửa</Text>
+            </TouchableOpacity>
+          )}
+        </View>
 
-      <View style={styles.infoCard}>
-        <CustomProfileInput
-          error={formik.errors.bankingAccountNo}
-          icon="credit-card"
-          label="Số tài khoản"
-          value={formik.values.bankingAccountNo || "--"}
-          iconColor="#9C27B0"
-          isEditing={isEditing}
-        />
-        <CustomProfileInput
-          error={formik.errors.bankingAccountName}
-          icon="user"
-          label="Tên tài khoản"
-          value={formik.values.bankingAccountName || "--"}
-          iconColor="#FF5722"
-          isEditing={isEditing}
-        />
-        <CustomProfileInput
-          error={formik.errors.bankingName}
-          icon="building"
-          label="Tên ngân hàng"
-          value={formik.values.bankingName || "--"}
-          iconColor="#607D8B"
-          isEditing={isEditing}
-        />
-      </View>
+        {/* Content */}
+        <View style={styles.infoCard}>
+          <CustomProfileInput
+            error={formik.errors.fullName}
+            icon="person-outline"
+            label="Họ và tên"
+            value={formik.values.fullName}
+            onChangeText={(text: string) =>
+              formik.setFieldValue("fullName", text)
+            }
+            iconColor="#3674B5"
+            keyboardType="email-address"
+            isEditing={isEditing}
+          />
+          <CustomProfileInput
+            error={formik.errors.email}
+            icon="mail"
+            label="Email"
+            value={formik.values.email}
+            onChangeText={(text: string) => formik.setFieldValue("email", text)}
+            iconColor="#E53E3E"
+            keyboardType="email-address"
+            isEditing={isEditing}
+          />
+
+          <CustomProfileInput
+            error={formik.errors.phone}
+            icon="phone"
+            label="Điện thoại"
+            value={formik.values.phone}
+            onChangeText={(text: string) => formik.setFieldValue("phone", text)}
+            iconColor="#38A169"
+            keyboardType="phone-pad"
+            isEditing={isEditing}
+          />
+
+          <DatePickerInput
+            label="Ngày sinh"
+            value={formik.values.birthday}
+            error={formik.errors.birthday}
+            onChange={(date: Date) => formik.setFieldValue("birthday", date)}
+            onFocus={() => formik.setFieldTouched("birthday", true)}
+            maximumDate={new Date()}
+            placeholder="Chọn ngày sinh"
+            isEditing={isEditing}
+          />
+          {/* Gender Selection */}
+          <View style={styles.infoItem}>
+            <View style={styles.infoIconContainer}>
+              <Ionicons name="person-outline" size={20} color="#4CAF50" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoLabel}>Giới tính</Text>
+              {isEditing ? (
+                <RadioGroup
+                  options={[
+                    { label: "Nam", value: "M" },
+                    { label: "Nữ", value: "F" },
+                  ]}
+                  selectedValue={formik.values.gender}
+                  onValueChange={(value) =>
+                    formik.setFieldValue("gender", value as "M" | "F")
+                  }
+                  direction="row"
+                  containerStyle={styles.radioGroupContainer}
+                  itemStyle={styles.radioItem}
+                />
+              ) : (
+                <Text style={styles.infoValue}>
+                  {formik.values.gender === "M"
+                    ? "Nam"
+                    : formik.values.gender === "F"
+                    ? "Nữ"
+                    : "Không xác định"}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <CustomDropdown
+            error={formik.errors.marriedStatus}
+            icon="heart"
+            label="Tình trạng hôn nhân"
+            value={formik.values.marriedStatus}
+            options={MARRIED_STATUS_OPTIONS}
+            onSelect={(value: string) =>
+              formik.setFieldValue("marriedStatus", value)
+            }
+            iconColor="#E91E63"
+            isEditing={isEditing}
+          />
+        </View>
+        <Modal
+          visible={showMarriedStatusDropdown}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={() => setShowMarriedStatusDropdown(false)}
+        >
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={() => setShowMarriedStatusDropdown(false)}
+          >
+            <View style={styles.dropdownModal}>
+              <View style={styles.dropdownHeader}>
+                <Text style={styles.dropdownTitle}>
+                  Chọn tình trạng hôn nhân
+                </Text>
+                <TouchableOpacity
+                  onPress={() => setShowMarriedStatusDropdown(false)}
+                  style={styles.closeButton}
+                >
+                  <Feather name="x" size={20} color="#666" />
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={MARRIED_STATUS_OPTIONS}
+                keyExtractor={(item) => item.value}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.dropdownItem,
+                      formik.values.marriedStatus === item.value &&
+                        styles.selectedItem,
+                    ]}
+                    onPress={() => {
+                      formik.setFieldValue("marriedStatus", item.value);
+                      setShowMarriedStatusDropdown(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        formik.values.marriedStatus === item.value &&
+                          styles.selectedItemText,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                    {formik.values.marriedStatus === item.value && (
+                      <Feather name="check" size={16} color="#3674B5" />
+                    )}
+                  </TouchableOpacity>
+                )}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+        {/* Header Actions */}
+        <View style={styles.headerActions}>
+          <Text style={styles.sectionTitle}>Thông tin ngân hàng</Text>
+        </View>
+
+        <View style={styles.infoCard}>
+          <CustomProfileInput
+            error={formik.errors.bankingAccountNo}
+            icon="credit-card"
+            label="Số tài khoản"
+            value={formik.values.bankingAccountNo}
+            iconColor="#9C27B0"
+            isEditing={isEditing}
+            onChangeText={(text: string) =>
+              formik.setFieldValue("bankingAccountNo", text)
+            }
+          />
+          <CustomProfileInput
+            error={formik.errors.bankingAccountName}
+            icon="user"
+            label="Tên tài khoản"
+            value={formik.values.bankingAccountName}
+            iconColor="#FF5722"
+            isEditing={isEditing}
+            onChangeText={(text: string) =>
+              formik.setFieldValue("bankingAccountName", text)
+            }
+          />
+          <CustomProfileInput
+            error={formik.errors.bankingName}
+            icon="building"
+            label="Tên ngân hàng"
+            value={formik.values.bankingName}
+            iconColor="#607D8B"
+            isEditing={isEditing}
+            onChangeText={(text: string) =>
+              formik.setFieldValue("bankingName", text)
+            }
+          />
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -377,6 +409,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 250, // Extra space for keyboard
   },
   headerActions: {
     flexDirection: "row",
@@ -392,7 +430,7 @@ const styles = StyleSheet.create({
   },
   actionButtons: {
     flexDirection: "row",
-    gap: 12,
+    gap: 8,
   },
   headerActionButtonEdit: {
     flexDirection: "row",
@@ -410,19 +448,35 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginLeft: 4,
   },
+  headerActionButtonCancel: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  headerActionButtonCancelText: {
+    color: "#666",
+    fontSize: 12,
+    fontWeight: "500",
+    marginLeft: 3,
+  },
   headerActionButtonSave: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#D69E2E",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
   },
   headerActionButtonSaveText: {
     color: "#fff",
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: "600",
-    marginLeft: 4,
+    marginLeft: 3,
   },
   infoCard: {
     backgroundColor: "#fff",
