@@ -15,9 +15,9 @@ export function useUpdateUser() {
     }) => updateUser(userId, onboardData),
     onSuccess: (_, { userId }) => {
       queryClient.invalidateQueries({ queryKey: ["user", userId] });
+
     },
     onError: (error) => {
-      Alert.alert("Error updating user");
       console.error("Error updating user:", error);
     },
   });

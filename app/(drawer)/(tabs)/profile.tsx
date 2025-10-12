@@ -5,6 +5,7 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -35,6 +36,13 @@ export default function ProfilePage() {
     updateUserMutation.mutate({
       userId: userId || "",
       onboardData: updatedData,
+    },{
+      onSuccess: () => {
+        Alert.alert("Thành công", "Thông tin cá nhân đã được cập nhật thành công!");
+      },
+      onError: () => {
+        Alert.alert("Lỗi", "Lỗi khi cập nhật thông tin cá nhân");
+      },
     });
   };
 
