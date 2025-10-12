@@ -1,4 +1,5 @@
 import { Pose } from "@/constants/face";
+import { Face } from "react-native-vision-camera-face-detector";
 
 export const printCurrentPose = (currentPose: number) => {
   if (currentPose == Pose.TOP) {

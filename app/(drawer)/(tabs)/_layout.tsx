@@ -157,7 +157,7 @@ export default function TabLayout() {
         </LinearGradient>
       </View>
     ),
-    []
+    [],
   );
 
   const renderMenuButton = useCallback(
@@ -193,7 +193,7 @@ export default function TabLayout() {
         </Text>
       </TouchableOpacity>
     ),
-    [navigation, notificationCount]
+    [navigation, notificationCount],
   );
 
   return (
@@ -247,9 +247,10 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
-        name="create-form"
+        name="(form)/choose-form"
         options={{
           title: "Tạo đơn",
+          headerShown: false,
           tabBarIcon: ({ color, size, focused }) => (
             <TabBarIcon
               focused={focused}
@@ -258,6 +259,12 @@ export default function TabLayout() {
               size={size}
             />
           ),
+        }}
+      />
+      <Tabs.Screen
+        name="(form)/create-form"
+        options={{
+          href: null,
         }}
       />
       <Tabs.Screen

@@ -48,40 +48,43 @@ const CameraPage = () => {
     cameraFacing: "front",
     landmarkMode: "all",
   }).current;
+  const [imagePaths, setImagePaths] = useState<String[]>([]);
+  const [cameraLayout, setCameraLayout] = useState({ width: 0, height: 0 });
+  const [userFace, setUserFace] = useState<any>();
   const device = useCameraDevice("front");
   const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
   const isRegisteringRef = useRef(false);
   const registrationGeneration = useRef(0);
   const missingPoseRef = useRef<any[]>([]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let previousBrightness: number;
-
-      Brightness.getSystemBrightnessAsync().then((value) => {
-        previousBrightness = value;
-        Brightness.setSystemBrightnessAsync(1); // set to max when focused
-      });
-
-      return () => {
-        if (previousBrightness !== undefined) {
-          Brightness.setSystemBrightnessAsync(previousBrightness);
-        } else {
-          Brightness.restoreSystemBrightnessAsync(); // fallback
-        }
-      };
-    }, []),
-  );
-
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     let previousBrightness: number;
+  //
+  //     Brightness.getSystemBrightnessAsync().then((value) => {
+  //       previousBrightness = value;
+  //       Brightness.setSystemBrightnessAsync(1); // set to max when focused
+  //     });
+  //
+  //     return () => {
+  //       if (previousBrightness !== undefined) {
+  //         Brightness.setSystemBrightnessAsync(previousBrightness);
+  //       } else {
+  //         Brightness.restoreSystemBrightnessAsync(); // fallback
+  //       }
+  //     };
+  //   }, []),
+  // );
+  //
   useEffect(() => {
     missingPoseRef.current = missingPose;
   }, [missingPose]);
 
   useEffect(() => {
-    // load brightness
-    (async () => {
-      await Brightness.requestPermissionsAsync();
-    })();
+    // // load brightness
+    // (async () => {
+    //   await Brightness.requestPermissionsAsync();
+    // })();
     return () => {
       // you must call `stopListeners` when current component is unmounted
       stopListeners();
@@ -108,6 +111,9 @@ const CameraPage = () => {
     if (faces.length !== 1) return;
 
     const face = faces[0];
+
+    setUserFace(face);
+
     const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
     const currentMissingPose = missingPoseRef.current[0];
     if (currentPose !== currentMissingPose) return;
@@ -122,10 +128,12 @@ const CameraPage = () => {
       const photo = await cameraRef.current?.takePhoto();
       if (!photo?.path || !userProfile?.id) return;
 
+      const fullPhotoPath = `file://${photo.path}`;
+
       const faceFormData = new FormData();
       faceFormData.append("userId", userProfile.id);
       faceFormData.append("img", {
-        uri: `file://${photo.path}`,
+        uri: fullPhotoPath,
         type: "image/jpeg",
         name: "face.jpg",
       } as any);
@@ -138,6 +146,10 @@ const CameraPage = () => {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       console.log("✅ Register pose!");
 
+      // store image uri once successfully checked
+      setImagePaths((prev) => [...prev, fullPhotoPath]);
+
+      // delete already checked pose
       setMissingPose((prev) => prev.slice(1));
     } catch (error: any) {
       console.log(`❌ ${error.response?.data?.message ?? error}`);
@@ -184,7 +196,13 @@ const CameraPage = () => {
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
       <Text style={styles.title}>Đăng ký khuôn mặt</Text>
       {ready && device && (
-        <View style={styles.camera}>
+        <View
+          style={styles.camera}
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            setCameraLayout({ width, height });
+          }}
+        >
           <Camera
             ref={cameraRef}
             style={StyleSheet.absoluteFill}
@@ -194,7 +212,6 @@ const CameraPage = () => {
             photo={true}
             isMirrored={false}
           />
-
           {/* Render bounding boxes 
           {detectedFaces.map((face, index) => (
             <View

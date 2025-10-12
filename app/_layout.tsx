@@ -57,7 +57,7 @@ export default function RootLayout() {
                   value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
                 >
                   <SafeAreaView
-                    style={{ flex: 1 }}
+                    style={{ flex: 1, backgroundColor: "#ffffff" }}
                     edges={["top", "left", "right", "bottom"]}
                   >
                     <Stack>

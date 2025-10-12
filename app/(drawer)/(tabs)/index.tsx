@@ -119,7 +119,7 @@ function HomePage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuoteIndex(
-        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length
+        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length,
       );
     }, 5000);
 
