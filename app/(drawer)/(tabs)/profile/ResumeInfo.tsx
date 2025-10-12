@@ -1,8 +1,11 @@
 import CustomProfileInput from "@/components/ui/CustomProfileInput";
 import { DatePickerInput } from "@/components/ui/DatePickerInput";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { useCameraPermissions } from "expo-camera";
 import { useFormik } from "formik";
 import React, { useState } from "react";
+
+import ScanQRCodeModal from "@/components/ui/ScanQRCodeModal";
 import {
   FlatList,
   Modal,
@@ -34,7 +37,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     useState(false);
   const [nationalitySearch, setNationalitySearch] = useState("");
   const [nationSearch, setNationSearch] = useState("");
-
+  const [permission, requestPermission] = useCameraPermissions();
+  const [showScanQrModal, setShowScanQrModal] = useState(false);
   const initialValues = {
     citizenIdentityCard: userData?.citizenIdentityCard || "",
     issueDate: userData?.issueDate ? new Date(userData.issueDate) : new Date(),
@@ -45,6 +49,9 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     permanentAddress: userData?.permanentAddress || "",
     currentAddress: userData?.currentAddress || "",
     militaryStatus: userData?.militaryStatus || "",
+    fullName: userData?.fullName || "",
+    birthday: userData?.birthday || new Date(),
+    gender: userData?.gender || "",
   };
 
   const validateSchema = Yup.object().shape({
@@ -120,6 +127,14 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     setIsEditing(false);
   };
 
+  const handleScanQrCode = () => {
+    if (permission?.status !== "granted") {
+      requestPermission();
+    } else {
+      setShowScanQrModal(true);
+    }
+  };
+
   const formik = useFormik({
     initialValues,
     validate,
@@ -127,19 +142,14 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     validateOnChange: true,
     validateOnBlur: true,
   });
-
   const CustomDropdown = ({
     error,
     icon,
     label,
     iconColor,
     value,
-    options,
-    onSelect,
     placeholder = "Chọn",
-    searchValue,
-    onSearchChange,
-    showDropdown,
+  
     onToggleDropdown,
   }: any) => (
     <View style={[styles.infoItem, error && { borderBottomColor: "#FF4D4F" }]}>
@@ -172,6 +182,55 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
       </View>
     </View>
   );
+  interface ParsedCCCDData {
+    citizenIdentityCard: string;
+    fullName: string;
+    dateOfBirth: Date;
+    gender: string;
+    permanentAddress: string;
+    issueDate: Date;
+  }
+  const parseThanhDate = (dateString: string): Date => {
+    try {
+      if (dateString.length === 8) {
+        const day = dateString.substring(0, 2);
+        const month = dateString.substring(2, 4);
+        const year = dateString.substring(4, 8);  
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        if (isNaN(date.getTime())) {
+          throw new Error('Invalid date');
+        }
+        
+        return date;
+      }
+      throw new Error('Invalid date format');
+    } catch (error) {
+      console.error('Error parsing date:', error);
+      return new Date();
+    }
+  };
+  const handleParseIDData = (data: string) => {
+    const parts = data.split('|');
+    const parsedData: ParsedCCCDData = {
+      citizenIdentityCard: parts[0],
+      fullName: parts[2],
+      dateOfBirth: parseThanhDate(parts[3]),
+      gender: parts[4],
+      permanentAddress: parts[5],
+      issueDate: parseThanhDate(parts[6]),
+    };
+    const formattedGender = parsedData.gender === "M" ? "M" : "F";
+    formik.setValues({
+      ...initialValues,
+      citizenIdentityCard: parsedData.citizenIdentityCard,
+      fullName: parsedData.fullName,
+      birthday: parsedData.dateOfBirth,
+      gender: formattedGender,
+      permanentAddress: parsedData.permanentAddress,
+      issueDate: parsedData.issueDate,
+    });
+    console.log("parsedData: ", parsedData);
+  };
 
   const SearchableDropdownModal = ({
     visible,
@@ -268,12 +327,11 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           <Text style={styles.sectionTitle}>Sơ yếu lý lịch</Text>
           {isEditing ? (
             <View style={styles.actionButtons}>
-               <TouchableOpacity
+              <TouchableOpacity
                 style={styles.headerActionButtonCancel}
-                onPress={handleCancel}
+                onPress={handleScanQrCode}
               >
-                <MaterialIcons name="close" size={20} color="#666" />
-                <Text style={styles.headerActionButtonCancelText}>Hủy</Text>
+                <MaterialIcons name="qr-code" size={20} color="#666" />
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.headerActionButtonCancel}
@@ -511,6 +569,14 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           </View>
         </TouchableOpacity>
       </Modal>
+      <ScanQRCodeModal
+        visible={showScanQrModal}
+        onClose={() => setShowScanQrModal(false)}
+        onScanSuccess={(data: string) => {
+          handleParseIDData(data);
+          setShowScanQrModal(false);
+        }}
+      />
     </View>
   );
 };

@@ -26,6 +26,7 @@ export default function ProfilePage() {
   const { userProfile, isLoading, error, refetch, userId } =
     useGetUserProfile();
   const updateUserMutation = useUpdateUser();
+
   const tabs = [
     { id: 0, title: "Thông tin chung" },
     { id: 1, title: "Sơ yếu lý lịch" },
