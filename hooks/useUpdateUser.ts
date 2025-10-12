@@ -1,8 +1,6 @@
 import { updateUser } from "@/api/user";
 import { dtoUpdateUser } from "@/models/auth/dtoUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Alert } from "react-native";
-
 export function useUpdateUser() {
   const queryClient = useQueryClient();
   return useMutation({

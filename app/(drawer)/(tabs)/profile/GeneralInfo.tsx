@@ -1,9 +1,6 @@
 import CustomProfileInput from "@/components/ui/CustomProfileInput";
-import { DatePickerInput } from "@/components/ui/DatePickerInput";
 import { useUpdateUser } from "@/hooks/useUpdateUser";
-import { Feather, Ionicons, MaterialIcons } from "@expo/vector-icons";
-import { format } from "date-fns";
-import { vi } from "date-fns/locale";
+import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useFormik } from "formik";
 import React, { useState } from "react";
 import {
@@ -16,7 +13,8 @@ import {
   View,
 } from "react-native";
 import * as Yup from "yup";
-import { RadioGroup } from "../../../../components/ui/RadioButton";
+
+import { MILITARY_STATUS_OPTIONS } from "@/models/data/militaryStatus";
 import { dtoGetUser, dtoUpdateUser } from "../../../../models/auth/dtoUser";
 interface GeneralInfoProps {
   userData: dtoGetUser | undefined;
@@ -30,6 +28,8 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [showMarriedStatusDropdown, setShowMarriedStatusDropdown] =
     useState(false);
+  const [showMilitaryStatusDropdown, setShowMilitaryStatusDropdown] =
+    useState(false);
   const updateUser = useUpdateUser();
   const MARRIED_STATUS_OPTIONS = [
     { label: "Độc thân", value: "Độc thân" },
@@ -37,21 +37,16 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
     { label: "Đã ly hôn", value: "Đã ly hôn" },
   ];
   const initialValues = {
-    fullName: userData?.fullName || "--",
-    email: userData?.email || "--",
-    phone: userData?.phone || "--",
-    birthday: userData?.birthday || "--",
-    gender: userData?.gender || "--",
-    marriedStatus: userData?.marriedStatus || "--",
-    bankingAccountNo: userData?.bankingAccountNo || "--",
-    bankingAccountName: userData?.bankingAccountName || "--",
-    bankingName: userData?.bankingName || "--",
+    email: userData?.email || "",
+    phone: userData?.phone || "",
+    marriedStatus: userData?.marriedStatus || "",
+    bankingAccountNo: userData?.bankingAccountNo || "",
+    bankingAccountName: userData?.bankingAccountName || "",
+    bankingName: userData?.bankingName || "",
+    taxCode: userData?.taxCode || "",
+    militaryStatus: userData?.militaryStatus || "",
   };
   const validateSchema = Yup.object().shape({
-    fullName: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Họ và tên là bắt buộc")
-      .matches(/^[\p{L}\s'-]+$/u, "Tên không hợp lệ"),
     email: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
       .email("Email không hợp lệ")
@@ -64,8 +59,6 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
       .trim("Không được chứa khoảng trắng thừa")
       .matches(/^[0-9]{10,11}$/, "Số điện thoại không hợp lệ")
       .required("Số điện thoại là bắt buộc"),
-    birthday: Yup.date().required("Ngày sinh là bắt buộc"),
-    gender: Yup.string().required("Giới tính là bắt buộc"),
     marriedStatus: Yup.string().required("Tình trạng hôn nhân là bắt buộc"),
     bankingAccountNo: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
@@ -79,6 +72,19 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
       .trim("Không được chứa khoảng trắng thừa")
       .required("Tên ngân hàng là bắt buộc")
       .matches(/^[\p{L}\s'-]+$/u, "Tên không được chứa ký tự đặc biệt hoặc số"),
+    taxCode: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Mã số thuế là bắt buộc")
+      .matches(
+        /^[0-9]{10}([0-9]{3})?$/,
+        "Mã số thuế phải gồm 10 hoặc 13 chữ số"
+      ),
+      militaryStatus: Yup.string()
+      .required("Tình trạng quân dịch là bắt buộc")
+      .oneOf(
+        MILITARY_STATUS_OPTIONS.map((option) => option.value),
+        "Tình trạng quân dịch không hợp lệ"
+      ),
   });
   const validate = (values: typeof initialValues) => {
     const errors: any = {};
@@ -92,14 +98,9 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
     return errors;
   };
 
-  const formatDate = (date: Date) => {
-    return format(date, "dd/MM/yyyy", { locale: vi });
-  };
-
   const handleSubmit = (values: typeof initialValues) => {
     const trimmedValues = {
       ...values,
-      fullName: values.fullName.trim(),
       email: values.email.trim(),
       marriedStatus: values.marriedStatus as
         | "Đã kết hôn"
@@ -109,9 +110,9 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
       bankingAccountNo: values.bankingAccountNo.trim(),
       bankingAccountName: values.bankingAccountName.trim(),
       bankingName: values.bankingName.trim(),
-      gender: values.gender as "M" | "F",
-      birthday: values.birthday,
       dependent: [],
+      taxCode: values.taxCode.trim(),
+      militaryStatus: values.militaryStatus
     };
     const onboardData = { ...userData, ...trimmedValues } as dtoUpdateUser;
     console.log("Form submitted:", onboardData);
@@ -144,6 +145,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
     value,
     options,
     onSelect,
+    onPress,
     placeholder = "Chọn tình trạng",
   }: any) => (
     <View style={[styles.infoItem, error && { borderBottomColor: "#FF4D4F" }]}>
@@ -155,7 +157,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
         {isEditing ? (
           <TouchableOpacity
             style={styles.dropdownButton}
-            onPress={() => setShowMarriedStatusDropdown(true)}
+            onPress={onPress}
           >
             <Text
               style={[styles.dropdownText, !value && styles.placeholderText]}
@@ -215,18 +217,6 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
         {/* Content */}
         <View style={styles.infoCard}>
           <CustomProfileInput
-            error={formik.errors.fullName}
-            icon="person-outline"
-            label="Họ và tên"
-            value={formik.values.fullName}
-            onChangeText={(text: string) =>
-              formik.setFieldValue("fullName", text)
-            }
-            iconColor="#3674B5"
-            keyboardType="email-address"
-            isEditing={isEditing}
-          />
-          <CustomProfileInput
             error={formik.errors.email}
             icon="mail"
             label="Email"
@@ -247,50 +237,89 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
             keyboardType="phone-pad"
             isEditing={isEditing}
           />
-
-          <DatePickerInput
-            label="Ngày sinh"
-            value={formik.values.birthday}
-            error={formik.errors.birthday}
-            onChange={(date: Date) => formik.setFieldValue("birthday", date)}
-            onFocus={() => formik.setFieldTouched("birthday", true)}
-            maximumDate={new Date()}
-            placeholder="Chọn ngày sinh"
+          <CustomProfileInput
+            error={formik.errors.taxCode as string}
+            icon="credit-card"
+            label="Mã số thuế"
+            value={formik.values.taxCode}
+            onChangeText={(text: string) =>
+              formik.setFieldValue("taxCode", text)
+            }
+            iconColor="#D69E2E"
             isEditing={isEditing}
           />
-          {/* Gender Selection */}
-          <View style={styles.infoItem}>
-            <View style={styles.infoIconContainer}>
-              <Ionicons name="person-outline" size={20} color="#4CAF50" />
-            </View>
-            <View style={styles.infoTextContainer}>
-              <Text style={styles.infoLabel}>Giới tính</Text>
-              {isEditing ? (
-                <RadioGroup
-                  options={[
-                    { label: "Nam", value: "M" },
-                    { label: "Nữ", value: "F" },
-                  ]}
-                  selectedValue={formik.values.gender}
-                  onValueChange={(value) =>
-                    formik.setFieldValue("gender", value as "M" | "F")
-                  }
-                  direction="row"
-                  containerStyle={styles.radioGroupContainer}
-                  itemStyle={styles.radioItem}
-                />
-              ) : (
-                <Text style={styles.infoValue}>
-                  {formik.values.gender === "M"
-                    ? "Nam"
-                    : formik.values.gender === "F"
-                    ? "Nữ"
-                    : "Không xác định"}
-                </Text>
-              )}
-            </View>
-          </View>
 
+          <CustomDropdown
+            error={formik.errors.militaryStatus}
+            icon="shield"
+            label="Tình trạng quân dịch"
+            value={formik.values.militaryStatus}
+            options={MILITARY_STATUS_OPTIONS}
+            onSelect={(value: string) =>
+              formik.setFieldValue("militaryStatus", value)
+            }
+            iconColor="#3F51B5"
+            placeholder="Chọn tình trạng quân dịch"
+            showDropdown={showMilitaryStatusDropdown}
+            onToggleDropdown={() => setShowMilitaryStatusDropdown(true)}
+            onPress={() => setShowMilitaryStatusDropdown(true)}
+          />
+          <Modal
+            visible={showMilitaryStatusDropdown}
+            transparent={true}
+            animationType="fade"
+            onRequestClose={() => setShowMilitaryStatusDropdown(false)}
+          >
+            <TouchableOpacity
+              style={styles.modalOverlay}
+              activeOpacity={1}
+              onPress={() => setShowMilitaryStatusDropdown(false)}
+            >
+              <View style={styles.dropdownModal}>
+                <View style={styles.dropdownHeader}>
+                  <Text style={styles.dropdownTitle}>
+                    Chọn tình trạng quân dịch
+                  </Text>
+                  <TouchableOpacity
+                    onPress={() => setShowMilitaryStatusDropdown(false)}
+                    style={styles.closeButton}
+                  >
+                    <Feather name="x" size={20} color="#666" />
+                  </TouchableOpacity>
+                </View>
+                <FlatList
+                  data={MILITARY_STATUS_OPTIONS}
+                  keyExtractor={(item) => item.value}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      style={[
+                        styles.dropdownItem,
+                        formik.values.militaryStatus === item.value &&
+                          styles.selectedItem,
+                      ]}
+                      onPress={() => {
+                        formik.setFieldValue("militaryStatus", item.value);
+                        setShowMilitaryStatusDropdown(false);
+                      }}
+                    >
+                      <Text
+                        style={[
+                          styles.dropdownItemText,
+                          formik.values.militaryStatus === item.value &&
+                            styles.selectedItemText,
+                        ]}
+                      >
+                        {item.label}
+                      </Text>
+                      {formik.values.militaryStatus === item.value && (
+                        <Feather name="check" size={16} color="#3674B5" />
+                      )}
+                    </TouchableOpacity>
+                  )}
+                />
+              </View>
+            </TouchableOpacity>
+          </Modal>
           <CustomDropdown
             error={formik.errors.marriedStatus}
             icon="heart"
@@ -302,6 +331,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
             }
             iconColor="#E91E63"
             isEditing={isEditing}
+            onPress={() => setShowMarriedStatusDropdown(true)}
           />
         </View>
         <Modal
@@ -514,13 +544,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: "#333",
   },
-  radioGroupContainer: {
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  radioItem: {
-    marginRight: 20,
-  },
+
   // Dropdown styles
   dropdownButton: {
     flexDirection: "row",

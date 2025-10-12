@@ -5,7 +5,6 @@ import { router } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -19,6 +18,7 @@ import DependentInfo from "./profile/DependentInfo";
 import GeneralInfo from "./profile/GeneralInfo";
 import ResumeInfo from "./profile/ResumeInfo";
 import WorkContractInfo from "./profile/WorkContractInfo";
+import AlertModal from "@/components/ui/AlertModal";
 
 export default function ProfilePage() {
   const insets = useSafeAreaInsets();
@@ -26,6 +26,12 @@ export default function ProfilePage() {
   const { userProfile, isLoading, error, refetch, userId } =
     useGetUserProfile();
   const updateUserMutation = useUpdateUser();
+  const [showAlertModal, setShowAlertModal] = useState({
+    visible: false,
+    message: "",
+    type: "success",
+    title: "",
+  });
 
   const tabs = [
     { id: 0, title: "Thông tin chung" },
@@ -39,10 +45,10 @@ export default function ProfilePage() {
       onboardData: updatedData,
     },{
       onSuccess: () => {
-        Alert.alert("Thành công", "Thông tin cá nhân đã được cập nhật thành công!");
+        setShowAlertModal({visible: true, message: "Thông tin cá nhân đã được cập nhật thành công!", type: "success", title: "Thông báo"});
       },
       onError: () => {
-        Alert.alert("Lỗi", "Lỗi khi cập nhật thông tin cá nhân");
+        setShowAlertModal({visible: true, message: "Lỗi khi cập nhật thông tin cá nhân", type: "error", title: "Thông báo"});
       },
     });
   };
@@ -181,6 +187,12 @@ export default function ProfilePage() {
       >
         {renderTabContent()}
       </ScrollView>
+      <AlertModal visible={showAlertModal.visible} onClose={() => {setShowAlertModal({visible: false, message: "", type: "success", title: ""});
+        }}
+        type={showAlertModal.type as "success" | "error" | "warning" | "info"}
+        title={showAlertModal.title}
+        message={showAlertModal.message}
+      />
     </View>
   );
 }

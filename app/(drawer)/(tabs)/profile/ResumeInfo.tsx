@@ -1,11 +1,11 @@
+import AlertModal from "@/components/ui/AlertModal";
 import CustomProfileInput from "@/components/ui/CustomProfileInput";
 import { DatePickerInput } from "@/components/ui/DatePickerInput";
+import ScanQRCodeModal from "@/components/ui/ScanQRCodeModal";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useCameraPermissions } from "expo-camera";
 import { useFormik } from "formik";
 import React, { useState } from "react";
-
-import ScanQRCodeModal from "@/components/ui/ScanQRCodeModal";
 import {
   FlatList,
   Modal,
@@ -17,8 +17,8 @@ import {
   View,
 } from "react-native";
 import * as Yup from "yup";
+import { RadioGroup } from "../../../../components/ui/RadioButton";
 import { dtoGetUser, dtoUpdateUser } from "../../../../models/auth/dtoUser";
-import { MILITARY_STATUS_OPTIONS } from "../../../../models/data/militaryStatus";
 import { NATION_OPTIONS } from "../../../../models/data/nation";
 import { NATIONALITY_OPTIONS } from "../../../../models/data/nationality";
 interface ResumeInfoProps {
@@ -33,22 +33,25 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
   const [showNationDropdown, setShowNationDropdown] = useState(false);
-  const [showMilitaryStatusDropdown, setShowMilitaryStatusDropdown] =
-    useState(false);
+
   const [nationalitySearch, setNationalitySearch] = useState("");
   const [nationSearch, setNationSearch] = useState("");
   const [permission, requestPermission] = useCameraPermissions();
   const [showScanQrModal, setShowScanQrModal] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState({
+    visible: false,
+    message: "",
+    type: "success",
+    title: "",
+  });
   const initialValues = {
-    citizenIdentityCard: userData?.citizenIdentityCard || "",
+    citizenIdentityCard: userData?.citizenIdentityCard || "--",
     issueDate: userData?.issueDate ? new Date(userData.issueDate) : new Date(),
     issueAt: userData?.issueAt || "",
-    taxCode: userData?.taxCode || "",
     nationality: userData?.nationality || "",
     nation: userData?.nation || "",
     permanentAddress: userData?.permanentAddress || "",
     currentAddress: userData?.currentAddress || "",
-    militaryStatus: userData?.militaryStatus || "",
     fullName: userData?.fullName || "",
     birthday: userData?.birthday || new Date(),
     gender: userData?.gender || "",
@@ -62,13 +65,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     issueAt: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
       .required("Nơi cấp là bắt buộc"),
-    taxCode: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Mã số thuế là bắt buộc")
-      .matches(
-        /^[0-9]{10}([0-9]{3})?$/,
-        "Mã số thuế phải gồm 10 hoặc 13 chữ số"
-      ),
+
     nationality: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
       .required("Quốc tịch là bắt buộc"),
@@ -81,12 +78,12 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     currentAddress: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
       .required("Địa chỉ hiện tại là bắt buộc"),
-    militaryStatus: Yup.string()
-      .required("Tình trạng quân dịch là bắt buộc")
-      .oneOf(
-        MILITARY_STATUS_OPTIONS.map((option) => option.value),
-        "Tình trạng quân dịch không hợp lệ"
-      ),
+    birthday: Yup.date().required("Ngày sinh là bắt buộc"),
+    gender: Yup.string().required("Giới tính là bắt buộc"),
+    fullName: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Họ và tên là bắt buộc")
+      .matches(/^[\p{L}\s'-]+$/u, "Tên không hợp lệ"),
   });
 
   const validate = (values: typeof initialValues) => {
@@ -104,20 +101,21 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
   };
 
   const handleSubmit = (values: typeof initialValues) => {
+    console.log("heheh: ", values);
     const trimmedValues = {
       ...values,
       citizenIdentityCard: values.citizenIdentityCard.trim(),
       issueAt: values.issueAt.trim(),
-      taxCode: values.taxCode.trim(),
       nationality: values.nationality.trim(),
       nation: values.nation.trim(),
       permanentAddress: values.permanentAddress.trim(),
       currentAddress: values.currentAddress.trim(),
-      militaryStatus: values.militaryStatus,
       issueDate: values.issueDate,
+      fullName: values.fullName.trim(),
+      birthday: values.birthday,
+      gender: values.gender,
     };
     const onboardData = { ...userData, ...trimmedValues } as dtoUpdateUser;
-    console.log("Form submitted:", onboardData);
     onUpdateUserData(onboardData);
     setIsEditing(false);
   };
@@ -149,7 +147,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     iconColor,
     value,
     placeholder = "Chọn",
-  
+
     onToggleDropdown,
   }: any) => (
     <View style={[styles.infoItem, error && { borderBottomColor: "#FF4D4F" }]}>
@@ -190,36 +188,45 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     permanentAddress: string;
     issueDate: Date;
   }
-  const parseThanhDate = (dateString: string): Date => {
+  const parseDate = (dateString: string): Date => {
     try {
       if (dateString.length === 8) {
         const day = dateString.substring(0, 2);
         const month = dateString.substring(2, 4);
-        const year = dateString.substring(4, 8);  
-        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+        const year = dateString.substring(4, 8);
+        const date = new Date(
+          parseInt(year),
+          parseInt(month) - 1,
+          parseInt(day)
+        );
         if (isNaN(date.getTime())) {
-          throw new Error('Invalid date');
+          throw new Error("Invalid date");
         }
-        
+
         return date;
       }
-      throw new Error('Invalid date format');
+      throw new Error("Invalid date format");
     } catch (error) {
-      console.error('Error parsing date:', error);
+      console.error("Error parsing date:", error);
       return new Date();
     }
   };
   const handleParseIDData = (data: string) => {
-    const parts = data.split('|');
+    const parts = data.split("|");
+    if (parts.length !== 7) {
+      setShowAlertModal({visible: true, message: "Mã QR không hợp lệ", type: "error", title: "Thông báo"});
+      setShowScanQrModal(false);
+      return;
+    }
     const parsedData: ParsedCCCDData = {
       citizenIdentityCard: parts[0],
       fullName: parts[2],
-      dateOfBirth: parseThanhDate(parts[3]),
+      dateOfBirth: parseDate(parts[3]),
       gender: parts[4],
       permanentAddress: parts[5],
-      issueDate: parseThanhDate(parts[6]),
+      issueDate: parseDate(parts[6]),
     };
-    const formattedGender = parsedData.gender === "M" ? "M" : "F";
+    const formattedGender = parsedData.gender === "Nam" ? "M" : "F";
     formik.setValues({
       ...initialValues,
       citizenIdentityCard: parsedData.citizenIdentityCard,
@@ -229,7 +236,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
       permanentAddress: parsedData.permanentAddress,
       issueDate: parsedData.issueDate,
     });
-    console.log("parsedData: ", parsedData);
+    setShowAlertModal({visible: true, message: "Dữ liệu đã được cập nhật", type: "success", title: "Thông báo"});
+    setShowScanQrModal(false);
   };
 
   const SearchableDropdownModal = ({
@@ -362,6 +370,17 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
         {/* Content */}
         <View style={styles.infoCard}>
           <CustomProfileInput
+            error={formik.errors.fullName}
+            icon="user"
+            label="Họ và tên"
+            value={formik.values.fullName}
+            onChangeText={(text: string) =>
+              formik.setFieldValue("fullName", text)
+            }
+            iconColor="#3674B5"
+            isEditing={isEditing}
+          />
+          <CustomProfileInput
             error={formik.errors.citizenIdentityCard}
             icon="credit-card"
             label="Số CCCD/CMND"
@@ -372,20 +391,6 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
             iconColor="#3674B5"
             isEditing={isEditing}
           />
-
-          <DatePickerInput
-            label="Ngày cấp"
-            value={formik.values.issueDate}
-            error={formik.errors.issueDate as string}
-            onChange={(date: Date) => formik.setFieldValue("issueDate", date)}
-            onFocus={() => formik.setFieldTouched("issueDate", true)}
-            icon="calendar"
-            iconColor="#38A169"
-            isEditing={isEditing}
-            maximumDate={new Date()}
-            placeholder="Chọn ngày cấp"
-          />
-
           <CustomProfileInput
             error={formik.errors.issueAt}
             icon="map-pin"
@@ -395,18 +400,6 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
               formik.setFieldValue("issueAt", text)
             }
             iconColor="#3182CE"
-            isEditing={isEditing}
-          />
-
-          <CustomProfileInput
-            error={formik.errors.taxCode}
-            icon="credit-card"
-            label="Mã số thuế"
-            value={formik.values.taxCode}
-            onChangeText={(text: string) =>
-              formik.setFieldValue("taxCode", text)
-            }
-            iconColor="#D69E2E"
             isEditing={isEditing}
           />
 
@@ -441,6 +434,61 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
             showDropdown={showNationDropdown}
             onToggleDropdown={() => setShowNationDropdown(true)}
           />
+          <DatePickerInput
+            label="Ngày sinh"
+            value={formik.values.birthday}
+            error={formik.errors.birthday as string}
+            onChange={(date: Date) => formik.setFieldValue("birthday", date)}
+            onFocus={() => formik.setFieldTouched("birthday", true)}
+            maximumDate={new Date()}
+            placeholder="Chọn ngày sinh"
+            isEditing={isEditing}
+          />
+          {/* Gender Selection */}
+          <View style={styles.infoItem}>
+            <View style={styles.infoIconContainer}>
+              <Feather name="user" size={20} color="#4CAF50" />
+            </View>
+            <View style={styles.infoTextContainer}>
+              <Text style={styles.infoLabel}>Giới tính</Text>
+              {isEditing ? (
+                <RadioGroup
+                  options={[
+                    { label: "Nam", value: "M" },
+                    { label: "Nữ", value: "F" },
+                  ]}
+                  selectedValue={formik.values.gender}
+                  onValueChange={(value) =>
+                    formik.setFieldValue("gender", value as "M" | "F")
+                  }
+                  direction="row"
+                  containerStyle={styles.radioGroupContainer}
+                  itemStyle={styles.radioItem}
+                />
+              ) : (
+                <Text style={styles.infoValue}>
+                  {formik.values.gender === "M"
+                    ? "Nam"
+                    : formik.values.gender === "F"
+                    ? "Nữ"
+                    : "Không xác định"}
+                </Text>
+              )}
+            </View>
+          </View>
+
+          <DatePickerInput
+            label="Ngày cấp"
+            value={formik.values.issueDate}
+            error={formik.errors.issueDate as string}
+            onChange={(date: Date) => formik.setFieldValue("issueDate", date)}
+            onFocus={() => formik.setFieldTouched("issueDate", true)}
+            icon="calendar"
+            iconColor="#38A169"
+            isEditing={isEditing}
+            maximumDate={new Date()}
+            placeholder="Chọn ngày cấp"
+          />
 
           <CustomProfileInput
             error={formik.errors.permanentAddress}
@@ -466,21 +514,6 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
             iconColor="#795548"
             multiline
             isEditing={isEditing}
-          />
-
-          <CustomDropdown
-            error={formik.errors.militaryStatus}
-            icon="shield"
-            label="Tình trạng quân dịch"
-            value={formik.values.militaryStatus}
-            options={MILITARY_STATUS_OPTIONS.map((option) => option.value)}
-            onSelect={(value: string) =>
-              formik.setFieldValue("militaryStatus", value)
-            }
-            iconColor="#3F51B5"
-            placeholder="Chọn tình trạng quân dịch"
-            showDropdown={showMilitaryStatusDropdown}
-            onToggleDropdown={() => setShowMilitaryStatusDropdown(true)}
           />
         </View>
       </ScrollView>
@@ -513,62 +546,6 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
         onSearchChange={setNationSearch}
       />
 
-      <Modal
-        visible={showMilitaryStatusDropdown}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={() => setShowMilitaryStatusDropdown(false)}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={() => setShowMilitaryStatusDropdown(false)}
-        >
-          <View style={styles.dropdownModal}>
-            <View style={styles.dropdownHeader}>
-              <Text style={styles.dropdownTitle}>
-                Chọn tình trạng quân dịch
-              </Text>
-              <TouchableOpacity
-                onPress={() => setShowMilitaryStatusDropdown(false)}
-                style={styles.closeButton}
-              >
-                <Feather name="x" size={20} color="#666" />
-              </TouchableOpacity>
-            </View>
-            <FlatList
-              data={MILITARY_STATUS_OPTIONS}
-              keyExtractor={(item) => item.value}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.dropdownItem,
-                    formik.values.militaryStatus === item.value &&
-                      styles.selectedItem,
-                  ]}
-                  onPress={() => {
-                    formik.setFieldValue("militaryStatus", item.value);
-                    setShowMilitaryStatusDropdown(false);
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.dropdownItemText,
-                      formik.values.militaryStatus === item.value &&
-                        styles.selectedItemText,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                  {formik.values.militaryStatus === item.value && (
-                    <Feather name="check" size={16} color="#3674B5" />
-                  )}
-                </TouchableOpacity>
-              )}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
       <ScanQRCodeModal
         visible={showScanQrModal}
         onClose={() => setShowScanQrModal(false)}
@@ -576,6 +553,20 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           handleParseIDData(data);
           setShowScanQrModal(false);
         }}
+      />
+      <AlertModal
+        visible={showAlertModal.visible}
+        onClose={() => {
+          setShowAlertModal({
+            visible: false,
+            message: "",
+            type: "success",
+            title: "",
+          }); 
+        }}
+        type={showAlertModal.type as "success" | "error" | "warning" | "info"}
+        title={showAlertModal.title}
+        message={showAlertModal.message}
       />
     </View>
   );
@@ -771,6 +762,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: "#f0f0f0",
+  },
+  radioGroupContainer: {
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  radioItem: {
+    marginRight: 20,
   },
   selectedItem: {
     backgroundColor: "#f8f9fa",

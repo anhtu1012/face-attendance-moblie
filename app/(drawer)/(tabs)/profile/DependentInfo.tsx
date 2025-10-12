@@ -48,7 +48,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({
   };
 
   const handleAddDependent = () => {
-    // TODO: Add new dependent
     console.log("Add new dependent");
     const newDependent: dtoDependent = {
       dpId: "",
