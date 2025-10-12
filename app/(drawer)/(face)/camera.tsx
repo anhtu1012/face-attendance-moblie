@@ -48,35 +48,43 @@ const CameraPage = () => {
     cameraFacing: "front",
     landmarkMode: "all",
   }).current;
+  const [imagePaths, setImagePaths] = useState<String[]>([]);
+  const [cameraLayout, setCameraLayout] = useState({ width: 0, height: 0 });
+  const [userFace, setUserFace] = useState<any>();
   const device = useCameraDevice("front");
   const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
-  const [detectedFaces, setDetectedFaces] = useState<Face[]>([]);
   const isRegisteringRef = useRef(false);
+  const registrationGeneration = useRef(0);
+  const missingPoseRef = useRef<any[]>([]);
 
-  useFocusEffect(
-    useCallback(() => {
-      let previousBrightness: number;
-
-      Brightness.getSystemBrightnessAsync().then((value) => {
-        previousBrightness = value;
-        Brightness.setSystemBrightnessAsync(1); // set to max when focused
-      });
-
-      return () => {
-        if (previousBrightness !== undefined) {
-          Brightness.setSystemBrightnessAsync(previousBrightness);
-        } else {
-          Brightness.restoreSystemBrightnessAsync(); // fallback
-        }
-      };
-    }, []),
-  );
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     let previousBrightness: number;
+  //
+  //     Brightness.getSystemBrightnessAsync().then((value) => {
+  //       previousBrightness = value;
+  //       Brightness.setSystemBrightnessAsync(1); // set to max when focused
+  //     });
+  //
+  //     return () => {
+  //       if (previousBrightness !== undefined) {
+  //         Brightness.setSystemBrightnessAsync(previousBrightness);
+  //       } else {
+  //         Brightness.restoreSystemBrightnessAsync(); // fallback
+  //       }
+  //     };
+  //   }, []),
+  // );
+  //
+  useEffect(() => {
+    missingPoseRef.current = missingPose;
+  }, [missingPose]);
 
   useEffect(() => {
-    // load brightness
-    (async () => {
-      await Brightness.requestPermissionsAsync();
-    })();
+    // // load brightness
+    // (async () => {
+    //   await Brightness.requestPermissionsAsync();
+    // })();
     return () => {
       // you must call `stopListeners` when current component is unmounted
       stopListeners();
@@ -100,63 +108,55 @@ const CameraPage = () => {
   // flag variable to only allow one request at a time
   const handleDetectedFaces = Worklets.createRunOnJS(async (faces: Face[]) => {
     if (isRegisteringRef.current) return;
-    // Check if multiple faces detected
-    setDetectedFaces(faces);
+    if (faces.length !== 1) return;
 
-    if (faces.length > 1) {
-      // console.log("Multiple faces detected!");
-      return;
-    }
-
-    // Check if no face detected
-    if (faces.length == 0) {
-      // console.log("No face detected!");
-      return;
-    }
-
-    // Get current pose
     const face = faces[0];
-    const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
 
-    // check if current pose match missing pose
-    if (currentPose != missingPose[0]) return;
+    setUserFace(face);
+
+    const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
+    const currentMissingPose = missingPoseRef.current[0];
+    if (currentPose !== currentMissingPose) return;
+
+    console.log("currentPose: ", currentPose);
+    console.log("missingPose (ref): ", currentMissingPose);
+
+    const currentGeneration = ++registrationGeneration.current;
     isRegisteringRef.current = true;
 
-    // check if photo exist
-    const photo = await cameraRef.current?.takePhoto();
-    if (!photo?.path || !userProfile.id) return;
-
-    // print current pose
-    console.log("current pose: ", printCurrentPose(currentPose));
-    console.log("checked pose: ", printCurrentPose(missingPose[0]));
-
-    // formdata body
-    const faceFormData = new FormData();
-    faceFormData.append("userId", userProfile.id);
-    faceFormData.append("img", {
-      uri: `file://${photo!.path}`,
-      type: "image/jpeg",
-      name: "face.jpg",
-    } as any);
-    faceFormData.append("checkedPose", missingPose[0]);
-
-    // register user's face
     try {
+      const photo = await cameraRef.current?.takePhoto();
+      if (!photo?.path || !userProfile?.id) return;
+
+      const fullPhotoPath = `file://${photo.path}`;
+
+      const faceFormData = new FormData();
+      faceFormData.append("userId", userProfile.id);
+      faceFormData.append("img", {
+        uri: fullPhotoPath,
+        type: "image/jpeg",
+        name: "face.jpg",
+      } as any);
+      faceFormData.append("checkedPose", currentMissingPose);
+
       await registerFace(faceFormData);
 
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      if (currentGeneration !== registrationGeneration.current) return;
 
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
       console.log("✅ Register pose!");
 
-      // remove first pose in missingPose array
+      // store image uri once successfully checked
+      setImagePaths((prev) => [...prev, fullPhotoPath]);
+
+      // delete already checked pose
       setMissingPose((prev) => prev.slice(1));
     } catch (error: any) {
-      console.log(error);
-      console.log(error.response?.data?.message);
+      console.log(`❌ ${error.response?.data?.message ?? error}`);
     } finally {
-      setTimeout(() => {
+      if (currentGeneration === registrationGeneration.current) {
         isRegisteringRef.current = false;
-      }, 1000);
+      }
     }
   });
 
@@ -166,8 +166,6 @@ const CameraPage = () => {
       runAsync(frame, () => {
         "worklet";
         const faces = detectFaces(frame);
-        // ... chain some asynchronous frame processor
-        // ... do something asynchronously with frame
         handleDetectedFaces(faces);
       });
     },
@@ -198,7 +196,13 @@ const CameraPage = () => {
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
       <Text style={styles.title}>Đăng ký khuôn mặt</Text>
       {ready && device && (
-        <View style={styles.camera}>
+        <View
+          style={styles.camera}
+          onLayout={(e) => {
+            const { width, height } = e.nativeEvent.layout;
+            setCameraLayout({ width, height });
+          }}
+        >
           <Camera
             ref={cameraRef}
             style={StyleSheet.absoluteFill}
@@ -206,8 +210,8 @@ const CameraPage = () => {
             isActive={isFocused}
             frameProcessor={isFocused ? frameProcessor : undefined}
             photo={true}
+            isMirrored={false}
           />
-
           {/* Render bounding boxes 
           {detectedFaces.map((face, index) => (
             <View
