@@ -12,6 +12,7 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import { submitForm } from "@/services/form/api";
 import { HttpStatusCode } from "axios";
+import MultiFileInput from "@/components/MultiFileInput";
 
 type DateType = {
   startDate: string;
@@ -249,6 +250,16 @@ export default function CreateFormPage() {
             onChangeText={setReason}
           />
         </View>
+
+        {/* Files */}
+        <View style={styles.inputGroup}>
+          <Text style={[styles.labelBold, { marginBottom: 5 }]}>
+            Tệp <Text style={{ color: "red" }}>*</Text>
+          </Text>
+          <MultiFileInput />
+        </View>
+
+        {/* Submit button */}
         <TouchableOpacity
           style={styles.submitButton}
           onPress={handleSubmitForm}
