@@ -1,6 +1,6 @@
 import TodayWidget from "@/components/Home/TodayWidget";
+import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
-import { getUserProfileFromStorage } from "@/utils/userProfileUtils";
 import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -72,7 +72,7 @@ const fakeSchedule: WorkingSchedule = {
   managerFullName: "Tran Thi B",
 };
 function HomePage() {
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  const { userProfile, isLoading, error, refetch, userId } = useGetUserProfile();
   const [forms, setForms] = useState<FormDescription[]>([]);
   const [loading, setLoading] = useState(true);
   // const [todaySchedule] = useState<WorkingSchedule | null>(fakeSchedule);
@@ -125,15 +125,7 @@ function HomePage() {
 
     return () => clearInterval(interval);
   }, []);
-  useEffect(() => {
-    (async () => {
-      const userProfile = await getUserProfileFromStorage();
-      if (userProfile) {
-        console.log("user: ", userProfile);
-        setUserProfile(userProfile);
-      }
-    })();
-  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -145,7 +137,7 @@ function HomePage() {
         </View>
         <TouchableOpacity
           style={styles.avatarContainer}
-          onPress={() => router.push("/(drawer)/profile")}
+          onPress={() => router.push("/(drawer)/(tabs)/profile")}
         >
           <Image
             source={

@@ -28,6 +28,7 @@ import { setAuthData } from "../lib/features/loginSlice";
 import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
 import { LoginResponse } from "../models/auth/login";
+import { setToken } from "@/api/axios";
 const { width, height } = Dimensions.get("window");
 
 export interface ILoginScreenProps {
@@ -58,6 +59,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
     const handleIsLogin = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
+        setToken(token);
         const userData = await AsyncStorage.getItem("userData");
         if (token && userData) {
           // Check if token is still valid
@@ -67,6 +69,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
           } else {
             // Token expired, clear storage
             await AsyncStorage.multiRemove(["token", "userData"]);
+            setToken(null);
             Toast.show({
               type: "info",
               text1: "Phiên đăng nhập đã hết hạn",
@@ -78,6 +81,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       } catch (error) {
         console.error("Error checking login status:", error); // Ensure error is logged
         await AsyncStorage.multiRemove(["token", "userData"]);
+        setToken(null);
       }
     };
     handleIsLogin();
@@ -117,21 +121,14 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       console.log("Logging in with:", { userName, password });
       const response = await loginUser({ username: userName, password });
       const loginResponse: LoginResponse = response.data;
+      setToken(loginResponse.accessToken);
       await AsyncStorage.setItem("token", loginResponse.accessToken);
       await AsyncStorage.setItem(
         "userProfile",
         JSON.stringify(loginResponse.userProfile)
       );
-      
       dispatch(setAuthData(loginResponse));
-      const isOnboarded = false;
-      if (isOnboarded) {
-        console.log("Logged in...");
-        router.replace("/(drawer)" as any);
-      } else {
-        console.log("Onboarding...");
-        router.replace("/onboard" as any);
-      }
+      router.replace("/(drawer)" as any);
     } catch (error: any) {
       Toast.show({
         type: "error",

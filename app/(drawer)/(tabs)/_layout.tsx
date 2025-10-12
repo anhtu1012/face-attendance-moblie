@@ -305,6 +305,41 @@ export default function TabLayout() {
           tabBarButton: renderMenuButton,
         }}
       />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: "Thông tin nhân sự",
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile/DependentInfo"
+        options={{
+          title: "Người phụ thuộc",
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile/ResumeInfo"
+        options={{
+          title: "Sơ yếu lý lịch",
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile/WorkContractInfo"
+        options={{
+          title: "Hợp đồng",
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="profile/GeneralInfo"
+        options={{
+          title: "Thông tin chung",
+          href: null,
+        }}
+      />
     </Tabs>
   );
 }
