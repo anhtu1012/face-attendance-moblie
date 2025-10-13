@@ -114,12 +114,15 @@ const CameraPage = () => {
 
     setUserFace(face);
 
+    // Get current pose
     const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
+    // Get missing pose
     const currentMissingPose = missingPoseRef.current[0];
+    // If missing pose mismatch current pose -> stop
     if (currentPose !== currentMissingPose) return;
 
     console.log("currentPose: ", currentPose);
-    console.log("missingPose (ref): ", currentMissingPose);
+    // console.log("missingPose (ref): ", currentMissingPose);
 
     const currentGeneration = ++registrationGeneration.current;
     isRegisteringRef.current = true;
@@ -196,13 +199,7 @@ const CameraPage = () => {
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
       <Text style={styles.title}>Đăng ký khuôn mặt</Text>
       {ready && device && (
-        <View
-          style={styles.camera}
-          onLayout={(e) => {
-            const { width, height } = e.nativeEvent.layout;
-            setCameraLayout({ width, height });
-          }}
-        >
+        <View style={styles.camera}>
           <Camera
             ref={cameraRef}
             style={StyleSheet.absoluteFill}
@@ -211,23 +208,11 @@ const CameraPage = () => {
             frameProcessor={isFocused ? frameProcessor : undefined}
             photo={true}
             isMirrored={false}
+            onLayout={(e) => {
+              const { width, height } = e.nativeEvent.layout;
+              setCameraLayout({ width, height });
+            }}
           />
-          {/* Render bounding boxes 
-          {detectedFaces.map((face, index) => (
-            <View
-              key={index}
-              style={{
-                position: "absolute",
-                borderWidth: 2,
-                borderColor: "lime",
-                borderRadius: 8,
-                top: face.bounds.y * 0.7,
-                left: face.bounds.x * 0.7,
-                width: face.bounds.width * 0.7,
-                height: face.bounds.height * 0.7,
-              }}
-            />
-          ))}*/}
         </View>
       )}
       {/* Face Detection Overlay */}

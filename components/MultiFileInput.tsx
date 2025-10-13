@@ -1,10 +1,15 @@
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import { View, Text, TouchableOpacity, FlatList } from "react-native";
 import * as DocumentPicker from "expo-document-picker";
+import AntDesign from "@expo/vector-icons/AntDesign";
 
-export default function MultiFileInput() {
-  const [files, setFiles] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
-
+export default function MultiFileInput({
+  files,
+  setFiles,
+}: {
+  files: DocumentPicker.DocumentPickerAsset[];
+  setFiles: Dispatch<SetStateAction<DocumentPicker.DocumentPickerAsset[]>>;
+}) {
   const pickFiles = async () => {
     try {
       const result = await DocumentPicker.getDocumentAsync({
@@ -71,7 +76,12 @@ export default function MultiFileInput() {
                 {item.name}
               </Text>
               <TouchableOpacity onPress={() => removeFile(item.uri)}>
-                <Text style={{ color: "red", marginLeft: 10 }}>X</Text>
+                <AntDesign
+                  name="delete"
+                  size={18}
+                  color="red"
+                  style={{ marginLeft: 10 }}
+                />
               </TouchableOpacity>
             </View>
           )}

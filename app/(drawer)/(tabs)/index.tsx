@@ -1,7 +1,12 @@
 import TodayWidget from "@/components/Home/TodayWidget";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
-import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  MaterialCommunityIcons,
+  Octicons,
+  Entypo,
+} from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -72,7 +77,8 @@ const fakeSchedule: WorkingSchedule = {
   managerFullName: "Tran Thi B",
 };
 function HomePage() {
-  const { userProfile, isLoading, error, refetch, userId } = useGetUserProfile();
+  const { userProfile, isLoading, error, refetch, userId } =
+    useGetUserProfile();
   const [forms, setForms] = useState<FormDescription[]>([]);
   const [loading, setLoading] = useState(true);
   // const [todaySchedule] = useState<WorkingSchedule | null>(fakeSchedule);
@@ -92,6 +98,84 @@ function HomePage() {
     { id: 3, title: "Workshop", time: "14:00 - 16:00", date: "22/07/2024" },
   ];
 
+  const sentForms = [
+    {
+      title: "Đơn xin nghỉ",
+      sentDate: "13/10/2025",
+      isConfirmed: false,
+      isPending: false,
+    },
+    { title: "Đơn tăng ca", sentDate: "12/10/2025", isConfirmed: true },
+    {
+      title: "Đơn quên chấm công",
+      sentDate: "10/10/2025",
+      isConfirmed: true,
+      isPending: true,
+    },
+    {
+      title: "Đơn quên chấm công",
+      sentDate: "10/10/2025",
+      isConfirmed: false,
+      isPending: true,
+    },
+    {
+      title: "Đơn quên chấm công",
+      sentDate: "10/10/2025",
+      isConfirmed: false,
+      isPending: true,
+    },
+  ];
+
+  const handleRenderFormState = (form: any) => {
+    if (!form.isPending) {
+      return (
+        <View
+          style={[
+            styles.tickContainer,
+            {
+              backgroundColor: "rgba(255, 180, 10, 0.1)",
+            },
+          ]}
+        >
+          <AntDesign
+            name="clock-circle"
+            size={16}
+            color="#ffb40a"
+            style={{ marginRight: 3 }}
+          />
+          <Text style={{ color: "#ffb40a" }}>Đang chờ</Text>
+        </View>
+      );
+    }
+    if (!form.isConfirmed)
+      return (
+        <View
+          style={[
+            styles.tickContainer,
+            {
+              backgroundColor: "rgba(242, 95, 108, 0.1)",
+            },
+          ]}
+        >
+          <Entypo name="circle-with-cross" size={16} color="#f25f6c" />
+          <Text style={{ color: "#f25f6c" }}>Từ chối</Text>
+        </View>
+      );
+
+    return (
+      <View
+        style={[
+          styles.tickContainer,
+          {
+            backgroundColor: "rgba(96, 208, 152, 0.1)",
+          },
+        ]}
+      >
+        <Entypo name="check" size={16} color="#60d098" />
+        <Text style={{ color: "#60d098" }}>Đã duyệt</Text>
+      </View>
+    );
+  };
   const motivationalQuotes = [
     {
       text: "Thành công không phải là chìa khóa của hạnh phúc. Hạnh phúc là chìa khóa của thành công.",
@@ -187,6 +271,33 @@ function HomePage() {
             </TouchableOpacity>
           </View>
         )}
+
+        <View style={styles.widgetContainer}>
+          <View style={styles.quoteHeader}>
+            <View style={styles.quoteIconContainer}>
+              <AntDesign name="form" size={24} color="#3674B5" />
+            </View>
+            <Text style={styles.sectionTitle}>Đơn đã nộp</Text>
+          </View>
+
+          {sentForms.map((form, index) => (
+            <View key={index} style={styles.eventItem}>
+              <View style={styles.eventIconContainer}>
+                <Octicons
+                  name="paperclip"
+                  size={24}
+                  color="#3674B5"
+                  style={{ marginVertical: "auto" }}
+                />
+              </View>
+              <View style={styles.eventContent}>
+                <Text style={styles.eventTitle}>{form.title}</Text>
+                <Text style={styles.eventTime}>{form.sentDate}</Text>
+              </View>
+              {handleRenderFormState(form)}
+            </View>
+          ))}
+        </View>
 
         {/* Motivational Quote Widget */}
         <View style={styles.widgetContainer}>
@@ -604,6 +715,15 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  tickContainer: {
+    flexDirection: "row",
+    height: 30,
+    alignItems: "center",
+    gap: 3,
+    borderRadius: 10,
+    paddingRight: 10,
+    paddingLeft: 5,
   },
 });
 

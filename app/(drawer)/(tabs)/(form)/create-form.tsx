@@ -11,8 +11,10 @@ import {
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
 import { submitForm } from "@/services/form/api";
-import { HttpStatusCode } from "axios";
 import MultiFileInput from "@/components/MultiFileInput";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as DocumentPicker from "expo-document-picker";
+import { createFacesZip } from "@/utils/faceRecognitionUtils";
 
 type DateType = {
   startDate: string;
@@ -47,12 +49,36 @@ export default function CreateFormPage() {
   const [showPicker, setShowPicker] = useState<ShowPickerType>(
     initialShowPickerValue,
   );
+  const [files, setFiles] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
+
+  const handleZipFiles = async () => {
+    const imagePaths = files.reduce(
+      (acc, curr) => [...acc, curr.uri],
+      [] as string[],
+    );
+    const zipUri = await createFacesZip(imagePaths);
+    return zipUri;
+  };
 
   const handleSubmitForm = async () => {
+    console.log("Đang gửi đơn");
+
+    // Get user profile
+    const userProfile = await AsyncStorage.getItem("userProfile");
+    const user = JSON.parse(userProfile!);
+
+    // Get zip image folder uri
+    const zipUri = handleZipFiles();
+
     const formData = new FormData();
     formData.append("formId", id as string);
-    formData.append("submittedById", "1");
+    formData.append("submittedById", user.id);
     formData.append("reason", reason);
+    formData.append("fileEvidence", {
+      uri: zipUri,
+      name: "faces.zip",
+      type: "application/zip",
+    } as any);
     formData.append(
       "startTime",
       new Date(date.startDate + "T" + date.startTime).toISOString(),
@@ -63,12 +89,13 @@ export default function CreateFormPage() {
     );
 
     try {
-      const res = await submitForm(formData);
-      const data = res.data;
-      if (data?.statusCode == HttpStatusCode.BadRequest) {
-        console.log("Không thể gửi đơn");
-      }
+      console.log("FormData: ", formData);
+
+      // const res = await submitForm(formData);
+      // const data = res.data;
+      console.log("Gửi đơn thành công");
     } catch (error) {
+      console.log("Không thể gửi đơn");
       console.log(error);
     }
   };
@@ -253,10 +280,7 @@ export default function CreateFormPage() {
 
         {/* Files */}
         <View style={styles.inputGroup}>
-          <Text style={[styles.labelBold, { marginBottom: 5 }]}>
-            Tệp <Text style={{ color: "red" }}>*</Text>
-          </Text>
-          <MultiFileInput />
+          <MultiFileInput files={files} setFiles={setFiles} />
         </View>
 
         {/* Submit button */}
