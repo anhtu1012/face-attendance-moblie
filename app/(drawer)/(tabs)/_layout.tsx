@@ -268,6 +268,18 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="(form)/form-detail"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
+        name="(form)/view-all-submitted-form"
+        options={{
+          href: null,
+        }}
+      />
+      <Tabs.Screen
         name="timesheet-tab"
         options={{
           title: "Bảng công",

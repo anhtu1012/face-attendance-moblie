@@ -1,7 +1,4 @@
 import { Pose } from "@/constants/face";
-import { zip } from "react-native-zip-archive";
-import { Directory, File, Paths } from "expo-file-system";
-import { copyAsync, makeDirectoryAsync } from "expo-file-system/legacy";
 
 export const printCurrentPose = (currentPose: number) => {
   if (currentPose == Pose.TOP) {
@@ -45,25 +42,4 @@ export const renderpose = (poseNum: Pose) => {
   } else if (poseNum == Pose.FRONT) {
     return "nhìn thẳng";
   }
-};
-
-export const createFacesZip = async (imagePaths: string[]): Promise<string> => {
-  const tempDir = new Directory(Paths.cache, "faces_zip_temp");
-  console.log("tempDir: ", tempDir.uri);
-
-  const zipPath = new File(Paths.cache, tempDir.uri, "faces.zip");
-  console.log("zipPath: ", zipPath.uri);
-
-  await makeDirectoryAsync(zipPath.uri, { intermediates: true });
-
-  // Copy all images into the tempDir
-  for (const [index, imgPath] of imagePaths.entries()) {
-    const newPath = `${tempDir.uri}/img-${index + 1}.jpg`;
-    await copyAsync({ from: imgPath, to: newPath });
-  }
-
-  // Zip it
-  const result = await zip(tempDir.uri, zipPath.uri);
-  console.log("✅ Zipped to:", result);
-  return result; // returns zip file URI
 };

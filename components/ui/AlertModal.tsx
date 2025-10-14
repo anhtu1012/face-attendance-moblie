@@ -9,7 +9,7 @@ import {
   Animated,
 } from "react-native";
 
-interface AlertModalProps {
+export interface AlertModalProps {
   visible: boolean;
   type: "success" | "error" | "warning" | "info";
   title: string;
@@ -20,6 +20,14 @@ interface AlertModalProps {
   confirmText?: string;
   cancelText?: string;
 }
+
+export const initialModalValue: AlertModalProps = {
+  visible: false,
+  message: "",
+  type: "success",
+  title: "",
+  onClose: () => {},
+};
 
 const AlertModal: React.FC<AlertModalProps> = ({
   visible,
@@ -58,7 +66,9 @@ const AlertModal: React.FC<AlertModalProps> = ({
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
-          <View style={[styles.iconContainer, { backgroundColor: color + "20" }]}>
+          <View
+            style={[styles.iconContainer, { backgroundColor: color + "20" }]}
+          >
             <Feather name={icon as any} size={32} color={color} />
           </View>
 
@@ -77,7 +87,11 @@ const AlertModal: React.FC<AlertModalProps> = ({
               </TouchableOpacity>
             )}
             <TouchableOpacity
-              style={[styles.button, styles.confirmButton, { backgroundColor: color }]}
+              style={[
+                styles.button,
+                styles.confirmButton,
+                { backgroundColor: color },
+              ]}
               onPress={() => {
                 if (onConfirm) {
                   onConfirm();
@@ -156,8 +170,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: "center",
   },
-  confirmButton: {
-  },
+  confirmButton: {},
   cancelButton: {
     backgroundColor: "#F5F5F5",
     borderWidth: 1,

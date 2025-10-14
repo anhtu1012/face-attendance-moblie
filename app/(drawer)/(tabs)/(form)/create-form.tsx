@@ -2,6 +2,7 @@ import { AntDesign } from "@expo/vector-icons";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   StyleSheet,
   Text,
   TextInput,
@@ -14,7 +15,11 @@ import { submitForm } from "@/services/form/api";
 import MultiFileInput from "@/components/MultiFileInput";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as DocumentPicker from "expo-document-picker";
-import { createFacesZip } from "@/utils/faceRecognitionUtils";
+import { createZip } from "@/utils/zipUtils";
+import AlertModal, {
+  AlertModalProps,
+  initialModalValue,
+} from "@/components/ui/AlertModal";
 
 type DateType = {
   startDate: string;
@@ -46,29 +51,36 @@ export default function CreateFormPage() {
   const { id, title } = useLocalSearchParams();
   const [reason, setReason] = useState("");
   const [date, setDate] = useState<DateType>(initialDateValue);
+  const [files, setFiles] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
   const [showPicker, setShowPicker] = useState<ShowPickerType>(
     initialShowPickerValue,
   );
-  const [files, setFiles] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
+  const [modal, setModal] = useState<AlertModalProps>({
+    visible: false,
+    message: "",
+    type: "success",
+    title: "",
+    onClose: () => setModal(initialModalValue),
+  });
+  const [loading, setLoading] = useState(false);
 
   const handleZipFiles = async () => {
     const imagePaths = files.reduce(
       (acc, curr) => [...acc, curr.uri],
       [] as string[],
     );
-    const zipUri = await createFacesZip(imagePaths);
+    const zipUri = await createZip(imagePaths);
     return zipUri;
   };
 
   const handleSubmitForm = async () => {
-    console.log("Đang gửi đơn");
-
     // Get user profile
     const userProfile = await AsyncStorage.getItem("userProfile");
     const user = JSON.parse(userProfile!);
 
     // Get zip image folder uri
-    const zipUri = handleZipFiles();
+    const zipUri = await handleZipFiles();
+    console.log("zipUri: ", zipUri);
 
     const formData = new FormData();
     formData.append("formId", id as string);
@@ -89,14 +101,37 @@ export default function CreateFormPage() {
     );
 
     try {
+      // Set loading state
+      setLoading(true);
       console.log("FormData: ", formData);
 
-      // const res = await submitForm(formData);
-      // const data = res.data;
+      await submitForm(formData);
       console.log("Gửi đơn thành công");
-    } catch (error) {
+      setReason("");
+      setDate(initialDateValue);
+      setFiles([]);
+      setModal((prev) => ({
+        ...prev,
+        visible: true,
+        title: "Thành công",
+        message: "Gửi đơn thành công",
+        onClose: () => setModal(initialModalValue),
+      }));
+    } catch (error: any) {
       console.log("Không thể gửi đơn");
       console.log(error);
+
+      // Set error modal
+      setModal((prev) => ({
+        ...prev,
+        visible: true,
+        type: "error",
+        title: "Thất bại",
+        message: "Lỗi khi gửi đơn",
+        onClose: () => setModal(initialModalValue),
+      }));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -128,14 +163,14 @@ export default function CreateFormPage() {
         </View>
       </View>
 
+      {/* Alert modal */}
+      <AlertModal {...modal} />
+
       {/* form detail */}
       <View style={styles.content}>
         <View style={styles.card}>
           <View style={styles.cardHeader}>
             <Text style={styles.labelBold}>Thời gian</Text>
-            <TouchableOpacity>
-              <Ionicons name="close" size={20} color="#666" />
-            </TouchableOpacity>
           </View>
 
           <View style={styles.row}>
@@ -266,7 +301,7 @@ export default function CreateFormPage() {
 
         {/* Description */}
         <View style={styles.inputGroup}>
-          <Text style={[styles.labelBold, { marginBottom: 5 }]}>
+          <Text style={[styles.labelBold, { marginBottom: 5, marginLeft: 4 }]}>
             Lý do <Text style={{ color: "red" }}>*</Text>
           </Text>
           <TextInput
@@ -290,6 +325,16 @@ export default function CreateFormPage() {
         >
           <Text style={styles.submitText}>Gửi đơn</Text>
         </TouchableOpacity>
+
+        {/* Loading spinner */}
+        {loading && (
+          <View style={styles.overlay}>
+            <View style={styles.spinnerBox}>
+              <ActivityIndicator size="large" color="#fff" />
+              <Text style={styles.loadingText}>Đang gửi đơn...</Text>
+            </View>
+          </View>
+        )}
       </View>
     </View>
   );
@@ -381,11 +426,33 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     borderRadius: 6,
     alignItems: "center",
-    marginTop: 12,
   },
   submitText: {
     color: "#fff",
     fontWeight: "600",
     fontSize: 16,
+  },
+  overlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    // backgroundColor: "rgba(0, 0, 0, 0.4)", // dim effect
+    alignItems: "center",
+    justifyContent: "center",
+    zIndex: 10,
+  },
+  spinnerBox: {
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+    paddingVertical: 20,
+    paddingHorizontal: 30,
+    borderRadius: 12,
+    alignItems: "center",
+  },
+  loadingText: {
+    color: "#fff",
+    marginTop: 10,
+    fontSize: 15,
   },
 });
