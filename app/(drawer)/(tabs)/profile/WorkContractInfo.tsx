@@ -1,150 +1,148 @@
+import PDFModal from "@/components/ui/PDFModal";
 import { dtoUpdateUser } from "@/models/auth/dtoUser";
-import { Feather } from "@expo/vector-icons";
-import React, { useState } from "react";
-import { StyleSheet, Text, TextInput, View } from "react-native";
+import React, { useMemo, useState } from "react";
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 
 interface WorkContractInfoProps {
   userData: dtoUpdateUser | undefined;
-  onUpdateUserData: (data: dtoUpdateUser) => void;
 }
 
-const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
-  userData,
-  onUpdateUserData,
-}) => {
+type ContractPreview = {
+  id: string;
+  contractType: string; // Loại hợp đồng
+  laborType: string; // Loại lao động
+  position: string; // Vị trí
+  startDate: Date;
+  endDate: Date;
+  pdfUrl: string;
+};
+
+const WorkContractInfo: React.FC<WorkContractInfoProps> = ({ userData }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState<dtoUpdateUser>(
     userData as dtoUpdateUser
   );
+  const [isVisible, setIsVisible] = useState(false);
+  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
+  const [title, setTitle] = useState<string>("");
+  // Mock data: 2 hợp đồng, sắp xếp theo thời gian gần nhất (startDate desc)
+  const mockContracts: ContractPreview[] = useMemo(
+    () =>
+      [
+        {
+          id: "hd-002",
+          contractType: "HĐLĐ xác định thời hạn",
+          laborType: "Toàn thời gian",
+          position: "Front-end Developer",
+          startDate: new Date("2024-05-15"),
+          endDate: new Date("2025-05-14"),
+          pdfUrl: "https://nhanchinh.vn/storage/files/5/Hop-dong-lao-dong.pdf",
+        },
+        {
+          id: "hd-001",
+          contractType: "HĐLĐ thử việc",
+          laborType: "Toàn thời gian",
+          position: "Back-end Developer",
+          startDate: new Date("2024-03-01"),
+          endDate: new Date("2024-05-01"),
+          pdfUrl: "https://nhanchinh.vn/storage/files/5/Hop-dong-lao-dong.pdf",
+        },
+      ].sort((a, b) => b.startDate.getTime() - a.startDate.getTime()),
+    []
+  );
+
+  const formatDate = (d: Date) =>
+    new Intl.DateTimeFormat("vi-VN", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    }).format(d);
+
+  const getDuration = (start: Date, end: Date) => {
+    const ms = end.getTime() - start.getTime();
+    if (ms <= 0) return "0 ngày";
+    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
+    const months = Math.floor(days / 30);
+    if (months >= 1) return `${months} tháng`;
+    return `${days} ngày`;
+  };
 
   const handleSave = () => {
-    onUpdateUserData(editData);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEditData(userData as dtoUpdateUser);
     setIsEditing(false);
   };
 
-  const CustomWorkInfoInput = ({
-    error,
-    icon,
-    label,
-    iconColor,
-    keyboardType = "default",
-    ...props
-  }: any) => (
-    <View style={[styles.infoItem, error && { borderBottomColor: "#FF4D4F" }]}>
-      <View style={styles.infoIconContainer}>
-        <Feather name={icon} size={20} color={iconColor} />
-      </View>
-      <View style={styles.infoTextContainer}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        {isEditing ? (
-          <TextInput
-            style={[
-              styles.infoValue,
-              error && { color: "#FF4D4F" },
-              {
-                borderBottomWidth: 1,
-                borderBottomColor: error ? "#FF4D4F" : "black",
-              },
-            ]}
-            {...props}
-          />
-        ) : (
-          <Text style={[styles.infoValue, error && { color: "#FF4D4F" }]}>
-            {props.value || "Chưa cập nhật"}
-          </Text>
-        )}
-      </View>
-    </View>
-  );
-
   return (
     <View style={styles.container}>
-      {/* Header Actions */}
+      {/* Header */}
       <View style={styles.headerActions}>
-        <Text style={styles.sectionTitle}>Công việc & Hợp đồng</Text>
+        <Text style={styles.sectionTitle}>Lịch sử hợp đồng</Text>
       </View>
 
-      {/* Content */}
-      <View style={styles.infoCard}>
-        <CustomWorkInfoInput
-          error={null}
-          icon="briefcase"
-          label="Vị trí công việc"
-          value="Nhân viên Fulltime"
-          iconColor="#3674B5"
-        />
+      {/* Contract List */}
+      <ScrollView
+        style={styles.list}
+        contentContainerStyle={styles.listContent}
+      >
+        {mockContracts.map((c) => (
+          <TouchableOpacity
+            key={c.id}
+            style={styles.card}
+            activeOpacity={0.85}
+            onPress={() => {
+              setSelectedPdfUrl(c.pdfUrl);
+              setIsVisible(true);
+              setTitle(c.contractType);
+            }}
+          >
+            <View style={styles.cardHeaderRow}>
+              <Text style={styles.cardTitle}>{c.contractType}</Text>
+              <Text style={styles.cardBadge}>{c.laborType}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Vị trí</Text>
+              <Text style={styles.metaValue}>{c.position}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Bắt đầu</Text>
+              <Text style={styles.metaValue}>{formatDate(c.startDate)}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Kết thúc</Text>
+              <Text style={styles.metaValue}>{formatDate(c.endDate)}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Thời hạn</Text>
+              <Text style={styles.metaHighlight}>
+                {getDuration(c.startDate, c.endDate)}
+              </Text>
+            </View>
+            <View style={styles.linkRow}>
+              <Text style={styles.linkText}>Xem hợp đồng</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
 
-        <CustomWorkInfoInput
-          error={null}
-          icon="building"
-          label="Phòng ban"
-          value="Phòng Nhân sự"
-          iconColor="#38A169"
-        />
-
-        <CustomWorkInfoInput
-          error={null}
-          icon="calendar"
-          label="Ngày bắt đầu làm việc"
-          value="01/01/2024"
-          iconColor="#3182CE"
-        />
-
-        <CustomWorkInfoInput
-          error={null}
-          icon="file-text"
-          label="Loại hợp đồng"
-          value="Hợp đồng lao động không xác định thời hạn"
-          iconColor="#D69E2E"
-        />
-
-        <CustomWorkInfoInput
-          error={null}
-          icon="dollar-sign"
-          label="Mức lương"
-          value="15,000,000 VNĐ"
-          iconColor="#9C27B0"
-        />
-
-        <CustomWorkInfoInput
-          error={null}
-          icon="clock"
-          label="Thời gian làm việc"
-          value="8:00 - 17:00 (Thứ 2 - Thứ 6)"
-          iconColor="#FF5722"
-        />
-
-        <CustomWorkInfoInput
-          error={null}
-          icon="user-check"
-          label="Người quản lý trực tiếp"
-          value="Nguyễn Văn A - Trưởng phòng"
-          iconColor="#607D8B"
-        />
-
-        <CustomWorkInfoInput
-          error={null}
-          icon="map-pin"
-          label="Địa điểm làm việc"
-          value="Tầng 5, Tòa nhà ABC, 123 Đường XYZ, Quận 1, TP.HCM"
-          iconColor="#795548"
-          multiline
-        />
-
-        <CustomWorkInfoInput
-          error={null}
-          icon="award"
-          label="Phúc lợi"
-          value="Bảo hiểm xã hội, Bảo hiểm y tế, Bảo hiểm thất nghiệp, Nghỉ phép năm"
-          iconColor="#3F51B5"
-          multiline
-        />
-      </View>
+      {/* PDF Modal */}
+      <PDFModal
+        isVisible={isVisible}
+        title={title}
+        pdfUrl={
+          selectedPdfUrl ??
+          "https://nhanchinh.vn/storage/files/5/Hop-dong-lao-dong.pdf"
+        }
+        onClose={() => setIsVisible(false)}
+      />
     </View>
   );
 };
@@ -153,6 +151,14 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#f5f5f5",
+  },
+  list: {
+    flex: 1,
+  },
+  listContent: {
+    padding: 16,
+    paddingBottom: 24,
+    gap: 12,
   },
   headerActions: {
     flexDirection: "row",
@@ -165,6 +171,69 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "600",
     color: "#333",
+  },
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  cardHeaderRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1f2937",
+    flexShrink: 1,
+    paddingRight: 8,
+  },
+  cardBadge: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#2563eb",
+    backgroundColor: "#e0edff",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
+  },
+  metaRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 6,
+  },
+  metaLabel: {
+    fontSize: 14,
+    color: "#6b7280",
+  },
+  metaValue: {
+    fontSize: 14,
+    color: "#111827",
+    fontWeight: "500",
+  },
+  metaHighlight: {
+    fontSize: 14,
+    color: "#0f766e",
+    fontWeight: "700",
+  },
+  linkRow: {
+    marginTop: 8,
+    paddingTop: 8,
+    borderTopWidth: 1,
+    borderTopColor: "#f0f0f0",
+  },
+  linkText: {
+    fontSize: 13,
+    color: "#2563eb",
+    fontWeight: "600",
   },
   actionButtons: {
     flexDirection: "row",

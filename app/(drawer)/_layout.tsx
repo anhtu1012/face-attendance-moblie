@@ -181,13 +181,6 @@ export default function DrawerLayout() {
           }}
         />
         <Drawer.Screen
-          name="profile"
-          options={{
-            drawerLabel: "Thông tin cá nhân",
-            title: "Thông tin cá nhân",
-          }}
-        />
-        <Drawer.Screen
           name="(face)/face-register"
           options={{
             drawerLabel: "Đăng ký khuôn mặt",

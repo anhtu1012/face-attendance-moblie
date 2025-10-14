@@ -34,8 +34,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
   const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
   const [showNationDropdown, setShowNationDropdown] = useState(false);
 
-  const [nationalitySearch, setNationalitySearch] = useState("");
-  const [nationSearch, setNationSearch] = useState("");
+  // Search state moved inside SearchableDropdownModal to avoid parent re-renders per keystroke
   const [permission, requestPermission] = useCameraPermissions();
   const [showScanQrModal, setShowScanQrModal] = useState(false);
   const [showAlertModal, setShowAlertModal] = useState({
@@ -147,39 +146,51 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     iconColor,
     value,
     placeholder = "Chọn",
-
+    options,
     onToggleDropdown,
-  }: any) => (
-    <View style={[styles.infoItem, error && { borderBottomColor: "#FF4D4F" }]}>
-      <View style={styles.infoIconContainer}>
-        <Feather name={icon} size={20} color={iconColor} />
-      </View>
-      <View style={styles.infoTextContainer}>
-        <Text style={styles.infoLabel}>{label}</Text>
-        {isEditing ? (
-          <TouchableOpacity
-            style={styles.dropdownButton}
-            onPress={onToggleDropdown}
-          >
-            <Text
-              style={[styles.dropdownText, !value && styles.placeholderText]}
+  }: any) => {
+    const getDisplayText = () => {
+      if (typeof value === "object") return value?.label || value?.value;
+      if (Array.isArray(options)) {
+        const matched = options.find((o: any) => o.value === value);
+        return matched?.label || value;
+      }
+      return value;
+    };
+    const displayText = getDisplayText();
+    return (
+      <View
+        style={[styles.infoItem, error && { borderBottomColor: "#FF4D4F" }]}
+      >
+        <View style={styles.infoIconContainer}>
+          <Feather name={icon} size={20} color={iconColor} />
+        </View>
+        <View style={styles.infoTextContainer}>
+          <Text style={styles.infoLabel}>{label}</Text>
+          {isEditing ? (
+            <TouchableOpacity
+              style={styles.dropdownButton}
+              onPress={onToggleDropdown}
             >
-              {typeof value === "object"
-                ? value?.label || value?.value
-                : value || placeholder}
+              <Text
+                style={[
+                  styles.dropdownText,
+                  !displayText && styles.placeholderText,
+                ]}
+              >
+                {displayText || placeholder}
+              </Text>
+              <Feather name="chevron-down" size={16} color="#666" />
+            </TouchableOpacity>
+          ) : (
+            <Text style={[styles.infoValue, error && { color: "#FF4D4F" }]}>
+              {displayText || "Chưa cập nhật"}
             </Text>
-            <Feather name="chevron-down" size={16} color="#666" />
-          </TouchableOpacity>
-        ) : (
-          <Text style={[styles.infoValue, error && { color: "#FF4D4F" }]}>
-            {typeof value === "object"
-              ? value?.label || value?.value
-              : value || "Chưa cập nhật"}
-          </Text>
-        )}
+          )}
+        </View>
       </View>
-    </View>
-  );
+    );
+  };
   interface ParsedCCCDData {
     citizenIdentityCard: string;
     fullName: string;
@@ -214,7 +225,12 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
   const handleParseIDData = (data: string) => {
     const parts = data.split("|");
     if (parts.length !== 7) {
-      setShowAlertModal({visible: true, message: "Mã QR không hợp lệ", type: "error", title: "Thông báo"});
+      setShowAlertModal({
+        visible: true,
+        message: "Mã QR không hợp lệ",
+        type: "error",
+        title: "Thông báo",
+      });
       setShowScanQrModal(false);
       return;
     }
@@ -236,91 +252,101 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
       permanentAddress: parsedData.permanentAddress,
       issueDate: parsedData.issueDate,
     });
-    setShowAlertModal({visible: true, message: "Dữ liệu đã được cập nhật", type: "success", title: "Thông báo"});
+    setShowAlertModal({
+      visible: true,
+      message: "Dữ liệu đã được điền tự động, vui lòng kiểm tra lại",
+      type: "success",
+      title: "Thông báo",
+    });
     setShowScanQrModal(false);
   };
 
-  const SearchableDropdownModal = ({
-    visible,
-    onClose,
-    title,
-    options,
-    selectedValue,
-    onSelect,
-    searchValue,
-    onSearchChange,
-  }: any) => {
-    const filteredOptions = options.filter((option: any) =>
-      option.label.toLowerCase().includes(searchValue.toLowerCase())
-    );
+  const SearchableDropdownModal = React.memo(
+    ({ visible, onClose, title, options, selectedValue, onSelect }: any) => {
+      const [searchValue, setSearchValue] = useState("");
+      React.useEffect(() => {
+        if (!visible) setSearchValue("");
+      }, [visible]);
 
-    return (
-      <Modal
-        visible={visible}
-        transparent={true}
-        animationType="fade"
-        onRequestClose={onClose}
-      >
-        <TouchableOpacity
-          style={styles.modalOverlay}
-          activeOpacity={1}
-          onPress={onClose}
+      const filteredOptions = React.useMemo(
+        () =>
+          options.filter((option: any) =>
+            option.label.toLowerCase().includes(searchValue.toLowerCase())
+          ),
+        [options, searchValue]
+      );
+
+      return (
+        <Modal
+          visible={visible}
+          transparent={true}
+          animationType="fade"
+          onRequestClose={onClose}
         >
-          <View style={styles.dropdownModal}>
-            <View style={styles.dropdownHeader}>
-              <Text style={styles.dropdownTitle}>{title}</Text>
-              <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-                <Feather name="x" size={20} color="#666" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.searchContainer}>
-              <Feather
-                name="search"
-                size={16}
-                color="#666"
-                style={styles.searchIcon}
-              />
-              <TextInput
-                style={styles.searchInput}
-                placeholder="Tìm kiếm..."
-                value={searchValue}
-                onChangeText={onSearchChange}
-                placeholderTextColor="#999"
-              />
-            </View>
-            <FlatList
-              data={filteredOptions}
-              keyExtractor={(item) => item.value}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[
-                    styles.dropdownItem,
-                    selectedValue === item && styles.selectedItem,
-                  ]}
-                  onPress={() => {
-                    onSelect(item.value);
-                    onClose();
-                  }}
-                >
-                  <Text
-                    style={[
-                      styles.dropdownItemText,
-                      selectedValue === item && styles.selectedItemText,
-                    ]}
-                  >
-                    {item.label}
-                  </Text>
-                  {selectedValue === item && (
-                    <Feather name="check" size={16} color="#3674B5" />
-                  )}
+          <TouchableOpacity
+            style={styles.modalOverlay}
+            activeOpacity={1}
+            onPress={onClose}
+          >
+            <View style={styles.dropdownModal}>
+              <View style={styles.dropdownHeader}>
+                <Text style={styles.dropdownTitle}>{title}</Text>
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                  <Feather name="x" size={20} color="#666" />
                 </TouchableOpacity>
-              )}
-            />
-          </View>
-        </TouchableOpacity>
-      </Modal>
-    );
-  };
+              </View>
+              <View style={styles.searchContainer}>
+                <Feather
+                  name="search"
+                  size={16}
+                  color="#666"
+                  style={styles.searchIcon}
+                />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="Tìm kiếm..."
+                  value={searchValue}
+                  onChangeText={setSearchValue}
+                  placeholderTextColor="#999"
+                />
+              </View>
+              <FlatList
+                data={filteredOptions}
+                keyExtractor={(item) => item.value}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[
+                      styles.dropdownItem,
+                      selectedValue === item.value && styles.selectedItem,
+                    ]}
+                    onPress={() => {
+                      onSelect(item.value);
+                      onClose();
+                    }}
+                  >
+                    <Text
+                      style={[
+                        styles.dropdownItemText,
+                        selectedValue === item.value && styles.selectedItemText,
+                      ]}
+                    >
+                      {item.label}
+                    </Text>
+                    {selectedValue === item.value && (
+                      <Feather name="check" size={16} color="#3674B5" />
+                    )}
+                  </TouchableOpacity>
+                )}
+                keyboardShouldPersistTaps="always"
+                initialNumToRender={12}
+                windowSize={5}
+              />
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      );
+    }
+  );
 
   return (
     <View style={styles.container}>
@@ -414,8 +440,6 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
             }
             iconColor="#9C27B0"
             placeholder="Chọn quốc tịch"
-            searchValue={nationalitySearch}
-            onSearchChange={setNationalitySearch}
             showDropdown={showNationalityDropdown}
             onToggleDropdown={() => setShowNationalityDropdown(true)}
           />
@@ -429,8 +453,6 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
             onSelect={(value: string) => formik.setFieldValue("nation", value)}
             iconColor="#FF5722"
             placeholder="Chọn dân tộc"
-            searchValue={nationSearch}
-            onSearchChange={setNationSearch}
             showDropdown={showNationDropdown}
             onToggleDropdown={() => setShowNationDropdown(true)}
           />
@@ -522,28 +544,22 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
         visible={showNationalityDropdown}
         onClose={() => {
           setShowNationalityDropdown(false);
-          setNationalitySearch("");
         }}
         title="Chọn quốc tịch"
         options={NATIONALITY_OPTIONS}
         selectedValue={formik.values.nationality}
         onSelect={(value: string) => formik.setFieldValue("nationality", value)}
-        searchValue={nationalitySearch}
-        onSearchChange={setNationalitySearch}
       />
 
       <SearchableDropdownModal
         visible={showNationDropdown}
         onClose={() => {
           setShowNationDropdown(false);
-          setNationSearch("");
         }}
         title="Chọn dân tộc"
         options={NATION_OPTIONS}
         selectedValue={formik.values.nation}
         onSelect={(value: string) => formik.setFieldValue("nation", value)}
-        searchValue={nationSearch}
-        onSearchChange={setNationSearch}
       />
 
       <ScanQRCodeModal
@@ -562,7 +578,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
             message: "",
             type: "success",
             title: "",
-          }); 
+          });
         }}
         type={showAlertModal.type as "success" | "error" | "warning" | "info"}
         title={showAlertModal.title}
