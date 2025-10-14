@@ -60,13 +60,13 @@ export interface dtoUpdateUser {
 }
 // DEPENDENT
 export interface dtoDependent {
-  dpId: string; // ID người phụ thuộc
-  dpUserId: string; // ID người được phụ thuộc
-  dpFullName: string;
-  dpPhone: string;
-  dpTaxCode: string;
-  dpCitizenIdentityCard: string;
+  dpId: string; // ID của người phụ thuộc
+  dpUserId: string; // ID của người dùng
+  dpFullName: string; // Họ và tên
+  dpPhone: string; // Số điện thoại
+  dpTaxCode: string; // Mã số thuế
+  dpCitizenIdentityCard: string; // Số CCCD/CMND
   dpIssueDate: Date; // Ngày cấp
-  dpIssueAt: string; // Nơi cấp
-  dependentDate: Date;
+  dpIssueAt: string; // Nơi cấp 
+  dpDependentDate: Date; // Ngày phụ thuộc  
 }

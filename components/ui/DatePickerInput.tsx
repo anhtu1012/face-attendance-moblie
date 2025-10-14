@@ -32,7 +32,7 @@ export const DatePickerInput: React.FC<DatePickerInputProps> = ({
   disabled = false,
   style,
   isEditing = false,
-  icon = "calendar",
+  icon = "event",
   iconColor = "#D69E2E",
 }) => {
   const [show, setShow] = useState(false);
