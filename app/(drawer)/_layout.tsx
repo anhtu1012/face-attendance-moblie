@@ -127,6 +127,16 @@ export default function DrawerLayout() {
           </Pressable>
 
           <Pressable
+            onPress={() => router.push("testScreen" as any)}
+            style={({ pressed }) => ({
+              backgroundColor: pressed ? "#f0f0f0" : "transparent",
+              borderRadius: 8,
+              padding: 16,
+            })}
+          >
+            <Text style={{ fontSize: 16, color: "#333" }}>test</Text>
+          </Pressable>
+          <Pressable
             onPress={handleLogout}
             style={({ pressed }) => ({
               marginTop: 20,
@@ -151,7 +161,7 @@ export default function DrawerLayout() {
         </View>
       );
     },
-    [handleLogout, notificationCount]
+    [handleLogout, notificationCount],
   );
 
   return (
@@ -199,6 +209,13 @@ export default function DrawerLayout() {
           options={{
             drawerLabel: "Thông báo",
             title: "Thông báo",
+          }}
+        />
+        <Drawer.Screen
+          name="testScreen"
+          options={{
+            drawerLabel: "test",
+            title: "test",
           }}
         />
       </Drawer>

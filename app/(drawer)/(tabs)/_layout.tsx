@@ -1,9 +1,23 @@
+import CustomTabBar from "@/components/ui/CustomTabBar";
 import { AntDesign, Entypo, MaterialIcons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
-import { LinearGradient } from "expo-linear-gradient";
-import { Tabs, router } from "expo-router";
-import React, { memo, useCallback } from "react";
-import { Animated, Text, TouchableOpacity, View } from "react-native";
+import { Tabs } from "expo-router";
+import { MotiView, useAnimationState, useDynamicAnimation } from "moti";
+import React, { memo, useCallback, useEffect } from "react";
+import {
+  Dimensions,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import {
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
+import Animated from "react-native-reanimated";
 
 // import { useNotification } from '@/contexts/NotificationContext';
 
@@ -15,6 +29,8 @@ interface TabBarIconProps {
   size: number;
   iconType?: "AntDesign" | "MaterialIcons" | "Entypo";
   badgeCount?: number;
+  index: number;
+  code: string;
 }
 
 const TabBarIcon = memo(function TabBarIcon({
@@ -24,47 +40,29 @@ const TabBarIcon = memo(function TabBarIcon({
   size,
   iconType = "AntDesign",
   badgeCount,
+  index,
+  code,
 }: TabBarIconProps) {
-  const animatedValue = React.useRef(new Animated.Value(1)).current;
+  const height = useSharedValue(25);
 
-  React.useEffect(() => {
-    if (focused) {
-      Animated.sequence([
-        Animated.timing(animatedValue, {
-          toValue: 0.8,
-          duration: 100,
-          useNativeDriver: true,
-        }),
-        Animated.timing(animatedValue, {
-          toValue: 1.2,
-          duration: 300,
-          useNativeDriver: true,
-        }),
-        Animated.spring(animatedValue, {
-          toValue: 1,
-          friction: 4,
-          useNativeDriver: true,
-        }),
-      ]).start();
-    }
-  }, [focused, animatedValue]);
+  useEffect(() => {
+    height.value = withSpring(focused ? 45 : 25, {
+      damping: 12,
+      stiffness: 150,
+    });
+  }, [focused]);
 
-  const animatedStyle = {
-    transform: [{ scale: animatedValue }],
-  };
+  const animatedStyle = useAnimatedStyle(() => ({
+    height: height.value,
+    transform: [
+      {
+        scale: withSpring(focused ? 1.15 : 1),
+      },
+    ],
+  }));
 
   return (
-    <Animated.View
-      style={[
-        animatedStyle,
-        {
-          justifyContent: "center",
-          alignItems: "center",
-          width: 40,
-          height: 25,
-        },
-      ]}
-    >
+    <Animated.View style={[styles.tabBarIconContainer, animatedStyle]}>
       {iconType === "AntDesign" && name && (
         <AntDesign name={name as any} size={size} color={color} />
       )}
@@ -73,18 +71,6 @@ const TabBarIcon = memo(function TabBarIcon({
       )}
       {iconType === "Entypo" && name && (
         <Entypo name={name as any} size={size} color={color} />
-      )}
-      {focused && (
-        <View
-          style={{
-            position: "absolute",
-            bottom: -8,
-            width: 4,
-            height: 4,
-            borderRadius: 2,
-            backgroundColor: "#3674B5",
-          }}
-        />
       )}
       {badgeCount != null && badgeCount > 0 && (
         <View
@@ -121,45 +107,6 @@ export default function TabLayout() {
   const notificationCount = 0; // Temporary placeholder
   const navigation = useNavigation();
 
-  // Custom tab bar components
-  const renderTimeSheetTabIcon = useCallback(
-    ({ focused }: { focused: boolean }) => (
-      <View
-        style={{
-          width: 40,
-          height: 40,
-          borderRadius: 30,
-          backgroundColor: "#fff",
-          justifyContent: "center",
-          alignItems: "center",
-          marginTop: 0,
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: 3,
-          },
-          shadowOpacity: 0.27,
-          shadowRadius: 4.65,
-          elevation: 6,
-        }}
-      >
-        <LinearGradient
-          colors={focused ? ["#3674B5", "#0d47a1"] : ["#e0e0e0", "#bdbdbd"]}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 25,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <AntDesign name="calendar" size={24} color={"white"} />
-        </LinearGradient>
-      </View>
-    ),
-    [],
-  );
-
   const renderMenuButton = useCallback(
     (props: any) => (
       <TouchableOpacity
@@ -180,6 +127,8 @@ export default function TabLayout() {
           size={24}
           iconType="Entypo"
           badgeCount={notificationCount}
+          index={4}
+          code="to4"
         />
         <Text
           style={{
@@ -198,6 +147,7 @@ export default function TabLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <CustomTabBar {...props} />}
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: "#3674B5",
@@ -242,6 +192,8 @@ export default function TabLayout() {
               name="home"
               color={color}
               size={size}
+              index={0}
+              code="to0"
             />
           ),
         }}
@@ -257,10 +209,70 @@ export default function TabLayout() {
               name="form"
               color={color}
               size={size}
+              index={1}
+              code="to1"
             />
           ),
         }}
       />
+      <Tabs.Screen
+        name="timesheet-tab"
+        options={{
+          title: "Bảng công",
+          tabBarIcon: ({ color, size, focused }) => (
+            <TabBarIcon
+              focused={focused}
+              name="calendar"
+              color={color}
+              size={size}
+              index={2}
+              code="to2"
+            />
+          ),
+          // tabBarButton: (props) => {
+          //   const { onPress, ...touchableProps } = props;
+          //   return (
+          //     <TouchableOpacity
+          //       style={touchableProps.style}
+          //       accessibilityState={touchableProps.accessibilityState}
+          //       accessibilityLabel={touchableProps.accessibilityLabel}
+          //       testID={touchableProps.testID}
+          //       onPress={() => {
+          //         router.push("/timesheet" as any);
+          //       }}
+          //     >
+          //       {props.children}
+          //     </TouchableOpacity>
+          //   );
+          // },
+        }}
+      />
+      <Tabs.Screen
+        name="salary"
+        options={{
+          title: "Bảng lương",
+          tabBarIcon: ({ color, size, focused }) => (
+            <TabBarIcon
+              focused={focused}
+              name="attach-money"
+              color={color}
+              size={size}
+              iconType="MaterialIcons"
+              index={3}
+              code="to3"
+            />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="menu-tab"
+        options={{
+          title: "Menu",
+          tabBarButton: renderMenuButton,
+        }}
+      />
+
+      {/* Hide pages */}
       <Tabs.Screen
         name="(form)/create-form"
         options={{
@@ -277,51 +289,6 @@ export default function TabLayout() {
         name="(form)/view-all-submitted-form"
         options={{
           href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="timesheet-tab"
-        options={{
-          title: "Bảng công",
-          tabBarIcon: renderTimeSheetTabIcon,
-          tabBarButton: (props) => {
-            const { onPress, ...touchableProps } = props;
-            return (
-              <TouchableOpacity
-                style={touchableProps.style}
-                accessibilityState={touchableProps.accessibilityState}
-                accessibilityLabel={touchableProps.accessibilityLabel}
-                testID={touchableProps.testID}
-                onPress={() => {
-                  router.push("/timesheet" as any);
-                }}
-              >
-                {props.children}
-              </TouchableOpacity>
-            );
-          },
-        }}
-      />
-      <Tabs.Screen
-        name="salary"
-        options={{
-          title: "Bảng lương",
-          tabBarIcon: ({ color, size, focused }) => (
-            <TabBarIcon
-              focused={focused}
-              name="attach-money"
-              color={color}
-              size={size}
-              iconType="MaterialIcons"
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="menu-tab"
-        options={{
-          title: "Menu",
-          tabBarButton: renderMenuButton,
         }}
       />
       <Tabs.Screen
@@ -362,3 +329,11 @@ export default function TabLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  tabBarIconContainer: {
+    justifyContent: "center",
+    alignItems: "center",
+    width: 40,
+  },
+});
