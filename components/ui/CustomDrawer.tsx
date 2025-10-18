@@ -13,7 +13,6 @@ const CustomDrawer = ({
 }: DrawerContentComponentProps) => {
   // const { notificationCount } = useNotigation();
   const notificationCount = 0; // Temporary placeholder
-  const isFocused = useSharedValue(0);
 
   const handleLogout = useCallback(async () => {
     try {
