@@ -26,7 +26,6 @@ const CustomTabBarButton = ({
 
   const animatedIconStyle = useAnimatedStyle(() => {
     const scaleValue = interpolate(scale.value, [0, 1], [1, 1.2]);
-
     const top = interpolate(scale.value, [0, 1], [0, 9]);
     return {
       transform: [
@@ -35,13 +34,6 @@ const CustomTabBarButton = ({
         },
       ],
       top,
-    };
-  });
-
-  const animatedTextStyle = useAnimatedStyle(() => {
-    const opacity = interpolate(scale.value, [0, 1], [1, 0]);
-    return {
-      opacity,
     };
   });
 

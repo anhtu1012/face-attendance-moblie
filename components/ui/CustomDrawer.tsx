@@ -1,128 +1,109 @@
 import { Entypo, Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { DrawerContentComponentProps } from "@react-navigation/drawer";
+import {
+  DrawerContentComponentProps,
+  useDrawerStatus,
+} from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { useCallback, useEffect } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { useAnimatedStyle, useSharedValue } from "react-native-reanimated";
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+  withDelay,
+} from "react-native-reanimated";
 
-const CustomDrawer = ({
-  state,
-  navigation,
-  descriptors,
-}: DrawerContentComponentProps) => {
-  // const { notificationCount } = useNotigation();
-  const notificationCount = 0; // Temporary placeholder
+const useAnimatedItemStyle = (
+  shared: Animated.SharedValue<number>,
+  index: number,
+) => {
+  return useAnimatedStyle(() => ({
+    transform: [
+      {
+        translateX: interpolate(shared.value, [0, 1], [-80 * (index + 1), 0]),
+      },
+    ],
+    opacity: interpolate(shared.value, [0, 1], [0, 1]),
+  }));
+};
+
+const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
+  const isOpen = useDrawerStatus() === "open";
+
+  // Shared animation value
+  const distance = useSharedValue(0);
+
+  // Animate items when drawer opens
+  useEffect(() => {
+    distance.value = withSpring(isOpen ? 1 : 0, {
+      // damping: 80,
+      // stiffness: 800,
+      duration: 1000,
+    });
+  }, [isOpen]);
+
+  // Animated styles for each menu item
+  const animatedStyles = state.routes.map((_, index) =>
+    useAnimatedItemStyle(distance, index),
+  );
 
   const handleLogout = useCallback(async () => {
     try {
       await AsyncStorage.clear();
       router.replace("/login" as any);
-    } catch (error: any) {
-      console.error("Error clearing AsyncStorage during logout:", error);
-      router.replace("/login" as any);
+    } catch (error) {
+      console.error("Error logging out:", error);
     }
   }, []);
+
   return (
-    <View style={{ flex: 1, paddingTop: 50 }}>
-      <Text
-        style={{
-          paddingLeft: 16,
-          paddingBottom: 16,
-          marginBottom: 30,
-          fontSize: 20,
-          fontWeight: "bold",
-          color: "#fff",
-          borderBottomWidth: 1,
-          borderBottomColor: "#eee",
-        }}
-      >
-        AttendEase
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>AttendEase</Text>
 
-      <Pressable
-        onPress={() => router.push("/(drawer)/(tabs)" as any)}
-        style={styles.itemContainer}
-      >
-        <Feather name="home" size={24} color="white" />
-        <Text style={{ fontSize: 16, color: "white" }}>Trang chủ</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => router.push("/(drawer)/chat" as any)}
-        style={styles.itemContainer}
-      >
-        <Entypo name="chat" size={24} color="white" />
-        <Text style={{ fontSize: 16, color: "white" }}>Chat App</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => router.push("/(drawer)/(tabs)/profile" as any)}
-        style={styles.itemContainer}
-      >
-        <Feather name="user" size={24} color="white" />
-        <Text style={{ fontSize: 16, color: "white" }}>Thông tin nhân sự</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => router.push("/(drawer)/face-register" as any)}
-        style={styles.itemContainer}
-      >
-        <FontAwesome6 name="face-meh-blank" size={24} color="white" />
-        <Text style={{ fontSize: 16, color: "white" }}>Đăng ký khuôn mặt</Text>
-      </Pressable>
-
-      <Pressable
-        onPress={() => router.push("/(drawer)/notifications" as any)}
-        style={styles.itemContainer}
-      >
-        <Ionicons name="notifications" size={24} color="white" />
-        <Text style={{ fontSize: 16, color: "white" }}>Thông báo</Text>
-        {notificationCount > 0 && (
-          <View
-            style={{
-              backgroundColor: "#FF4444",
-              borderRadius: 10,
-              minWidth: 20,
-              height: 20,
-              justifyContent: "center",
-              alignItems: "center",
-              paddingHorizontal: 4,
-            }}
+      {/* Drawer Items */}
+      {[
+        {
+          label: "Trang chủ",
+          icon: <Feather name="home" size={24} color="#fff" />,
+          route: "/(drawer)/(tabs)",
+        },
+        {
+          label: "Chat App",
+          icon: <Entypo name="chat" size={24} color="#fff" />,
+          route: "/(drawer)/chat",
+        },
+        {
+          label: "Thông tin nhân sự",
+          icon: <Feather name="user" size={24} color="#fff" />,
+          route: "/(drawer)/(tabs)/profile",
+        },
+        {
+          label: "Đăng ký khuôn mặt",
+          icon: <FontAwesome6 name="face-meh-blank" size={24} color="#fff" />,
+          route: "/(drawer)/face-register",
+        },
+        {
+          label: "Thông báo",
+          icon: <Ionicons name="notifications" size={24} color="#fff" />,
+          route: "/(drawer)/notifications",
+        },
+      ].map((item, index) => (
+        <Animated.View key={index} style={animatedStyles[index]}>
+          <Pressable
+            onPress={() => router.push(item.route as any)}
+            style={styles.itemContainer}
           >
-            <Text
-              style={{
-                color: "white",
-                fontSize: 10,
-                fontWeight: "bold",
-              }}
-            >
-              {notificationCount > 99 ? "99+" : String(notificationCount)}
-            </Text>
-          </View>
-        )}
-      </Pressable>
-      <Pressable
-        onPress={handleLogout}
-        style={({ pressed }) => ({
-          marginTop: 20,
-          padding: 16,
-          backgroundColor: pressed ? "tomato" : "#3674B5",
-          borderRadius: 8,
-          alignSelf: "center",
-          width: 200,
-        })}
-      >
-        <Text
-          style={{
-            color: "white",
-            fontSize: 16,
-            fontWeight: "bold",
-            textAlign: "center",
-          }}
-        >
-          Đăng xuất
-        </Text>
+            {item.icon}
+            <Text style={styles.itemText}>{item.label}</Text>
+          </Pressable>
+        </Animated.View>
+      ))}
+
+      {/* Logout Button */}
+      <Pressable onPress={handleLogout} style={styles.logoutButton}>
+        <Text style={styles.logoutText}>Đăng xuất</Text>
       </Pressable>
     </View>
   );
@@ -131,11 +112,35 @@ const CustomDrawer = ({
 export default CustomDrawer;
 
 const styles = StyleSheet.create({
+  container: { flex: 1, paddingTop: 50, paddingHorizontal: 16 },
+  title: {
+    paddingBottom: 16,
+    marginBottom: 30,
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    borderBottomWidth: 1,
+    borderBottomColor: "#eee",
+  },
   itemContainer: {
-    borderRadius: 8,
-    padding: 16,
+    paddingVertical: 16,
     flexDirection: "row",
     alignItems: "center",
     gap: 10,
+  },
+  itemText: { fontSize: 16, color: "white" },
+  logoutButton: {
+    marginTop: 20,
+    padding: 16,
+    backgroundColor: "#3674B5",
+    borderRadius: 8,
+    alignSelf: "center",
+    width: 200,
+  },
+  logoutText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
