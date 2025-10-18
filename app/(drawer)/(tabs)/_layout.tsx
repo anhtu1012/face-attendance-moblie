@@ -1,18 +1,11 @@
 import CustomTabBar from "@/components/ui/CustomTabBar";
+import DrawerScreenWrapper from "@/components/ui/DrawerScreenWrapper";
 import { AntDesign, Entypo, MaterialIcons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { Tabs } from "expo-router";
-import { MotiView, useAnimationState, useDynamicAnimation } from "moti";
 import React, { memo, useCallback, useEffect } from "react";
+import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import {
-  Dimensions,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
-import {
-  Easing,
   useAnimatedStyle,
   useSharedValue,
   withSpring,
@@ -146,187 +139,189 @@ export default function TabLayout() {
   );
 
   return (
-    <Tabs
-      tabBar={(props) => <CustomTabBar {...props} />}
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: "#3674B5",
-        tabBarInactiveTintColor: "#888",
-        tabBarStyle: {
-          backgroundColor: "#ffffff",
-          paddingBottom: 5,
-          height: 65,
-          borderTopWidth: 0,
-          elevation: 10,
-          shadowColor: "#000",
-          shadowOffset: {
-            width: 0,
-            height: -4,
-          },
-          shadowOpacity: 0.1,
-          shadowRadius: 8,
-          borderTopLeftRadius: 20,
-          borderTopRightRadius: 20,
-          position: "absolute",
-          bottom: 0,
-          zIndex: 8,
-        },
-        tabBarIconStyle: {
-          marginTop: 5,
-        },
-        tabBarLabelStyle: {
-          fontSize: 12,
-          marginTop: 3,
-          marginBottom: 5,
-          fontWeight: "500",
-        },
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Trang chủ",
-          tabBarIcon: ({ color, size, focused }) => (
-            <TabBarIcon
-              focused={focused}
-              name="home"
-              color={color}
-              size={size}
-              index={0}
-              code="to0"
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="(form)/choose-form"
-        options={{
-          title: "Tạo đơn",
+    <DrawerScreenWrapper>
+      <Tabs
+        tabBar={(props) => <CustomTabBar {...props} />}
+        screenOptions={{
           headerShown: false,
-          tabBarIcon: ({ color, size, focused }) => (
-            <TabBarIcon
-              focused={focused}
-              name="form"
-              color={color}
-              size={size}
-              index={1}
-              code="to1"
-            />
-          ),
+          tabBarActiveTintColor: "#3674B5",
+          tabBarInactiveTintColor: "#888",
+          tabBarStyle: {
+            backgroundColor: "#ffffff",
+            paddingBottom: 5,
+            height: 65,
+            borderTopWidth: 0,
+            elevation: 10,
+            shadowColor: "#000",
+            shadowOffset: {
+              width: 0,
+              height: -4,
+            },
+            shadowOpacity: 0.1,
+            shadowRadius: 8,
+            borderTopLeftRadius: 20,
+            borderTopRightRadius: 20,
+            position: "absolute",
+            bottom: 0,
+            zIndex: 8,
+          },
+          tabBarIconStyle: {
+            marginTop: 5,
+          },
+          tabBarLabelStyle: {
+            fontSize: 12,
+            marginTop: 3,
+            marginBottom: 5,
+            fontWeight: "500",
+          },
         }}
-      />
-      <Tabs.Screen
-        name="timesheet-tab"
-        options={{
-          title: "Bảng công",
-          tabBarIcon: ({ color, size, focused }) => (
-            <TabBarIcon
-              focused={focused}
-              name="calendar"
-              color={color}
-              size={size}
-              index={2}
-              code="to2"
-            />
-          ),
-          // tabBarButton: (props) => {
-          //   const { onPress, ...touchableProps } = props;
-          //   return (
-          //     <TouchableOpacity
-          //       style={touchableProps.style}
-          //       accessibilityState={touchableProps.accessibilityState}
-          //       accessibilityLabel={touchableProps.accessibilityLabel}
-          //       testID={touchableProps.testID}
-          //       onPress={() => {
-          //         router.push("/timesheet" as any);
-          //       }}
-          //     >
-          //       {props.children}
-          //     </TouchableOpacity>
-          //   );
-          // },
-        }}
-      />
-      <Tabs.Screen
-        name="salary"
-        options={{
-          title: "Bảng lương",
-          tabBarIcon: ({ color, size, focused }) => (
-            <TabBarIcon
-              focused={focused}
-              name="attach-money"
-              color={color}
-              size={size}
-              iconType="MaterialIcons"
-              index={3}
-              code="to3"
-            />
-          ),
-        }}
-      />
-      <Tabs.Screen
-        name="menu-tab"
-        options={{
-          title: "Menu",
-          tabBarButton: renderMenuButton,
-        }}
-      />
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Trang chủ",
+            tabBarIcon: ({ color, size, focused }) => (
+              <TabBarIcon
+                focused={focused}
+                name="home"
+                color={color}
+                size={size}
+                index={0}
+                code="to0"
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="(form)/choose-form"
+          options={{
+            title: "Tạo đơn",
+            headerShown: false,
+            tabBarIcon: ({ color, size, focused }) => (
+              <TabBarIcon
+                focused={focused}
+                name="form"
+                color={color}
+                size={size}
+                index={1}
+                code="to1"
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="timesheet-tab"
+          options={{
+            title: "Bảng công",
+            tabBarIcon: ({ color, size, focused }) => (
+              <TabBarIcon
+                focused={focused}
+                name="calendar"
+                color={color}
+                size={size}
+                index={2}
+                code="to2"
+              />
+            ),
+            // tabBarButton: (props) => {
+            //   const { onPress, ...touchableProps } = props;
+            //   return (
+            //     <TouchableOpacity
+            //       style={touchableProps.style}
+            //       accessibilityState={touchableProps.accessibilityState}
+            //       accessibilityLabel={touchableProps.accessibilityLabel}
+            //       testID={touchableProps.testID}
+            //       onPress={() => {
+            //         router.push("/timesheet" as any);
+            //       }}
+            //     >
+            //       {props.children}
+            //     </TouchableOpacity>
+            //   );
+            // },
+          }}
+        />
+        <Tabs.Screen
+          name="salary"
+          options={{
+            title: "Bảng lương",
+            tabBarIcon: ({ color, size, focused }) => (
+              <TabBarIcon
+                focused={focused}
+                name="attach-money"
+                color={color}
+                size={size}
+                iconType="MaterialIcons"
+                index={3}
+                code="to3"
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="menu-tab"
+          options={{
+            title: "Menu",
+            tabBarButton: renderMenuButton,
+          }}
+        />
 
-      {/* Hide pages */}
-      <Tabs.Screen
-        name="(form)/create-form"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="(form)/form-detail"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="(form)/view-all-submitted-form"
-        options={{
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile"
-        options={{
-          title: "Thông tin nhân sự",
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile/DependentInfo"
-        options={{
-          title: "Người phụ thuộc",
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile/ResumeInfo"
-        options={{
-          title: "Sơ yếu lý lịch",
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile/WorkContractInfo"
-        options={{
-          title: "Hợp đồng",
-          href: null,
-        }}
-      />
-      <Tabs.Screen
-        name="profile/GeneralInfo"
-        options={{
-          title: "Thông tin chung",
-          href: null,
-        }}
-      />
-    </Tabs>
+        {/* Hide pages */}
+        <Tabs.Screen
+          name="(form)/create-form"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="(form)/form-detail"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="(form)/view-all-submitted-form"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: "Thông tin nhân sự",
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile/DependentInfo"
+          options={{
+            title: "Người phụ thuộc",
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile/ResumeInfo"
+          options={{
+            title: "Sơ yếu lý lịch",
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile/WorkContractInfo"
+          options={{
+            title: "Hợp đồng",
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="profile/GeneralInfo"
+          options={{
+            title: "Thông tin chung",
+            href: null,
+          }}
+        />
+      </Tabs>
+    </DrawerScreenWrapper>
   );
 }
 

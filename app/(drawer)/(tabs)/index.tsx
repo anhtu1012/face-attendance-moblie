@@ -8,9 +8,10 @@ import {
   MaterialCommunityIcons,
   Octicons,
   Entypo,
+  Feather,
 } from "@expo/vector-icons";
-import { useIsFocused } from "@react-navigation/native";
-import { router } from "expo-router";
+import { DrawerActions, useIsFocused } from "@react-navigation/native";
+import { router, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   Image,
@@ -74,6 +75,7 @@ function HomePage() {
   const [refreshing, setRefreshing] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const isFocused = useIsFocused();
+  const navigation = useNavigation();
 
   useEffect(() => {
     handleGetSubmittedForm();
@@ -153,12 +155,13 @@ function HomePage() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Xin chào,</Text>
-          <Text style={styles.userName}>
-            {userProfile?.fullName || "Người dùng"}
-          </Text>
-        </View>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.dispatch(DrawerActions.openDrawer());
+          }}
+        >
+          <Feather name="menu" size={24} color="black" />
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.avatarContainer}
           onPress={() => router.push("/(drawer)/(tabs)/profile")}

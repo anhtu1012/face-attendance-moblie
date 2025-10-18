@@ -20,7 +20,7 @@ const CustomTabBarButton = ({
   useEffect(() => {
     scale.value = withSpring(
       typeof isFocused == "boolean" ? (isFocused ? 1 : 0) : isFocused,
-      { duration: 700 },
+      { duration: 350 },
     );
   }, [scale, isFocused]);
 

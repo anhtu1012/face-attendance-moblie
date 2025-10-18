@@ -44,7 +44,7 @@ const CustomTabBar = ({
 
   useEffect(() => {
     tabPositionX.value = withSpring(buttonWidth * state.index, {
-      damping: 500,
+      damping: 80,
       stiffness: 1000,
     });
   }, [state.index]);
@@ -119,7 +119,7 @@ const CustomTabBar = ({
 const styles = StyleSheet.create({
   tabbar: {
     position: "absolute",
-    bottom: 30,
+    bottom: 20,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
     shadowRadius: 12,
 
     // Android Elevation
-    elevation: 10,
+    elevation: 40,
 
     // Optional: Add subtle border to separate from background
     borderWidth: Platform.OS === "ios" ? StyleSheet.hairlineWidth : 0.5,
