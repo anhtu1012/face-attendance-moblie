@@ -15,9 +15,9 @@ interface WorkContractInfoProps {
 
 type ContractPreview = {
   id: string;
-  contractType: string; // Loại hợp đồng
-  laborType: string; // Loại lao động
-  position: string; // Vị trí
+  contractType: string;
+  laborType: string; 
+  position: string; 
   startDate: Date;
   endDate: Date;
   pdfUrl: string;
@@ -137,10 +137,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({ userData }) => {
       <PDFModal
         isVisible={isVisible}
         title={title}
-        pdfUrl={
-          selectedPdfUrl ??
-          "https://nhanchinh.vn/storage/files/5/Hop-dong-lao-dong.pdf"
-        }
+        pdfUrl={"https://nhanchinh.vn/storage/files/5/Hop-dong-lao-dong.pdf"}
         onClose={() => setIsVisible(false)}
       />
     </View>

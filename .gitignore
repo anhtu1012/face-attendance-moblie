@@ -42,3 +42,4 @@ app-example
 /android
 
 google-services.json
+package-lock.json
