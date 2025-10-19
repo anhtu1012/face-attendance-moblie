@@ -1,3 +1,4 @@
+import AlertModal from "@/components/ui/AlertModal";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { useUpdateUser } from "@/hooks/useUpdateUser";
 import { AntDesign } from "@expo/vector-icons";
@@ -18,7 +19,6 @@ import DependentInfo from "./profile/DependentInfo";
 import GeneralInfo from "./profile/GeneralInfo";
 import ResumeInfo from "./profile/ResumeInfo";
 import WorkContractInfo from "./profile/WorkContractInfo";
-import AlertModal from "@/components/ui/AlertModal";
 
 export default function ProfilePage() {
   const insets = useSafeAreaInsets();
@@ -40,17 +40,30 @@ export default function ProfilePage() {
     { id: 3, title: "Hợp đồng" },
   ];
   const handleUpdateUserData = (updatedData: dtoUpdateUser) => {
-    updateUserMutation.mutate({
-      userId: userId || "",
-      onboardData: updatedData,
-    },{
-      onSuccess: () => {
-        setShowAlertModal({visible: true, message: "Thông tin cá nhân đã được cập nhật thành công!", type: "success", title: "Thông báo"});
+    updateUserMutation.mutate(
+      {
+        userId: userId || "",
+        onboardData: updatedData,
       },
-      onError: () => {
-        setShowAlertModal({visible: true, message: "Lỗi khi cập nhật thông tin cá nhân", type: "error", title: "Thông báo"});
-      },
-    });
+      {
+        onSuccess: () => {
+          setShowAlertModal({
+            visible: true,
+            message: "Thông tin cá nhân đã được cập nhật thành công!",
+            type: "success",
+            title: "Thông báo",
+          });
+        },
+        onError: () => {
+          setShowAlertModal({
+            visible: true,
+            message: "Lỗi khi cập nhật thông tin cá nhân",
+            type: "error",
+            title: "Thông báo",
+          });
+        },
+      }
+    );
   };
 
   const renderTabContent = () => {
@@ -72,17 +85,11 @@ export default function ProfilePage() {
       case 2:
         return (
           <DependentInfo
-            userData={userProfile}
-            onUpdateUserData={handleUpdateUserData}
+            userId={userId || ""}
           />
         );
       case 3:
-        return (
-          <WorkContractInfo
-            userData={userProfile}
-            onUpdateUserData={handleUpdateUserData}
-          />
-        );
+        return <WorkContractInfo userData={userProfile} />;
       default:
         return (
           <GeneralInfo
@@ -187,7 +194,15 @@ export default function ProfilePage() {
       >
         {renderTabContent()}
       </ScrollView>
-      <AlertModal visible={showAlertModal.visible} onClose={() => {setShowAlertModal({visible: false, message: "", type: "success", title: ""});
+      <AlertModal
+        visible={showAlertModal.visible}
+        onClose={() => {
+          setShowAlertModal({
+            visible: false,
+            message: "",
+            type: "success",
+            title: "",
+          });
         }}
         type={showAlertModal.type as "success" | "error" | "warning" | "info"}
         title={showAlertModal.title}
