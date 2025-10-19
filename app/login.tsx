@@ -98,11 +98,11 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      onKeyboardShow
+      onKeyboardShow,
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      onKeyboardHide
+      onKeyboardHide,
     );
 
     return () => {
@@ -125,7 +125,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       await AsyncStorage.setItem("token", loginResponse.accessToken);
       await AsyncStorage.setItem(
         "userProfile",
-        JSON.stringify(loginResponse.userProfile)
+        JSON.stringify(loginResponse.userProfile),
       );
       dispatch(setAuthData(loginResponse));
       router.replace("/(drawer)" as any);
@@ -149,7 +149,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
     >
       <StatusBar barStyle="dark-content" />
       <LinearGradient
-        colors={["#3674B5", "#2196F3"]}
+        colors={["#3674B5", /*"#2196F3"*/ "#3674B5"]}
         style={styles.gradientContainer}
       >
         <SafeAreaView style={styles.safeArea}>
@@ -167,7 +167,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                     source={require("@/assets/images/Psychologist.png")}
                     style={styles.logo}
                   />
-                  <Text style={styles.appTitle}>Attendance System</Text>
+                  <Text style={styles.appTitle}>AttendEase</Text>
                   <Text style={styles.appSubtitle}>Employee Portal</Text>
                 </View>
 
@@ -246,7 +246,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                       activeOpacity={0.8}
                     >
                       <LinearGradient
-                        colors={["#3674B5", "#2196F3"]}
+                        colors={["#3674B5" /*"#2196F3"*/, "#3674B5"]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={styles.buttonGradient}

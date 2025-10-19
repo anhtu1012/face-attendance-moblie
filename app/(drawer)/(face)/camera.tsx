@@ -22,8 +22,12 @@ import {
   renderpose,
 } from "@/utils/faceRecognitionUtils";
 import * as Brightness from "expo-brightness";
-import { useFocusEffect } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import * as Haptics from "expo-haptics";
+import AlertModal, {
+  AlertModalProps,
+  initialModalValue,
+} from "@/components/ui/AlertModal";
 
 const FaceGuide = {
   width: 30,
@@ -56,6 +60,13 @@ const CameraPage = () => {
   const isRegisteringRef = useRef(false);
   const registrationGeneration = useRef(0);
   const missingPoseRef = useRef<any[]>([]);
+  const [modal, setModal] = useState<AlertModalProps>({
+    visible: false,
+    message: "",
+    type: "success",
+    title: "",
+    onClose: () => setModal(initialModalValue),
+  });
 
   // useFocusEffect(
   //   useCallback(() => {
@@ -114,12 +125,15 @@ const CameraPage = () => {
 
     setUserFace(face);
 
+    // Get current pose
     const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
+    // Get missing pose
     const currentMissingPose = missingPoseRef.current[0];
+    // If missing pose mismatch current pose -> stop
     if (currentPose !== currentMissingPose) return;
 
     console.log("currentPose: ", currentPose);
-    console.log("missingPose (ref): ", currentMissingPose);
+    // console.log("missingPose (ref): ", currentMissingPose);
 
     const currentGeneration = ++registrationGeneration.current;
     isRegisteringRef.current = true;
@@ -151,6 +165,20 @@ const CameraPage = () => {
 
       // delete already checked pose
       setMissingPose((prev) => prev.slice(1));
+
+      // show modal
+      if (currentMissingPose == 5) {
+        setModal((prev) => ({
+          ...prev,
+          visible: true,
+          title: "Thành công",
+          message: "Đăng ký khuôn mặt thành công",
+          onClose: () => {
+            setModal(initialModalValue);
+            router.navigate("/");
+          },
+        }));
+      }
     } catch (error: any) {
       console.log(`❌ ${error.response?.data?.message ?? error}`);
     } finally {
@@ -194,15 +222,10 @@ const CameraPage = () => {
 
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
+      <AlertModal {...modal} />
       <Text style={styles.title}>Đăng ký khuôn mặt</Text>
       {ready && device && (
-        <View
-          style={styles.camera}
-          onLayout={(e) => {
-            const { width, height } = e.nativeEvent.layout;
-            setCameraLayout({ width, height });
-          }}
-        >
+        <View style={styles.camera}>
           <Camera
             ref={cameraRef}
             style={StyleSheet.absoluteFill}
@@ -211,23 +234,11 @@ const CameraPage = () => {
             frameProcessor={isFocused ? frameProcessor : undefined}
             photo={true}
             isMirrored={false}
+            onLayout={(e) => {
+              const { width, height } = e.nativeEvent.layout;
+              setCameraLayout({ width, height });
+            }}
           />
-          {/* Render bounding boxes 
-          {detectedFaces.map((face, index) => (
-            <View
-              key={index}
-              style={{
-                position: "absolute",
-                borderWidth: 2,
-                borderColor: "lime",
-                borderRadius: 8,
-                top: face.bounds.y * 0.7,
-                left: face.bounds.x * 0.7,
-                width: face.bounds.width * 0.7,
-                height: face.bounds.height * 0.7,
-              }}
-            />
-          ))}*/}
         </View>
       )}
       {/* Face Detection Overlay */}

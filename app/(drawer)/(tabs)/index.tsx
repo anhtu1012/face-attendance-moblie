@@ -1,11 +1,19 @@
 import TodayWidget from "@/components/Home/TodayWidget";
+import { motivationalQuotes } from "@/constants/homepage";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
-import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { getSubmittedForm } from "@/services/form/api";
+import {
+  AntDesign,
+  MaterialCommunityIcons,
+  Octicons,
+  Entypo,
+  Feather,
+} from "@expo/vector-icons";
+import { DrawerActions, useIsFocused } from "@react-navigation/native";
+import { router, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Dimensions,
   Image,
   RefreshControl,
   SafeAreaView,
@@ -15,35 +23,24 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// import FormsStatusWidget from "../../components/FormsStatusWidget";
-// import TodayWidget from "../../components/TodayWidget";
 
-const { width } = Dimensions.get("window");
-
-interface UserProfile {
-  id: string;
-  code: string;
-  userName: string;
-  fullName: string;
-  faceImg: string;
-}
-
-type FormStatus = "PENDING" | "APPROVED" | "REJECTED";
-
-interface FormDescription {
+export interface FormDetail {
   id: string;
   createdAt: string;
   updatedAt: string;
-  code: string;
   reason: string;
-  status: FormStatus;
-  file: string;
+  response: string;
+  formCategoryId: string;
+  formCategoryTitle: string;
+  submittedBy: string;
+  submittedName: string;
+  approvedBy: string;
+  approvedName: string;
   startTime: string;
   endTime: string;
-  approvedTime?: string;
-  formTitle: string;
-  submittedBy: string;
-  approvedBy?: string;
+  approvedTime: string;
+  file: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
 }
 
 const fakeSchedule: WorkingSchedule = {
@@ -72,48 +69,77 @@ const fakeSchedule: WorkingSchedule = {
   managerFullName: "Tran Thi B",
 };
 function HomePage() {
-  const { userProfile, isLoading, error, refetch, userId } = useGetUserProfile();
-  const [forms, setForms] = useState<FormDescription[]>([]);
-  const [loading, setLoading] = useState(true);
-  // const [todaySchedule] = useState<WorkingSchedule | null>(fakeSchedule);
-  const [loadingSchedule] = useState(false);
+  const { userProfile, isLoading, error, refetch, userId } =
+    useGetUserProfile();
+  const [submittedForms, setSubmittedForms] = useState<FormDetail[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const isFocused = useIsFocused();
+  const navigation = useNavigation();
 
-  // Format date to DD/MM/YYYY
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+  useEffect(() => {
+    handleGetSubmittedForm();
+  }, [isFocused, userProfile]);
+
+  const handleGetSubmittedForm = async () => {
+    try {
+      if (!userProfile) return;
+      const res = await getSubmittedForm(userProfile?.id);
+      setSubmittedForms(res.data.data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const upcomingEvents = [
-    { id: 1, title: "Họp team", time: "10:00 - 11:30", date: "15/07/2024" },
-    { id: 2, title: "Deadline dự án", time: "17:00", date: "20/07/2024" },
-    { id: 3, title: "Workshop", time: "14:00 - 16:00", date: "22/07/2024" },
-  ];
+  const handleRenderFormState = (form: FormDetail) => {
+    if (form.status == "PENDING") {
+      return (
+        <View
+          style={[
+            styles.tickContainer,
+            {
+              backgroundColor: "rgba(255, 180, 10, 0.1)",
+            },
+          ]}
+        >
+          <AntDesign
+            name="clock-circle"
+            size={16}
+            color="#ffb40a"
+            style={{ marginRight: 3 }}
+          />
+          <Text style={{ color: "#ffb40a" }}>Đang chờ</Text>
+        </View>
+      );
+    } else if (form.status == "REJECTED")
+      return (
+        <View
+          style={[
+            styles.tickContainer,
+            {
+              backgroundColor: "rgba(242, 95, 108, 0.1)",
+            },
+          ]}
+        >
+          <Entypo name="circle-with-cross" size={16} color="#f25f6c" />
+          <Text style={{ color: "#f25f6c" }}>Từ chối</Text>
+        </View>
+      );
 
-  const motivationalQuotes = [
-    {
-      text: "Thành công không phải là chìa khóa của hạnh phúc. Hạnh phúc là chìa khóa của thành công.",
-      author: "Albert Schweitzer",
-    },
-    {
-      text: "Điều duy nhất bạn có thể kiểm soát hoàn toàn là nỗ lực của chính mình.",
-      author: "Mark Cuban",
-    },
-    {
-      text: "Cơ hội không xảy ra. Bạn tạo ra chúng.",
-      author: "Chris Grosser",
-    },
-    {
-      text: "Đừng chờ đợi cơ hội. Hãy tạo ra nó.",
-      author: "George Bernard Shaw",
-    },
-    {
-      text: "Mọi chuyên gia đều từng là người mới bắt đầu.",
-      author: "Robin Sharma",
-    },
-  ];
+    return (
+      <View
+        style={[
+          styles.tickContainer,
+          {
+            backgroundColor: "rgba(96, 208, 152, 0.1)",
+          },
+        ]}
+      >
+        <Entypo name="check" size={16} color="#60d098" />
+        <Text style={{ color: "#60d098" }}>Đã duyệt</Text>
+      </View>
+    );
+  };
 
   // Auto-rotate quotes every 5 seconds
   useEffect(() => {
@@ -129,12 +155,13 @@ function HomePage() {
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Xin chào,</Text>
-          <Text style={styles.userName}>
-            {userProfile?.fullName || "Người dùng"}
-          </Text>
-        </View>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.dispatch(DrawerActions.openDrawer());
+          }}
+        >
+          <Feather name="menu" size={24} color="black" />
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.avatarContainer}
           onPress={() => router.push("/(drawer)/(tabs)/profile")}
@@ -247,33 +274,65 @@ function HomePage() {
           onFormUpdate={fetchForms}
         /> */}
 
-        {/* Upcoming Events */}
-        <View style={styles.eventsContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Lịch sự kiện</Text>
-            <TouchableOpacity style={styles.viewAllButton}>
+        {/* Form section*/}
+        <View style={styles.widgetContainer}>
+          <View style={styles.quoteHeader}>
+            <View style={styles.quoteIconContainer}>
+              <AntDesign name="form" size={24} color="#3674B5" />
+            </View>
+            <Text style={styles.sectionTitle}>Đơn đã nộp</Text>
+            <TouchableOpacity
+              style={[styles.viewAllButton, { marginLeft: "auto" }]}
+              onPress={() =>
+                router.push({
+                  pathname: "/(drawer)/(tabs)/(form)/view-all-submitted-form",
+                  params: {
+                    submittedForms: JSON.stringify(submittedForms),
+                  },
+                })
+              }
+            >
               <Text style={styles.viewAllText}>Xem tất cả</Text>
             </TouchableOpacity>
           </View>
 
-          {upcomingEvents.map((event) => (
-            <View key={event.id} style={styles.eventItem}>
-              <View style={styles.eventIconContainer}>
-                <MaterialCommunityIcons
-                  name="calendar-clock"
-                  size={24}
-                  color="#3674B5"
-                />
-              </View>
-              <View style={styles.eventContent}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                <Text style={styles.eventTime}>{event.time}</Text>
-                <Text style={styles.eventDate}>{event.date}</Text>
-              </View>
-            </View>
-          ))}
+          {submittedForms.length > 0 ? (
+            submittedForms.map((form, index) => (
+              <TouchableOpacity
+                key={index}
+                style={styles.eventItem}
+                onPress={() =>
+                  router.push({
+                    pathname: "/(drawer)/(tabs)/(form)/form-detail",
+                    params: { ...form },
+                  })
+                }
+              >
+                <View style={styles.eventIconContainer}>
+                  <Octicons
+                    name="paperclip"
+                    size={24}
+                    color="#3674B5"
+                    style={{ marginVertical: "auto" }}
+                  />
+                </View>
+                <View style={styles.eventContent}>
+                  <Text style={styles.eventTitle}>
+                    {form.formCategoryTitle}
+                  </Text>
+                  <Text style={styles.eventTime}>
+                    {new Date(form.createdAt).toDateString()}
+                  </Text>
+                </View>
+                {handleRenderFormState(form)}
+              </TouchableOpacity>
+            ))
+          ) : (
+            <Text style={styles.noSubmittedFormText}>
+              Không có đơn để hiển thị
+            </Text>
+          )}
         </View>
-
         {/* Quick Actions */}
         <View style={styles.quickActionsContainer}>
           <Text style={styles.sectionTitle}>Truy cập nhanh</Text>
@@ -604,6 +663,18 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  tickContainer: {
+    flexDirection: "row",
+    height: 30,
+    alignItems: "center",
+    gap: 3,
+    borderRadius: 10,
+    paddingRight: 10,
+    paddingLeft: 5,
+  },
+  noSubmittedFormText: {
+    fontStyle: "italic",
   },
 });
 
