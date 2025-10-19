@@ -22,14 +22,17 @@ const EXCLUDE_ROUTE = [
   "menu-tab",
 ];
 
+const ICON_SIZE = 22;
 const icons = [
-  (color: string) => <AntDesign name="home" size={24} color={color} />,
-  (color: string) => <AntDesign name="form" size={24} color={color} />,
-  (color: string) => <AntDesign name="calendar" size={24} color={color} />,
+  (color: string) => <AntDesign name="home" size={ICON_SIZE} color={color} />,
+  (color: string) => <AntDesign name="form" size={ICON_SIZE} color={color} />,
   (color: string) => (
-    <MaterialIcons name="attach-money" size={24} color={color} />
+    <AntDesign name="calendar" size={ICON_SIZE} color={color} />
   ),
-  (color: string) => <Entypo name="menu" size={24} color={color} />,
+  (color: string) => (
+    <MaterialIcons name="attach-money" size={ICON_SIZE} color={color} />
+  ),
+  (color: string) => <Entypo name="menu" size={ICON_SIZE} color={color} />,
 ];
 
 const CustomTabBar = ({
@@ -77,9 +80,9 @@ const CustomTabBar = ({
             position: "absolute",
             backgroundColor: "#3674B5",
             borderRadius: 30,
-            marginHorizontal: 12,
-            height: dimensions.height - 20,
-            width: buttonWidth - 25,
+            marginHorizontal: 17,
+            height: dimensions.height - 10,
+            width: buttonWidth - 35,
           },
         ]}
       />
@@ -119,13 +122,13 @@ const CustomTabBar = ({
 const styles = StyleSheet.create({
   tabbar: {
     position: "absolute",
-    bottom: 20,
+    bottom: 0,
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginHorizontal: 20,
-    paddingVertical: 15,
-    borderRadius: 35,
+    // marginHorizontal: 20,
+    paddingVertical: 10,
+    // borderRadius: 35,
 
     // iOS Shadow
     shadowColor: "#000",

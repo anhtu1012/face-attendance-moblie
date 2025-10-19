@@ -38,9 +38,10 @@ const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
   // Animate items when drawer opens
   useEffect(() => {
     distance.value = withSpring(isOpen ? 1 : 0, {
-      // damping: 80,
-      // stiffness: 800,
-      duration: 1000,
+      damping: 15,
+      stiffness: 120,
+      mass: 1,
+      // duration: 1000,
     });
   }, [isOpen]);
 
