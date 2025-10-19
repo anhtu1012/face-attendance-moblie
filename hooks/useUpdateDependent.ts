@@ -1,13 +1,13 @@
 import { updateDependent } from "@/api/dependent";
+import { dtoDependent } from "@/models/auth/dtoUser";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { dtoUpdateDependent } from "@/models/auth/dtoUser";
 
 export const useUpdateDependent = () => {
     const queryClient = useQueryClient();
     return useMutation({
-        mutationFn: (dependent: dtoUpdateDependent) => updateDependent(dependent.dpId, dependent),
-        onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["dependent"] });
+        mutationFn: (dependent: dtoDependent) => updateDependent(dependent),
+        onSuccess: (_, dependent) => {
+            queryClient.invalidateQueries({ queryKey: ["dependents", dependent.dpUserId] });
         },
         onError: (error) => {
             console.error("Error updating dependent:", error);

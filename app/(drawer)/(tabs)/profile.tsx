@@ -85,7 +85,7 @@ export default function ProfilePage() {
       case 2:
         return (
           <DependentInfo
-            dependentsData={userProfile?.dependent || []}
+            userId={userId || ""}
           />
         );
       case 3:

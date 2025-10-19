@@ -1,10 +1,14 @@
-import CustomProfileInput from "@/components/ui/CustomProfileInput";
-import { DatePickerInput } from "@/components/ui/DatePickerInput";
+import AlertModal from "@/components/ui/AlertModal";
+import { DependentCard } from "@/components/ui/DependentCard";
+import { useDeleteDependent } from "@/hooks/useDeleteDependent";
+import { useGetDependentByUser } from "@/hooks/useGetDependentByUser";
+import { useUpdateDependent } from "@/hooks/useUpdateDependent";
 import { dtoDependent } from "@/models/auth/dtoUser";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useFormik } from "formik";
 import React, { useState } from "react";
 import {
+  Alert,
   ScrollView,
   StyleSheet,
   Text,
@@ -14,33 +18,63 @@ import {
 import * as Yup from "yup";
 
 interface DependentInfoProps {
-  dependentsData: dtoDependent[];
+  userId: string;
 }
-const DependentInfo: React.FC<DependentInfoProps> = ({ dependentsData }) => {
+const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [editingDependent, setEditingDependent] = useState<dtoDependent>(
-    {
-      dpId: "",
-      dpUserId: "",
-      dpFullName: "",
-      dpPhone: "",
-      dpTaxCode: "",
-      dpCitizenIdentityCard: "",
-      dpIssueDate: new Date(),
-      dpIssueAt: "",
-      dpDependentDate: new Date(),
-    }
-  );
-
+  const [editingIndex, setEditingIndex] = useState<number | null>(null);
+  const updateDependent = useUpdateDependent();
+  const deleteDependent = useDeleteDependent();
+  const {
+    data: dependentsData,
+    isLoading,
+    error,
+    refetch,
+  } = useGetDependentByUser(userId);
+  console.log("dependentsData: ", dependentsData);
+  const [showAlertModal, setShowAlertModal] = useState({
+    visible: false,
+    message: "",
+    type: "success" as "success" | "error" | "info" | "warning",
+    title: "",
+  });
+  const [editingDependent, setEditingDependent] = useState<dtoDependent>({
+    dpId: "",
+    dpUserId: "",
+    dpFullName: "",
+    dpPhone: "",
+    dpTaxCode: "",
+    dpCitizenIdentityCard: "",
+    dpIssueDate: new Date(),
+    dpIssueAt: "",
+    dpDependentDate: new Date(),
+  });
 
   const validateSchema = Yup.object().shape({
-    dpFullName: Yup.string().required("Họ và tên là bắt buộc"),
-    dpPhone: Yup.string().required("Số điện thoại là bắt buộc"),
-    dpTaxCode: Yup.string().required("Mã số thuế là bắt buộc"),
-    dpCitizenIdentityCard: Yup.string().required("Số CMND/CCCD là bắt buộc"),
+    dpFullName: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Họ và tên là bắt buộc")
+      .matches(/^[\p{L}\s'-]+$/u, "Tên không được chứa ký tự đặc biệt hoặc số"),
+    dpPhone: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .matches(/^[0-9]{10,11}$/, "Số điện thoại phải gồm 10 hoặc 11 chữ số")
+      .required("Số điện thoại là bắt buộc"),
+    dpTaxCode: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Mã số thuế là bắt buộc")
+      .matches(
+        /^[0-9]{10}([0-9]{3})?$/,
+        "Mã số thuế phải gồm 10 hoặc 13 chữ số"
+      ),
+    dpCitizenIdentityCard: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .matches(/^\d{9}$|^\d{12}$/, "Số CMND/CCCD phải gồm 9 hoặc 12 chữ số")
+      .required("Số CMND/CCCD là bắt buộc"),
     dpIssueDate: Yup.date().required("Ngày cấp là bắt buộc"),
-    dpIssueAt: Yup.string().required("Nơi cấp là bắt buộc"),
+    dpIssueAt: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Nơi cấp là bắt buộc"),
     dpDependentDate: Yup.date().required("Ngày phụ thuộc là bắt buộc"),
   });
   const validate = (values: typeof editingDependent) => {
@@ -54,11 +88,76 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ dependentsData }) => {
     }
     return errors;
   };
+  const handleDelete = (dpId: string) => {
+    const confirmDelete = () => {
+      deleteDependent.mutate(dpId, {
+        onSuccess: () => {
+          setShowAlertModal({
+            visible: true,
+            message: "Xóa thành công",
+            type: "success",
+            title: "Thành công",
+          });
+          refetch();
+        },
+        onError: () => {
+          setShowAlertModal({
+            visible: true,
+            message: "Xóa thất bại",
+            type: "error",
+            title: "Lỗi",
+          });
+        },
+      });
+    };
+    Alert.alert(
+      "Xóa người phụ thuộc",
+      "Bạn có chắc chắn muốn xóa người phụ thuộc này không?",
+      [
+        { text: "Hủy", style: "cancel" },
+        { text: "Xóa", onPress: confirmDelete },
+      ]
+    );
+  };
   const handleSubmit = (values: typeof editingDependent) => {
-    console.log(values);
+    const trimmedValues = {
+      ...values,
+      dpFullName: values.dpFullName.trim(),
+      dpPhone: values.dpPhone.trim(),
+      dpTaxCode: values.dpTaxCode.trim(),
+      dpCitizenIdentityCard: values.dpCitizenIdentityCard.trim(),
+      dpIssueAt: values.dpIssueAt.trim(),
+    };
+    console.log("Submitting dependent data:", trimmedValues);
+    updateDependent.mutate(trimmedValues as dtoDependent, {
+      onSuccess: (data) => {
+        console.log("Update successful:", data);
+        setShowAlertModal({
+          visible: true,
+          message: "Cập nhật thành công",
+          type: "success",
+          title: "Thành công",
+        });
+        setIsEditing(false);
+        setEditingIndex(null);
+        refetch();
+      },
+      onError: (error) => {
+        console.error("Update failed:", error);
+        setShowAlertModal({
+          visible: true,
+          message: `Cập nhật thất bại: ${error.message || "Unknown error"}`,
+          type: "error",
+          title: "Lỗi",
+        });
+      },
+    });
+    setIsEditing(false);
+    console.log(trimmedValues);
   };
   const formik = useFormik({
     initialValues: editingDependent,
+    enableReinitialize: true,
     validate,
     onSubmit: handleSubmit,
     validateOnChange: true,
@@ -68,7 +167,7 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ dependentsData }) => {
     formik.resetForm();
   };
   const handleEdit = (dep: dtoDependent, index: number) => {
-    setEditingDependent(dep);
+    setEditingIndex(index);
     setEditingDependent({
       dpId: dep.dpId ?? "",
       dpUserId: dep.dpUserId ?? "",
@@ -78,136 +177,12 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ dependentsData }) => {
       dpCitizenIdentityCard: dep.dpCitizenIdentityCard ?? "",
       dpIssueDate: dep.dpIssueDate ? new Date(dep.dpIssueDate) : new Date(),
       dpIssueAt: dep.dpIssueAt ?? "",
-      dpDependentDate: dep.dpDependentDate ? new Date(dep.dpDependentDate) : new Date(),
+      dpDependentDate: dep.dpDependentDate
+        ? new Date(dep.dpDependentDate)
+        : new Date(),
     });
-    setIsEditing(true);
+    setIsEditing(!isEditing);
   };
-  const DependentCard = ({
-    dependent,
-    index,
-  }: {
-    dependent: dtoDependent;
-    index: number;
-  }) => (
-
-    <View style={styles.dependentCard}>
-      <View style={styles.cardHeader}>
-        <Text style={styles.cardTitle}>{index + 1}. {dependent.dpFullName}</Text>
-        <View style={styles.cardActions}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => {
-              handleEdit(dependent, index);
-            }}
-          >
-            <Feather name="edit" size={16} color="#3674B5" />
-          </TouchableOpacity>
-          {isEditing && dependent.dpId === editingDependent?.dpId && (
-            <>
-              <TouchableOpacity style={styles.actionButton} onPress={() => {
-                formik.handleSubmit();
-              }}>
-                <Feather name="save" size={16} color="orange" />
-              </TouchableOpacity>
-            </>
-          )}
-          <TouchableOpacity style={styles.actionButton} onPress={() => {}}>
-            <Feather name="trash-2" size={16} color="#E53E3E" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.cardContent}>
-        <CustomProfileInput
-          label="Họ và tên"
-          value={formik.values.dpFullName}
-          onChangeText={(text: string) =>
-            formik.setFieldValue("dpFullName", text)
-          }
-          icon="user"
-          iconColor="#3674B5"
-          error={formik.errors.dpFullName}
-          isEditing={dependent.dpId === editingDependent?.dpId && isEditing}
-        />
-        <CustomProfileInput
-          label="Số điện thoại"
-          value={formik.values.dpPhone}
-          onChangeText={(text: string) =>
-            formik.setFieldValue("dpPhone", text)
-          }
-          icon="phone"
-          iconColor="#3674B5"
-          error={formik.errors.dpPhone}
-          isEditing={dependent.dpId === editingDependent?.dpId && isEditing}
-        />
-       <CustomProfileInput
-          label="Mã số thuế"
-          value={formik.values.dpTaxCode}
-          onChangeText={(text: string) =>
-            formik.setFieldValue("dpTaxCode", text)
-          }
-          icon="credit-card"
-          iconColor="#3674B5"
-          error={formik.errors.dpTaxCode}
-          isEditing={dependent.dpId === editingDependent?.dpId && isEditing}
-        />
-       <CustomProfileInput
-          label="Số CMND/CCCD"
-          value={formik.values.dpCitizenIdentityCard}
-          onChangeText={(text: string) =>
-            formik.setFieldValue("dpCitizenIdentityCard", text)
-          }
-          icon="credit-card"
-          iconColor="#3674B5"
-          error={formik.errors.dpCitizenIdentityCard}
-          isEditing={dependent.dpId === editingDependent?.dpId && isEditing}
-        />
-       
-       <CustomProfileInput
-          label="Nơi cấp"
-          value={formik.values.dpIssueAt}
-          onChangeText={(text: string) =>
-            formik.setFieldValue("dpIssueAt", text)
-          }
-          icon="map-pin"
-          iconColor="#3674B5"
-          error={formik.errors.dpIssueAt}
-          isEditing={dependent.dpId === editingDependent?.dpId && isEditing}
-        />
-      <DatePickerInput
-          label="Ngày cấp"
-          value={formik.values.dpIssueDate}
-          onChange={(date: Date) =>
-            formik.setFieldValue("dpIssueDate", date)
-          }
-          icon="calendar"
-          iconColor="#3674B5"
-          isEditing={dependent.dpId === editingDependent?.dpId && isEditing}
-        />
-       <CustomProfileInput
-          label="Nơi cấp"
-          value={formik.values.dpIssueAt}
-          onChangeText={(text: string) =>
-            formik.setFieldValue("dpIssueAt", text)
-          }
-          icon="map-pin"
-          iconColor="#3674B5"
-          error={formik.errors.dpIssueAt}
-          isEditing={dependent.dpId === editingDependent?.dpId && isEditing}
-        />
-      <DatePickerInput
-          label="Ngày phụ thuộc"
-          value={formik.values.dpDependentDate}
-          onChange={(date: Date) =>
-            formik.setFieldValue("dpDependentDate", date)
-          }
-          icon="clock"
-          iconColor="#3674B5"
-          isEditing={dependent.dpId === editingDependent?.dpId && isEditing}
-        />
-      </View>
-    </View>
-  );
 
   return (
     <View style={styles.container}>
@@ -244,11 +219,42 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ dependentsData }) => {
                 key={dependent.dpId || index}
                 dependent={dependent}
                 index={index}
+                isEditingThis={isEditing && editingIndex === index}
+                onEdit={handleEdit}
+                formikValues={formik.values}
+                formikErrors={formik.errors}
+                setFieldValue={formik.setFieldValue}
+                onSubmit={formik.handleSubmit}
+                onDelete={handleDelete}
               />
             ))
           )}
         </View>
       </ScrollView>
+      <AlertModal
+        visible={showAlertModal.visible}
+        type={showAlertModal.type as "success" | "error" | "info" | "warning"}
+        title={showAlertModal.title}
+        message={showAlertModal.message}
+        onClose={() =>
+          setShowAlertModal({
+            visible: false,
+            message: "",
+            type: "success",
+            title: "",
+          })
+        }
+        onConfirm={() => {
+          setShowAlertModal({
+            visible: false,
+            message: "",
+            type: "success",
+            title: "",
+          });
+        }}
+        confirmText="OK"
+        cancelText="Hủy"
+      />
     </View>
   );
 };
@@ -403,7 +409,6 @@ const styles = StyleSheet.create({
     flex: 2,
     textAlign: "right",
   },
-  // UI-only component; editing and modal styles removed
 });
 
 export default DependentInfo;
