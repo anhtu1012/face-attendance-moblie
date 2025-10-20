@@ -1,4 +1,10 @@
-import { Entypo, Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
+import {
+  Entypo,
+  Feather,
+  FontAwesome6,
+  Ionicons,
+  MaterialIcons,
+} from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   DrawerContentComponentProps,
@@ -49,6 +55,7 @@ const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
   const animatedStyles = state.routes.map((_, index) =>
     useAnimatedItemStyle(distance, index),
   );
+  animatedStyles.push(useAnimatedItemStyle(distance, 5));
 
   const handleLogout = useCallback(async () => {
     try {
@@ -72,7 +79,7 @@ const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
         },
         {
           label: "Chat App",
-          icon: <Entypo name="chat" size={24} color="#fff" />,
+          icon: <Ionicons name="chatbubble-outline" size={24} color="#fff" />,
           route: "/(drawer)/chat",
         },
         {
@@ -87,7 +94,7 @@ const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
         },
         {
           label: "Thông báo",
-          icon: <Ionicons name="notifications" size={24} color="#fff" />,
+          icon: <Feather name="bell" size={24} color="#fff" />,
           route: "/(drawer)/notifications",
         },
       ].map((item, index) => (
@@ -103,9 +110,15 @@ const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
       ))}
 
       {/* Logout Button */}
-      <Pressable onPress={handleLogout} style={styles.logoutButton}>
-        <Text style={styles.logoutText}>Đăng xuất</Text>
-      </Pressable>
+      <Animated.View style={animatedStyles[5]}>
+        <Pressable
+          onPress={handleLogout}
+          style={[styles.itemContainer, { marginTop: 20 }]}
+        >
+          <MaterialIcons name="logout" size={24} color="#fff" />
+          <Text style={styles.itemText}>Đăng xuất</Text>
+        </Pressable>
+      </Animated.View>
     </View>
   );
 };
