@@ -68,6 +68,7 @@ export default DrawerScreenWrapper;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#3674B5",
   },
   behindPage: {
     position: "absolute",

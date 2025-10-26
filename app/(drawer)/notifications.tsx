@@ -1,3 +1,4 @@
+import DrawerScreenWrapper from "@/components/ui/DrawerScreenWrapper";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React, { useState } from "react";
@@ -129,93 +130,95 @@ export default function NotificationPage() {
   };
 
   return (
-    <View style={[styles.container]}>
-      <LinearGradient colors={["#3674B5", "#2196F3"]} style={styles.header}>
-        <Text style={styles.headerTitle}>Thông báo</Text>
-        <Text style={styles.headerSubtitle}>
-          {unreadCount > 0
-            ? `${unreadCount} thông báo mới`
-            : "Không có thông báo mới"}
-        </Text>
-      </LinearGradient>
+    <DrawerScreenWrapper>
+      <View style={[styles.container]}>
+        <LinearGradient colors={["#3674B5", "#2196F3"]} style={styles.header}>
+          <Text style={styles.headerTitle}>Thông báo</Text>
+          <Text style={styles.headerSubtitle}>
+            {unreadCount > 0
+              ? `${unreadCount} thông báo mới`
+              : "Không có thông báo mới"}
+          </Text>
+        </LinearGradient>
 
-      <View style={styles.content}>
-        {/* Filter Tabs */}
-        <View style={styles.filterContainer}>
-          <TouchableOpacity
-            style={[
-              styles.filterTab,
-              filter === "all" && styles.activeFilterTab,
-            ]}
-            onPress={() => setFilter("all")}
-          >
-            <Text
+        <View style={styles.content}>
+          {/* Filter Tabs */}
+          <View style={styles.filterContainer}>
+            <TouchableOpacity
               style={[
-                styles.filterTabText,
-                filter === "all" && styles.activeFilterTabText,
+                styles.filterTab,
+                filter === "all" && styles.activeFilterTab,
               ]}
+              onPress={() => setFilter("all")}
             >
-              Tất cả ({notifications.length})
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.filterTab,
-              filter === "unread" && styles.activeFilterTab,
-            ]}
-            onPress={() => setFilter("unread")}
-          >
-            <Text
-              style={[
-                styles.filterTabText,
-                filter === "unread" && styles.activeFilterTabText,
-              ]}
-            >
-              Chưa đọc ({unreadCount})
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Notifications List */}
-        {filteredNotifications.length > 0 ? (
-          <FlatList
-            data={filteredNotifications}
-            renderItem={renderNotificationItem}
-            keyExtractor={(item) => item.id}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.notificationsList}
-          />
-        ) : (
-          <View style={styles.emptyContainer}>
-            <MaterialIcons name="notifications-off" size={60} color="#ccc" />
-            <Text style={styles.emptyTitle}>Không có thông báo</Text>
-            <Text style={styles.emptyMessage}>
-              {filter === "unread"
-                ? "Bạn đã đọc hết tất cả thông báo"
-                : "Chưa có thông báo nào được gửi đến bạn"}
-            </Text>
-          </View>
-        )}
-
-        {/* Action Buttons */}
-        {unreadCount > 0 && (
-          <View style={styles.actionButtons}>
-            <TouchableOpacity style={styles.actionButton}>
-              <LinearGradient
-                colors={["#4CAF50", "#45a049"]}
-                style={styles.actionButtonGradient}
+              <Text
+                style={[
+                  styles.filterTabText,
+                  filter === "all" && styles.activeFilterTabText,
+                ]}
               >
-                <MaterialIcons name="done-all" size={20} color="#fff" />
-                <Text style={styles.actionButtonText}>
-                  Đánh dấu đã đọc tất cả
-                </Text>
-              </LinearGradient>
+                Tất cả ({notifications.length})
+              </Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[
+                styles.filterTab,
+                filter === "unread" && styles.activeFilterTab,
+              ]}
+              onPress={() => setFilter("unread")}
+            >
+              <Text
+                style={[
+                  styles.filterTabText,
+                  filter === "unread" && styles.activeFilterTabText,
+                ]}
+              >
+                Chưa đọc ({unreadCount})
+              </Text>
             </TouchableOpacity>
           </View>
-        )}
+
+          {/* Notifications List */}
+          {filteredNotifications.length > 0 ? (
+            <FlatList
+              data={filteredNotifications}
+              renderItem={renderNotificationItem}
+              keyExtractor={(item) => item.id}
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.notificationsList}
+            />
+          ) : (
+            <View style={styles.emptyContainer}>
+              <MaterialIcons name="notifications-off" size={60} color="#ccc" />
+              <Text style={styles.emptyTitle}>Không có thông báo</Text>
+              <Text style={styles.emptyMessage}>
+                {filter === "unread"
+                  ? "Bạn đã đọc hết tất cả thông báo"
+                  : "Chưa có thông báo nào được gửi đến bạn"}
+              </Text>
+            </View>
+          )}
+
+          {/* Action Buttons */}
+          {unreadCount > 0 && (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity style={styles.actionButton}>
+                <LinearGradient
+                  colors={["#4CAF50", "#45a049"]}
+                  style={styles.actionButtonGradient}
+                >
+                  <MaterialIcons name="done-all" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>
+                    Đánh dấu đã đọc tất cả
+                  </Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+          )}
+        </View>
       </View>
-    </View>
+    </DrawerScreenWrapper>
   );
 }
 

@@ -18,7 +18,7 @@ import {
 import { Worklets } from "react-native-worklets-core";
 import {
   classifyPose,
-  printCurrentPose,
+  initialPoseData,
   renderpose,
 } from "@/utils/faceRecognitionUtils";
 import * as Brightness from "expo-brightness";
@@ -28,6 +28,7 @@ import AlertModal, {
   AlertModalProps,
   initialModalValue,
 } from "@/components/ui/AlertModal";
+import { createZip } from "@/utils/zipUtils";
 
 const FaceGuide = {
   width: 30,
@@ -52,7 +53,7 @@ const CameraPage = () => {
     cameraFacing: "front",
     landmarkMode: "all",
   }).current;
-  const [imagePaths, setImagePaths] = useState<String[]>([]);
+  const [imagePaths, setImagePaths] = useState<string[]>([]);
   const [cameraLayout, setCameraLayout] = useState({ width: 0, height: 0 });
   const [userFace, setUserFace] = useState<any>();
   const device = useCameraDevice("front");
@@ -67,6 +68,7 @@ const CameraPage = () => {
     title: "",
     onClose: () => setModal(initialModalValue),
   });
+  missingPoseRef.current = missingPose;
 
   // useFocusEffect(
   //   useCallback(() => {
@@ -87,9 +89,10 @@ const CameraPage = () => {
   //   }, []),
   // );
   //
-  useEffect(() => {
-    missingPoseRef.current = missingPose;
-  }, [missingPose]);
+
+  // useEffect(() => {
+  //   missingPoseRef.current = missingPose;
+  // }, [missingPose]);
 
   useEffect(() => {
     // // load brightness
@@ -120,15 +123,16 @@ const CameraPage = () => {
   const handleDetectedFaces = Worklets.createRunOnJS(async (faces: Face[]) => {
     if (isRegisteringRef.current) return;
     if (faces.length !== 1) return;
-
     const face = faces[0];
-
     setUserFace(face);
+
+    // Get missing pose
+    const currentMissingPose = missingPoseRef.current[0];
 
     // Get current pose
     const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
-    // Get missing pose
-    const currentMissingPose = missingPoseRef.current[0];
+
+    console.log(currentPose);
     // If missing pose mismatch current pose -> stop
     if (currentPose !== currentMissingPose) return;
 
@@ -142,32 +146,42 @@ const CameraPage = () => {
       const photo = await cameraRef.current?.takePhoto();
       if (!photo?.path || !userProfile?.id) return;
 
+      // Create the full phto path
       const fullPhotoPath = `file://${photo.path}`;
 
-      const faceFormData = new FormData();
-      faceFormData.append("userId", userProfile.id);
-      faceFormData.append("img", {
-        uri: fullPhotoPath,
-        type: "image/jpeg",
-        name: "face.jpg",
-      } as any);
-      faceFormData.append("checkedPose", currentMissingPose);
-
-      await registerFace(faceFormData);
+      // store image uri once successfully checked
+      setImagePaths((prev) => {
+        console.log([...prev, fullPhotoPath]);
+        return [...prev, fullPhotoPath];
+      });
 
       if (currentGeneration !== registrationGeneration.current) return;
 
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      console.log("✅ Register pose!");
-
-      // store image uri once successfully checked
-      setImagePaths((prev) => [...prev, fullPhotoPath]);
+      // Add haptic feed back when
+      // await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+      // console.log("✅ Register pose!");
 
       // delete already checked pose
       setMissingPose((prev) => prev.slice(1));
 
-      // show modal
+      // show modal when already enough face
       if (currentMissingPose == 5) {
+        // Create images zip file
+        const zipUri = await createZip(imagePaths);
+
+        // Create face form data
+        const faceFormData = new FormData();
+        faceFormData.append("userId", userProfile.id);
+        faceFormData.append("img", {
+          uri: zipUri,
+          type: "application/zip",
+          name: "faces.zip",
+        } as any);
+
+        // Register face in python
+        await registerFace(faceFormData);
+
+        // Show success modal
         setModal((prev) => ({
           ...prev,
           visible: true,
@@ -201,6 +215,9 @@ const CameraPage = () => {
   );
 
   useEffect(() => {
+    // Clear old image paths data
+    setImagePaths([]);
+
     const getUserProfile = async () => {
       let userDataStr = await AsyncStorage.getItem("userProfile");
 
@@ -211,7 +228,11 @@ const CameraPage = () => {
 
         console.log("missing pose: ", missingPoseRes.data);
 
-        setMissingPose(missingPoseRes.data.missingPose);
+        if (missingPoseRes.data.missingPose === 6) {
+          setMissingPose(initialPoseData);
+        } else {
+          setMissingPose([]);
+        }
 
         setUserProfile(user);
       }

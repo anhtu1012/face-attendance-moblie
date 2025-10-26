@@ -25,7 +25,7 @@ export default function ChooseFormPage() {
             <AntDesign
               name="arrow-left"
               size={24}
-              color="#919296"
+              color="#3674B5"
               style={styles.goBackArrow}
             />
           </TouchableOpacity>

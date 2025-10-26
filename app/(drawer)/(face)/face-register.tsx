@@ -55,7 +55,7 @@ export default function FaceRegisterPage() {
               // handleBiometricAuth();
             },
           },
-        ]
+        ],
       );
     } else {
       router.replace("/(drawer)/(face)/camera");
@@ -177,8 +177,8 @@ export default function FaceRegisterPage() {
               registrationStep > 0
                 ? ["#ccc", "#999"]
                 : isRegistered
-                ? ["#FF9800", "#F57C00"]
-                : ["#4CAF50", "#45a049"]
+                  ? ["#FF9800", "#F57C00"]
+                  : ["#4CAF50", "#45a049"]
             }
             style={styles.actionButtonGradient}
           >
@@ -187,8 +187,8 @@ export default function FaceRegisterPage() {
                 registrationStep > 0
                   ? "hourglass-empty"
                   : isRegistered
-                  ? "refresh"
-                  : "face-retouching-natural"
+                    ? "refresh"
+                    : "face-retouching-natural"
               }
               size={20}
               color="#fff"
@@ -197,8 +197,8 @@ export default function FaceRegisterPage() {
               {registrationStep > 0
                 ? "Đang xử lý..."
                 : isRegistered
-                ? "Đăng ký lại"
-                : "Bắt đầu đăng ký"}
+                  ? "Đăng ký lại"
+                  : "Bắt đầu đăng ký"}
             </Text>
           </LinearGradient>
         </TouchableOpacity>

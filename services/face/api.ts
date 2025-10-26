@@ -27,6 +27,7 @@ export const registerFace = (values: FormData, config?: any) => {
     headers: {
       "Content-Type": "multipart/form-data",
     },
+    timeout: 10000,
     ...config,
   });
 };

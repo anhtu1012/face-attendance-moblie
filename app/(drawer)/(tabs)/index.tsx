@@ -215,7 +215,7 @@ function HomePage() {
           </View>
         )}
 
-        {/* Motivational Quote Widget */}
+        {/* Motivational Quote Widget 
         <View style={styles.widgetContainer}>
           <View style={styles.quoteHeader}>
             <View style={styles.quoteIconContainer}>
@@ -261,10 +261,10 @@ function HomePage() {
               />
             ))}
           </View>
-        </View>
+        </View>*/}
 
-        {/* Today Widget */}
-        <TodayWidget todaySchedule={fakeSchedule} loadingSchedule={false} />
+        {/* Today Widget 
+        <TodayWidget todaySchedule={fakeSchedule} loadingSchedule={false} />*/}
 
         {/* Forms Status */}
         {/* <FormsStatusWidget
@@ -333,7 +333,7 @@ function HomePage() {
             </Text>
           )}
         </View>
-        {/* Quick Actions */}
+        {/* Quick Actions 
         <View style={styles.quickActionsContainer}>
           <Text style={styles.sectionTitle}>Truy cập nhanh</Text>
           <View style={styles.quickActionsGrid}>
@@ -377,7 +377,7 @@ function HomePage() {
               <Text style={styles.quickActionText}>Cá nhân</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </View>*/}
 
         {/* Bottom space */}
         <View style={styles.bottomSpace} />

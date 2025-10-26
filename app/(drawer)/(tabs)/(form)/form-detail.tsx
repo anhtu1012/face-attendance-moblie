@@ -77,7 +77,7 @@ export default function FormDetailScreen() {
               style={styles.goBackArrow}
             />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Chi tiết form</Text>
+          <Text style={styles.headerTitle}>Chi tiết đơn</Text>
         </View>
       </View>
 

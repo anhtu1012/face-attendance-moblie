@@ -126,15 +126,13 @@ const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
 export default CustomDrawer;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: 50, paddingHorizontal: 16 },
+  container: { flex: 1, paddingTop: 50, paddingHorizontal: 20 },
   title: {
     paddingBottom: 16,
     marginBottom: 30,
     fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#eee",
   },
   itemContainer: {
     paddingVertical: 16,
