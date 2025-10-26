@@ -29,6 +29,7 @@ import AlertModal, {
   initialModalValue,
 } from "@/components/ui/AlertModal";
 import { createZip } from "@/utils/zipUtils";
+import { submitForm } from "@/services/form/api";
 
 const FaceGuide = {
   width: 30,
@@ -132,7 +133,6 @@ const CameraPage = () => {
     // Get current pose
     const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
 
-    console.log(currentPose);
     // If missing pose mismatch current pose -> stop
     if (currentPose !== currentMissingPose) return;
 
@@ -156,13 +156,11 @@ const CameraPage = () => {
       });
 
       if (currentGeneration !== registrationGeneration.current) return;
+      // delete already checked pose
+      setMissingPose((prev) => prev.slice(1));
 
       // Add haptic feed back when
       // await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-      // console.log("✅ Register pose!");
-
-      // delete already checked pose
-      setMissingPose((prev) => prev.slice(1));
 
       // show modal when already enough face
       if (currentMissingPose == 5) {
@@ -180,6 +178,24 @@ const CameraPage = () => {
 
         // Register face in python
         await registerFace(faceFormData);
+
+        // Create face register form's form data
+        const formData = new FormData();
+        formData.append("formId", "5");
+        formData.append("submittedById", userProfile.id);
+        formData.append(
+          "reason",
+          `Nhân viên ${userProfile.fullName} đăng ký khuôn mặt`,
+        );
+        formData.append("fileEvidence", {
+          uri: zipUri,
+          type: "application/zip",
+          name: "faces.zip",
+        } as any);
+        formData.append("startTime", new Date().toISOString());
+
+        // Send face register form
+        await submitForm(formData);
 
         // Show success modal
         setModal((prev) => ({
