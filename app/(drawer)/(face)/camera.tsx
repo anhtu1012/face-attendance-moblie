@@ -30,6 +30,7 @@ import AlertModal, {
 } from "@/components/ui/AlertModal";
 import { createZip } from "@/utils/zipUtils";
 import { submitForm } from "@/services/form/api";
+import SpinnerOverlay from "@/components/SpinnerOverlay";
 
 const FaceGuide = {
   width: 30,
@@ -69,6 +70,7 @@ const CameraPage = () => {
     title: "",
     onClose: () => setModal(initialModalValue),
   });
+  const [isPending, setIsPending] = useState(false);
   missingPoseRef.current = missingPose;
 
   // useFocusEffect(
@@ -164,6 +166,9 @@ const CameraPage = () => {
 
       // show modal when already enough face
       if (currentMissingPose == 5) {
+        // Show spinner
+        setIsPending(true);
+
         // Create images zip file
         const zipUri = await createZip(imagePaths);
 
@@ -196,6 +201,9 @@ const CameraPage = () => {
 
         // Send face register form
         await submitForm(formData);
+
+        // Hide spinner
+        setIsPending(false);
 
         // Show success modal
         setModal((prev) => ({
@@ -259,6 +267,7 @@ const CameraPage = () => {
 
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
+      <SpinnerOverlay visible={isPending} content="Đang upload ảnh..." />
       <AlertModal {...modal} />
       <Text style={styles.title}>Đăng ký khuôn mặt</Text>
       {ready && device && (
@@ -267,7 +276,7 @@ const CameraPage = () => {
             ref={cameraRef}
             style={StyleSheet.absoluteFill}
             device={device}
-            isActive={isFocused}
+            isActive={isPending ? !isPending : isFocused}
             frameProcessor={isFocused ? frameProcessor : undefined}
             photo={true}
             isMirrored={false}
