@@ -1,14 +1,13 @@
-import TodayWidget from "@/components/Home/TodayWidget";
 import { motivationalQuotes } from "@/constants/homepage";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
 import { getSubmittedForm } from "@/services/form/api";
 import {
   AntDesign,
-  MaterialCommunityIcons,
-  Octicons,
   Entypo,
   Feather,
+  MaterialCommunityIcons,
+  Octicons,
 } from "@expo/vector-icons";
 import { DrawerActions, useIsFocused } from "@react-navigation/native";
 import { router, useNavigation } from "expo-router";
@@ -137,6 +136,43 @@ function HomePage() {
       >
         <Entypo name="check" size={16} color="#60d098" />
         <Text style={{ color: "#60d098" }}>Đã duyệt</Text>
+      </View>
+    );
+  };
+
+  const handleRenderFormStateModern = (form: FormDetail) => {
+    if (form.status === "PENDING") {
+      return (
+        <View style={styles.modernStatusBadge}>
+          <View
+            style={[styles.statusDotIndicator, { backgroundColor: "#FF9800" }]}
+          />
+          <Text style={[styles.modernStatusText, { color: "#FF9800" }]}>
+            Chờ duyệt
+          </Text>
+        </View>
+      );
+    } else if (form.status === "REJECTED") {
+      return (
+        <View style={styles.modernStatusBadge}>
+          <View
+            style={[styles.statusDotIndicator, { backgroundColor: "#F44336" }]}
+          />
+          <Text style={[styles.modernStatusText, { color: "#F44336" }]}>
+            Từ chối
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.modernStatusBadge}>
+        <View
+          style={[styles.statusDotIndicator, { backgroundColor: "#4CAF50" }]}
+        />
+        <Text style={[styles.modernStatusText, { color: "#4CAF50" }]}>
+          Đã duyệt
+        </Text>
       </View>
     );
   };
@@ -276,13 +312,21 @@ function HomePage() {
 
         {/* Form section*/}
         <View style={styles.widgetContainer}>
-          <View style={styles.quoteHeader}>
-            <View style={styles.quoteIconContainer}>
-              <AntDesign name="form" size={24} color="#3674B5" />
+          {/* Modern Header with Gradient Background */}
+          <View style={styles.formHeaderContainer}>
+            <View style={styles.formHeaderLeft}>
+              <View style={styles.formIconWrapper}>
+                <AntDesign name="form" size={20} color="#fff" />
+              </View>
+              <View>
+                <Text style={styles.formSectionTitle}>Đơn đã nộp</Text>
+                <Text style={styles.formSectionSubtitle}>
+                  {submittedForms.length} đơn đang xử lý
+                </Text>
+              </View>
             </View>
-            <Text style={styles.sectionTitle}>Đơn đã nộp</Text>
             <TouchableOpacity
-              style={[styles.viewAllButton, { marginLeft: "auto" }]}
+              style={styles.viewAllButtonModern}
               onPress={() =>
                 router.push({
                   pathname: "/(drawer)/(tabs)/(form)/view-all-submitted-form",
@@ -292,45 +336,108 @@ function HomePage() {
                 })
               }
             >
-              <Text style={styles.viewAllText}>Xem tất cả</Text>
+              <Text style={styles.viewAllTextModern}>Tất cả</Text>
+              <AntDesign name="right" size={16} color="#3674B5" />
             </TouchableOpacity>
           </View>
 
+          {/* Form List */}
           {submittedForms.length > 0 ? (
-            submittedForms.map((form, index) => (
-              <TouchableOpacity
-                key={index}
-                style={styles.eventItem}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(drawer)/(tabs)/(form)/form-detail",
-                    params: { ...form },
-                  })
-                }
-              >
-                <View style={styles.eventIconContainer}>
-                  <Octicons
-                    name="paperclip"
-                    size={24}
-                    color="#3674B5"
-                    style={{ marginVertical: "auto" }}
-                  />
-                </View>
-                <View style={styles.eventContent}>
-                  <Text style={styles.eventTitle}>
-                    {form.formCategoryTitle}
-                  </Text>
-                  <Text style={styles.eventTime}>
-                    {new Date(form.createdAt).toDateString()}
-                  </Text>
-                </View>
-                {handleRenderFormState(form)}
-              </TouchableOpacity>
-            ))
+            <View style={styles.formListContainer}>
+              {submittedForms
+                .slice(0, 5)
+                .reverse()
+                .map((form, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.modernFormItem,
+                      index !== Math.min(submittedForms.length - 1, 2) &&
+                        styles.formItemBorder,
+                    ]}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(drawer)/(tabs)/(form)/form-detail",
+                        params: { ...form },
+                      })
+                    }
+                    activeOpacity={0.7}
+                  >
+                    {/* Left Side - Icon and Info */}
+                    <View style={styles.formItemLeft}>
+                      <View
+                        style={[
+                          styles.modernFormIcon,
+                          {
+                            backgroundColor:
+                              form.status === "PENDING"
+                                ? "#FFF4E6"
+                                : form.status === "APPROVED"
+                                  ? "#E8F5E9"
+                                  : "#FFEBEE",
+                          },
+                        ]}
+                      >
+                        <Octicons
+                          name="file"
+                          size={20}
+                          color={
+                            form.status === "PENDING"
+                              ? "#FF9800"
+                              : form.status === "APPROVED"
+                                ? "#4CAF50"
+                                : "#F44336"
+                          }
+                        />
+                      </View>
+
+                      <View style={styles.formItemContent}>
+                        <Text style={styles.modernFormTitle} numberOfLines={1}>
+                          {form.formCategoryTitle}
+                        </Text>
+                        <View style={styles.formDateContainer}>
+                          <AntDesign
+                            name="clock-circle"
+                            size={12}
+                            color="#999"
+                          />
+                          <Text style={styles.modernFormDate}>
+                            {new Date(form.createdAt).toLocaleDateString(
+                              "vi-VN",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Right Side - Status Badge */}
+                    <View style={styles.formItemRight}>
+                      {handleRenderFormStateModern(form)}
+                      <AntDesign
+                        name="right"
+                        size={16}
+                        color="#ccc"
+                        style={styles.formArrow}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                ))}
+            </View>
           ) : (
-            <Text style={styles.noSubmittedFormText}>
-              Không có đơn để hiển thị
-            </Text>
+            <View style={styles.emptyStateContainer}>
+              <View style={styles.emptyIconContainer}>
+                <Octicons name="inbox" size={48} color="#ccc" />
+              </View>
+              <Text style={styles.emptyStateTitle}>Chưa có đơn nào</Text>
+              <Text style={styles.emptyStateSubtitle}>
+                Các đơn bạn nộp sẽ hiển thị ở đây
+              </Text>
+            </View>
           )}
         </View>
         {/* Quick Actions 
@@ -675,6 +782,156 @@ const styles = StyleSheet.create({
   },
   noSubmittedFormText: {
     fontStyle: "italic",
+  },
+  // Modern Form Section Styles
+  formHeaderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  formHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  formIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "#3674B5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    shadowColor: "#3674B5",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  formSectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 2,
+  },
+  formSectionSubtitle: {
+    fontSize: 13,
+    color: "#666",
+    fontWeight: "400",
+  },
+  viewAllButtonModern: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: "#F0F7FF",
+    borderRadius: 20,
+    gap: 4,
+  },
+  viewAllTextModern: {
+    color: "#3674B5",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  formListContainer: {
+    marginTop: 4,
+  },
+  modernFormItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+  },
+  formItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#f5f5f5",
+  },
+  formItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 12,
+  },
+  modernFormIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  formItemContent: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  modernFormTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 4,
+  },
+  formDateContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  modernFormDate: {
+    fontSize: 13,
+    color: "#999",
+  },
+  formItemRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  modernStatusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 12,
+    gap: 4,
+  },
+  statusDotIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  modernStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  formArrow: {
+    marginLeft: 4,
+  },
+  emptyStateContainer: {
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 8,
+  },
+  emptyStateSubtitle: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
   },
 });
 

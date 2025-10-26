@@ -1,269 +1,29 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-import { Animated, Text, StyleSheet, View } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import { getMissingPose, registerFace } from "@/services/face/api";
-import { useIsFocused } from "@react-navigation/native";
-import { GradientProgress } from "@/components/ui/GradientProgress";
-import {
-  Camera,
-  runAsync,
-  useCameraDevice,
-  useFrameProcessor,
-} from "react-native-vision-camera";
-import {
-  Face,
-  useFaceDetector,
-  FaceDetectionOptions,
-} from "react-native-vision-camera-face-detector";
-import { Worklets } from "react-native-worklets-core";
-import {
-  classifyPose,
-  initialPoseData,
-  renderpose,
-} from "@/utils/faceRecognitionUtils";
-import * as Brightness from "expo-brightness";
-import { router, useFocusEffect } from "expo-router";
-import * as Haptics from "expo-haptics";
-import AlertModal, {
-  AlertModalProps,
-  initialModalValue,
-} from "@/components/ui/AlertModal";
-import { createZip } from "@/utils/zipUtils";
-import { submitForm } from "@/services/form/api";
+import { CameraView } from "@/components/FaceRegistration/CameraView";
+import { FaceGuideOverlay } from "@/components/FaceRegistration/FaceGuideOverlay";
+import { InstructionText } from "@/components/FaceRegistration/InstructionText";
+import { ProgressBar } from "@/components/FaceRegistration/ProgressBar";
 import SpinnerOverlay from "@/components/SpinnerOverlay";
-
-const FaceGuide = {
-  width: 30,
-  height: 30,
-  top: 125,
-  bottom: -60,
-  horizontal: 10,
-  borderVerticalWidth: 3,
-  borderHorizontalWidth: 3,
-  radius: 20,
-  color: "#fefcfb",
-};
+import AlertModal from "@/components/ui/AlertModal";
+import { useFaceRegistration } from "@/hooks/useFaceRegistration";
+import { useRef } from "react";
+import { Animated, StyleSheet, Text, View } from "react-native";
+import { useCameraDevice } from "react-native-vision-camera";
 
 const CameraPage = () => {
-  const cameraRef = useRef<Camera>(null);
-  const isFocused = useIsFocused();
-  const [userProfile, setUserProfile] = useState<any>(null);
   const cornerAnim = useRef(new Animated.Value(0)).current;
-  const [ready, setReady] = useState(false);
-  const [missingPose, setMissingPose] = useState<any[]>([]);
-  const faceDetectionOptions = useRef<FaceDetectionOptions>({
-    cameraFacing: "front",
-    landmarkMode: "all",
-  }).current;
-  const [imagePaths, setImagePaths] = useState<string[]>([]);
-  const [cameraLayout, setCameraLayout] = useState({ width: 0, height: 0 });
-  const [userFace, setUserFace] = useState<any>();
   const device = useCameraDevice("front");
-  const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
-  const isRegisteringRef = useRef(false);
-  const registrationGeneration = useRef(0);
-  const missingPoseRef = useRef<any[]>([]);
-  const [modal, setModal] = useState<AlertModalProps>({
-    visible: false,
-    message: "",
-    type: "success",
-    title: "",
-    onClose: () => setModal(initialModalValue),
-  });
-  const [isPending, setIsPending] = useState(false);
-  missingPoseRef.current = missingPose;
-
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     let previousBrightness: number;
-  //
-  //     Brightness.getSystemBrightnessAsync().then((value) => {
-  //       previousBrightness = value;
-  //       Brightness.setSystemBrightnessAsync(1); // set to max when focused
-  //     });
-  //
-  //     return () => {
-  //       if (previousBrightness !== undefined) {
-  //         Brightness.setSystemBrightnessAsync(previousBrightness);
-  //       } else {
-  //         Brightness.restoreSystemBrightnessAsync(); // fallback
-  //       }
-  //     };
-  //   }, []),
-  // );
-  //
-
-  // useEffect(() => {
-  //   missingPoseRef.current = missingPose;
-  // }, [missingPose]);
-
-  useEffect(() => {
-    // // load brightness
-    // (async () => {
-    //   await Brightness.requestPermissionsAsync();
-    // })();
-    return () => {
-      // you must call `stopListeners` when current component is unmounted
-      stopListeners();
-    };
-  }, []);
-
-  // Load camera permission
-  useEffect(() => {
-    if (!device) {
-      // you must call `stopListeners` when `Camera` component is unmounted
-      stopListeners();
-      return;
-    }
-
-    (async () => {
-      const status = await Camera.requestCameraPermission();
-      console.log({ status });
-    })();
-  }, [device]);
-
-  // flag variable to only allow one request at a time
-  const handleDetectedFaces = Worklets.createRunOnJS(async (faces: Face[]) => {
-    if (isRegisteringRef.current) return;
-    if (faces.length !== 1) return;
-    const face = faces[0];
-    setUserFace(face);
-
-    // Get missing pose
-    const currentMissingPose = missingPoseRef.current[0];
-
-    // Get current pose
-    const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
-
-    // If missing pose mismatch current pose -> stop
-    if (currentPose !== currentMissingPose) return;
-
-    console.log("currentPose: ", currentPose);
-    // console.log("missingPose (ref): ", currentMissingPose);
-
-    const currentGeneration = ++registrationGeneration.current;
-    isRegisteringRef.current = true;
-
-    try {
-      const photo = await cameraRef.current?.takePhoto();
-      if (!photo?.path || !userProfile?.id) return;
-
-      // Create the full phto path
-      const fullPhotoPath = `file://${photo.path}`;
-
-      // store image uri once successfully checked
-      setImagePaths((prev) => {
-        console.log([...prev, fullPhotoPath]);
-        return [...prev, fullPhotoPath];
-      });
-
-      if (currentGeneration !== registrationGeneration.current) return;
-      // delete already checked pose
-      setMissingPose((prev) => prev.slice(1));
-
-      // Add haptic feed back when
-      // await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-
-      // show modal when already enough face
-      if (currentMissingPose == 5) {
-        // Show spinner
-        setIsPending(true);
-
-        // Create images zip file
-        const zipUri = await createZip(imagePaths);
-
-        // Create face form data
-        const faceFormData = new FormData();
-        faceFormData.append("userId", userProfile.id);
-        faceFormData.append("img", {
-          uri: zipUri,
-          type: "application/zip",
-          name: "faces.zip",
-        } as any);
-
-        // Register face in python
-        await registerFace(faceFormData);
-
-        // Create face register form's form data
-        const formData = new FormData();
-        formData.append("formId", "5");
-        formData.append("submittedById", userProfile.id);
-        formData.append(
-          "reason",
-          `Nhân viên ${userProfile.fullName} đăng ký khuôn mặt`,
-        );
-        formData.append("fileEvidence", {
-          uri: zipUri,
-          type: "application/zip",
-          name: "faces.zip",
-        } as any);
-        formData.append("startTime", new Date().toISOString());
-
-        // Send face register form
-        await submitForm(formData);
-
-        // Hide spinner
-        setIsPending(false);
-
-        // Show success modal
-        setModal((prev) => ({
-          ...prev,
-          visible: true,
-          title: "Thành công",
-          message: "Đăng ký khuôn mặt thành công",
-          onClose: () => {
-            setModal(initialModalValue);
-            router.navigate("/");
-          },
-        }));
-      }
-    } catch (error: any) {
-      console.log(`❌ ${error.response?.data?.message ?? error}`);
-    } finally {
-      if (currentGeneration === registrationGeneration.current) {
-        isRegisteringRef.current = false;
-      }
-    }
-  });
-
-  const frameProcessor = useFrameProcessor(
-    (frame) => {
-      "worklet";
-      runAsync(frame, () => {
-        "worklet";
-        const faces = detectFaces(frame);
-        handleDetectedFaces(faces);
-      });
-    },
-    [handleDetectedFaces],
-  );
-
-  useEffect(() => {
-    // Clear old image paths data
-    setImagePaths([]);
-
-    const getUserProfile = async () => {
-      let userDataStr = await AsyncStorage.getItem("userProfile");
-
-      if (userDataStr) {
-        const user = JSON.parse(userDataStr);
-
-        let missingPoseRes = await getMissingPose(user.id);
-
-        console.log("missing pose: ", missingPoseRes.data);
-
-        if (missingPoseRes.data.missingPose === 6) {
-          setMissingPose(initialPoseData);
-        } else {
-          setMissingPose([]);
-        }
-
-        setUserProfile(user);
-      }
-    };
-
-    if (isFocused) getUserProfile();
-  }, [isFocused]);
+  const {
+    cameraRef,
+    isFocused,
+    ready,
+    setReady,
+    missingPose,
+    isPending,
+    modal,
+    setModal,
+    frameProcessor,
+    handleCameraLayout,
+  } = useFaceRegistration();
 
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
@@ -271,87 +31,21 @@ const CameraPage = () => {
       <AlertModal {...modal} />
       <Text style={styles.title}>Đăng ký khuôn mặt</Text>
       {ready && device && (
-        <View style={styles.camera}>
-          <Camera
-            ref={cameraRef}
-            style={StyleSheet.absoluteFill}
-            device={device}
-            isActive={isPending ? !isPending : isFocused}
-            frameProcessor={isFocused ? frameProcessor : undefined}
-            photo={true}
-            isMirrored={false}
-            onLayout={(e) => {
-              const { width, height } = e.nativeEvent.layout;
-              setCameraLayout({ width, height });
-            }}
-          />
-        </View>
+        <CameraView
+          cameraRef={cameraRef}
+          device={device}
+          isFocused={isFocused}
+          isPending={isPending}
+          frameProcessor={frameProcessor}
+          onLayout={handleCameraLayout}
+        />
       )}
       {/* Face Detection Overlay */}
-      <View style={styles.overlay}>
-        {/* Face Detection Guide */}
-        <View style={styles.faceGuideContainer}>
-          <View style={styles.faceGuide}>
-            <Animated.View
-              style={[
-                styles.cornerTopLeft,
-                {
-                  shadowOpacity: cornerAnim,
-                  elevation: cornerAnim,
-                },
-              ]}
-            />
-            <Animated.View
-              style={[
-                styles.cornerTopRight,
-                {
-                  shadowOpacity: cornerAnim,
-                  elevation: cornerAnim,
-                },
-              ]}
-            />
-            <Animated.View
-              style={[
-                styles.cornerBottomLeft,
-                {
-                  shadowOpacity: cornerAnim,
-                  elevation: cornerAnim,
-                },
-              ]}
-            />
-            <Animated.View
-              style={[
-                styles.cornerBottomRight,
-                {
-                  shadowOpacity: cornerAnim,
-                  elevation: cornerAnim,
-                },
-              ]}
-            />
-          </View>
-        </View>
-      </View>
-      <View style={styles.textContainer}>
-        {missingPose.length > 0 ? (
-          <Text style={styles.modernInstructionText}>
-            {"Hãy " + renderpose(missingPose[0]) + " để chụp ảnh"}
-          </Text>
-        ) : (
-          <Text style={styles.modernInstructionText}>
-            Bạn đã đăng ký đầy đủ hình ảnh
-          </Text>
-        )}
-      </View>
+      <FaceGuideOverlay cornerAnim={cornerAnim} />
+      <InstructionText missingPose={missingPose} />
 
       {/* Progress bar */}
-      <View style={{ alignItems: "center", marginTop: 20 }}>
-        <GradientProgress
-          progress={(6 - missingPose.length) / 6}
-          width={250}
-          height={12}
-          duration={600} // animation speed
-        />
-      </View>
+      <ProgressBar missingPose={missingPose} />
 
       {/* Camera Controls */}
       <View style={styles.controlsContainer}>
@@ -379,19 +73,8 @@ const styles = StyleSheet.create({
     marginTop: "15%",
     marginBottom: "5%",
   },
-  camera: {
-    height: "50%",
-    width: "90%",
-    marginHorizontal: "auto",
-    borderRadius: 25,
-    overflow: "hidden",
-  },
 
   // Modern overlay styles
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "space-between",
-  },
   topOverlay: {
     flex: 1,
     paddingTop: 60,
@@ -420,87 +103,10 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.2)",
   },
-  textContainer: {
-    marginTop: 30,
-  },
   modeText: {
     color: "white",
     fontSize: 15,
     fontWeight: "600",
-  },
-  modernInstructionText: {
-    color: "#292834",
-    fontSize: 17,
-    fontWeight: "800",
-    textAlign: "center",
-    letterSpacing: 0.5,
-    marginTop: "10%",
-  },
-  // Enhanced face detection guide
-  faceGuideContainer: {
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  faceGuide: {
-    width: 300,
-    height: 380,
-    position: "relative",
-  },
-  cornerTopLeft: {
-    position: "absolute",
-    top: FaceGuide.top,
-    left: FaceGuide.horizontal,
-    width: FaceGuide.width,
-    height: FaceGuide.height,
-    borderTopWidth: FaceGuide.borderVerticalWidth,
-    borderLeftWidth: FaceGuide.borderHorizontalWidth,
-    borderColor: FaceGuide.color,
-    borderTopLeftRadius: FaceGuide.radius,
-    shadowColor: FaceGuide.color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-  },
-  cornerTopRight: {
-    position: "absolute",
-    top: FaceGuide.top,
-    right: FaceGuide.horizontal,
-    width: FaceGuide.width,
-    height: FaceGuide.height,
-    borderTopWidth: FaceGuide.borderVerticalWidth,
-    borderRightWidth: FaceGuide.borderHorizontalWidth,
-    borderColor: FaceGuide.color,
-    borderTopRightRadius: FaceGuide.radius,
-    shadowColor: FaceGuide.color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-  },
-  cornerBottomLeft: {
-    position: "absolute",
-    bottom: FaceGuide.bottom,
-    left: FaceGuide.horizontal,
-    width: FaceGuide.width,
-    height: FaceGuide.height,
-    borderBottomWidth: FaceGuide.borderVerticalWidth,
-    borderLeftWidth: FaceGuide.borderHorizontalWidth,
-    borderColor: FaceGuide.color,
-    borderBottomLeftRadius: FaceGuide.radius,
-    shadowColor: FaceGuide.color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-  },
-  cornerBottomRight: {
-    position: "absolute",
-    bottom: FaceGuide.bottom,
-    right: FaceGuide.horizontal,
-    width: FaceGuide.width,
-    height: FaceGuide.height,
-    borderBottomWidth: FaceGuide.borderVerticalWidth,
-    borderRightWidth: FaceGuide.borderHorizontalWidth,
-    borderColor: FaceGuide.color,
-    borderBottomRightRadius: FaceGuide.radius,
-    shadowColor: FaceGuide.color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
   },
   scanLine: {
     position: "absolute",

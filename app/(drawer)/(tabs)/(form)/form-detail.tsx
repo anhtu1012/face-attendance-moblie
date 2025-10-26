@@ -1,151 +1,260 @@
-import { Entypo, AntDesign, Feather } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import React from "react";
 import {
+  AntDesign,
+  Feather,
+  MaterialCommunityIcons,
+  Octicons,
+} from "@expo/vector-icons";
+import { router, useLocalSearchParams } from "expo-router";
+import React, { useEffect } from "react";
+import {
+  ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ScrollView,
 } from "react-native";
 import { FormDetail } from "..";
+import { useIsFocused } from "@react-navigation/native";
 
 export default function FormDetailScreen() {
   const params = useLocalSearchParams();
   const formData = params as unknown as FormDetail;
+  const isFocused = useIsFocused();
 
-  const handleRenderFormState = () => {
-    if (formData.status == "PENDING") {
-      return (
-        <View
-          style={[
-            styles.tickContainer,
-            {
-              backgroundColor: "rgba(255, 180, 10, 0.1)",
-            },
-          ]}
-        >
-          <AntDesign
-            name="clock-circle"
-            size={16}
-            color="#ffb40a"
-            style={{ marginRight: 3 }}
-          />
-          <Text style={{ color: "#ffb40a" }}>Đang chờ</Text>
-        </View>
-      );
-    } else if (formData.status == "REJECTED")
-      return (
-        <View
-          style={[
-            styles.tickContainer,
-            {
-              backgroundColor: "rgba(242, 95, 108, 0.1)",
-            },
-          ]}
-        >
-          <Entypo name="circle-with-cross" size={16} color="#f25f6c" />
-          <Text style={{ color: "#f25f6c" }}>Từ chối</Text>
-        </View>
-      );
-
-    return (
-      <View
-        style={[
-          styles.tickContainer,
-          {
-            backgroundColor: "rgba(96, 208, 152, 0.1)",
-          },
-        ]}
-      >
-        <Entypo name="check" size={16} color="#60d098" />
-        <Text style={{ color: "#60d098" }}>Đã duyệt</Text>
-      </View>
-    );
+  const getStatusConfig = () => {
+    if (formData.status === "PENDING") {
+      return {
+        color: "#FF9800",
+        backgroundColor: "#FFF4E6",
+        icon: "clock-circle",
+        text: "Chờ duyệt",
+        dotColor: "#FF9800",
+      };
+    } else if (formData.status === "REJECTED") {
+      return {
+        color: "#F44336",
+        backgroundColor: "#FFEBEE",
+        icon: "close-circle",
+        text: "Từ chối",
+        dotColor: "#F44336",
+      };
+    }
+    return {
+      color: "#4CAF50",
+      backgroundColor: "#E8F5E9",
+      icon: "check-circle",
+      text: "Đã duyệt",
+      dotColor: "#4CAF50",
+    };
   };
+
+  const statusConfig = getStatusConfig();
 
   return (
     <View style={styles.container}>
-      {/* Header */}
+      {/* Modern White Header */}
       <View style={styles.header}>
-        <View style={styles.headerLeft}>
-          <TouchableOpacity onPress={() => router.back()}>
-            <AntDesign
-              name="arrow-left"
-              size={24}
-              color="#333"
-              style={styles.goBackArrow}
-            />
+        <View style={styles.headerTop}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => router.back()}
+          >
+            <AntDesign name="left" size={24} color="#1a1a1a" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>Chi tiết đơn</Text>
+          <View style={styles.headerTitleContainer}>
+            <Text style={styles.headerTitle}>Chi tiết đơn</Text>
+            <Text style={styles.headerSubtitle}>
+              {formData.formCategoryTitle}
+            </Text>
+          </View>
         </View>
       </View>
 
       {/* Content */}
-      <ScrollView contentContainerStyle={styles.content}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Status Card */}
+        <View
+          style={[
+            styles.statusCard,
+            { backgroundColor: statusConfig.backgroundColor },
+          ]}
+        >
+          <View style={styles.statusIconContainer}>
+            <AntDesign
+              name={statusConfig.icon as any}
+              size={32}
+              color={statusConfig.color}
+            />
+          </View>
+          <View style={styles.statusContent}>
+            <Text style={styles.statusLabel}>Trạng thái đơn</Text>
+            <Text style={[styles.statusText, { color: statusConfig.color }]}>
+              {statusConfig.text}
+            </Text>
+          </View>
+        </View>
+
+        {/* Info Card */}
         <View style={styles.card}>
-          <Text style={styles.formTitle}>{formData.formCategoryTitle}</Text>
-
-          <View style={styles.divider} />
-
-          <View style={styles.row}>
-            <Text style={styles.label}>Ngày gửi đơn</Text>
-            <Text style={styles.value}>
-              {new Date(formData.createdAt).toLocaleDateString()}
-            </Text>
+          <View style={styles.cardHeader}>
+            <MaterialCommunityIcons
+              name="information"
+              size={20}
+              color="#3674B5"
+            />
+            <Text style={styles.cardTitle}>Thông tin chung</Text>
           </View>
 
-          <View style={styles.row}>
-            <Text style={styles.label}>Ngày bắt đầu</Text>
-            <Text style={styles.value}>
-              {new Date(formData.startTime).toLocaleDateString()}
-            </Text>
-          </View>
+          <View style={styles.infoGrid}>
+            <View style={styles.infoItem}>
+              <View style={styles.infoIconContainer}>
+                <AntDesign name="calendar" size={16} color="#666" />
+              </View>
+              <View style={styles.infoTextContainer}>
+                <Text style={styles.infoLabel}>Ngày gửi</Text>
+                <Text style={styles.infoValue}>
+                  {new Date(formData.createdAt).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </Text>
+              </View>
+            </View>
 
-          <View style={styles.row}>
-            <Text style={styles.label}>Ngày kết thúc</Text>
-            <Text style={styles.value}>
-              {new Date(formData.endTime).toLocaleDateString()}
-            </Text>
-          </View>
+            <View style={styles.infoItem}>
+              <View style={styles.infoIconContainer}>
+                <AntDesign name="calendar" size={16} color="#666" />
+              </View>
+              <View style={styles.infoTextContainer}>
+                <Text style={styles.infoLabel}>Ngày bắt đầu</Text>
+                <Text style={styles.infoValue}>
+                  {new Date(formData.startTime).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </Text>
+              </View>
+            </View>
 
-          <View style={styles.row}>
-            <Text style={styles.label}>Người gửi</Text>
-            <Text style={styles.value}>{formData.submittedName}</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={styles.label}>Người duyệt</Text>
-            <Text style={styles.value}>{formData.approvedName}</Text>
-          </View>
-
-          <View style={styles.row}>
-            <Text style={styles.label}>Trạng thái</Text>
-            {handleRenderFormState()}
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Lý do</Text>
-            <Text style={styles.reason}>{formData.reason}</Text>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Phản hồi</Text>
-            {formData.response ? (
-              <Text style={styles.reason}>{formData.response}</Text>
-            ) : (
-              <Text style={styles.noText}>Không có phản hồi</Text>
-            )}
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Tệp đính kèm</Text>
-            <View style={styles.fileItem}>
-              <Feather name="file-text" size={18} color="#555" />
-              <Text style={styles.fileName}>{formData.file}</Text>
+            <View style={styles.infoItem}>
+              <View style={styles.infoIconContainer}>
+                <AntDesign name="calendar" size={16} color="#666" />
+              </View>
+              <View style={styles.infoTextContainer}>
+                <Text style={styles.infoLabel}>Ngày kết thúc</Text>
+                <Text style={styles.infoValue}>
+                  {new Date(formData.endTime).toLocaleDateString("vi-VN", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                  })}
+                </Text>
+              </View>
             </View>
           </View>
         </View>
+
+        {/* People Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <AntDesign name="team" size={20} color="#3674B5" />
+            <Text style={styles.cardTitle}>Người liên quan</Text>
+          </View>
+
+          <View style={styles.peopleContainer}>
+            <View style={styles.personItem}>
+              <View style={styles.personIconContainer}>
+                <AntDesign name="user" size={18} color="#3674B5" />
+              </View>
+              <View style={styles.personInfo}>
+                <Text style={styles.personLabel}>Người gửi</Text>
+                <Text style={styles.personName}>{formData.submittedName}</Text>
+              </View>
+            </View>
+
+            <View style={styles.dividerHorizontal} />
+
+            <View style={styles.personItem}>
+              <View style={styles.personIconContainer}>
+                <AntDesign name="check-square" size={18} color="#4CAF50" />
+              </View>
+              <View style={styles.personInfo}>
+                <Text style={styles.personLabel}>Người duyệt</Text>
+                <Text style={styles.personName}>
+                  {formData.approvedName || "Chưa duyệt"}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Reason Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Octicons name="file" size={20} color="#3674B5" />
+            <Text style={styles.cardTitle}>Lý do</Text>
+          </View>
+          <View style={styles.contentBox}>
+            <Text style={styles.contentText}>{formData.reason}</Text>
+          </View>
+        </View>
+
+        {/* Response Card */}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <MaterialCommunityIcons
+              name="message-reply-text"
+              size={20}
+              color="#3674B5"
+            />
+            <Text style={styles.cardTitle}>Phản hồi</Text>
+          </View>
+          <View style={styles.contentBox}>
+            {formData.response ? (
+              <Text style={styles.contentText}>{formData.response}</Text>
+            ) : (
+              <View style={styles.emptyState}>
+                <MaterialCommunityIcons
+                  name="message-off"
+                  size={32}
+                  color="#ccc"
+                />
+                <Text style={styles.emptyText}>Chưa có phản hồi</Text>
+              </View>
+            )}
+          </View>
+        </View>
+
+        {/* File Card */}
+        {formData.file && (
+          <View style={styles.card}>
+            <View style={styles.cardHeader}>
+              <Feather name="paperclip" size={20} color="#3674B5" />
+              <Text style={styles.cardTitle}>Tệp đính kèm</Text>
+            </View>
+            <TouchableOpacity style={styles.fileItem} activeOpacity={0.7}>
+              <View style={styles.fileIconContainer}>
+                <Feather name="file-text" size={20} color="#3674B5" />
+              </View>
+              <View style={styles.fileInfo}>
+                <Text style={styles.fileName} numberOfLines={1}>
+                  {formData.file}
+                </Text>
+                <Text style={styles.fileAction}>Nhấn để xem</Text>
+              </View>
+              <AntDesign name="right" size={16} color="#ccc" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Bottom spacing */}
+        <View style={styles.bottomSpace} />
       </ScrollView>
     </View>
   );
@@ -154,109 +263,236 @@ export default function FormDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#F2F3F5",
+    backgroundColor: "#f5f5f5",
   },
   header: {
     backgroundColor: "#fff",
-    paddingVertical: 14,
+    paddingTop: 16,
+    paddingBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  headerTop: {
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 16,
-    flexDirection: "row",
-    alignItems: "center",
-    elevation: 2,
   },
-  headerLeft: {
-    flexDirection: "row",
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
     alignItems: "center",
+    marginRight: 12,
   },
-  goBackArrow: {
-    marginRight: 10,
+  headerTitleContainer: {
+    flex: 1,
   },
   headerTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  content: {
-    padding: 16,
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-  },
-  formTitle: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "700",
-    color: "#333",
-    marginBottom: 4,
+    color: "#1a1a1a",
+    marginBottom: 2,
   },
-  category: {
+  headerSubtitle: {
     fontSize: 14,
     color: "#666",
-    marginBottom: 10,
+    fontWeight: "400",
   },
-  divider: {
-    height: 1,
-    backgroundColor: "#E0E0E0",
-    marginVertical: 8,
+  placeholder: {
+    width: 40,
   },
-  row: {
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: 16,
+  },
+  // Status Card
+  statusCard: {
     flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 6,
+    alignItems: "center",
+    padding: 20,
+    borderRadius: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  label: {
-    fontSize: 15,
-    color: "#777",
+  statusIconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
   },
-  value: {
-    fontSize: 15,
-    color: "#333",
+  statusContent: {
+    flex: 1,
+  },
+  statusLabel: {
+    fontSize: 13,
+    color: "#666",
+    marginBottom: 4,
     fontWeight: "500",
   },
-  status: {
-    fontSize: 15,
-    fontWeight: "bold",
+  statusText: {
+    fontSize: 20,
+    fontWeight: "700",
   },
-  section: {
-    marginTop: 16,
+  // Card
+  card: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
-  sectionTitle: {
+  cardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  cardTitle: {
     fontSize: 16,
     fontWeight: "600",
-    color: "#333",
-    marginBottom: 6,
+    color: "#1a1a1a",
+    marginLeft: 8,
   },
-  reason: {
+  // Info Grid
+  infoGrid: {
+    gap: 16,
+  },
+  infoItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  infoIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  infoTextContainer: {
+    flex: 1,
+  },
+  infoLabel: {
+    fontSize: 13,
+    color: "#999",
+    marginBottom: 2,
+  },
+  infoValue: {
     fontSize: 15,
-    color: "#555",
+    color: "#1a1a1a",
+    fontWeight: "500",
+  },
+  // People
+  peopleContainer: {
+    gap: 12,
+  },
+  personItem: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  personIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  personInfo: {
+    flex: 1,
+  },
+  personLabel: {
+    fontSize: 13,
+    color: "#999",
+    marginBottom: 2,
+  },
+  personName: {
+    fontSize: 15,
+    color: "#1a1a1a",
+    fontWeight: "600",
+  },
+  dividerHorizontal: {
+    height: 1,
+    backgroundColor: "#f0f0f0",
+    marginVertical: 4,
+  },
+  // Content Box
+  contentBox: {
+    backgroundColor: "#f8f9fa",
+    borderRadius: 12,
+    padding: 16,
+    minHeight: 80,
+  },
+  contentText: {
+    fontSize: 15,
+    color: "#333",
     lineHeight: 22,
   },
+  // Empty State
+  emptyState: {
+    alignItems: "center",
+    paddingVertical: 20,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#999",
+    marginTop: 8,
+    fontStyle: "italic",
+  },
+  // File Item
   fileItem: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 6,
+    backgroundColor: "#f8f9fa",
+    padding: 16,
+    borderRadius: 12,
+    marginTop: 8,
+  },
+  fileIconContainer: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: "#E3F2FD",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  fileInfo: {
+    flex: 1,
   },
   fileName: {
-    marginLeft: 6,
     fontSize: 15,
-    color: "#007AFF",
+    color: "#3674B5",
+    fontWeight: "500",
+    marginBottom: 2,
   },
-
-  tickContainer: {
-    flexDirection: "row",
-    height: 30,
-    alignItems: "center",
-    gap: 3,
-    borderRadius: 10,
-    paddingRight: 10,
-    paddingLeft: 5,
+  fileAction: {
+    fontSize: 12,
+    color: "#999",
   },
-  noText: {
-    fontStyle: "italic",
+  bottomSpace: {
+    height: 20,
   },
 });
