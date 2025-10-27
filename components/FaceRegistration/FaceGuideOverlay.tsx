@@ -1,22 +1,230 @@
-import { Animated, StyleSheet, View } from "react-native";
+import { useIsFocused } from "@react-navigation/native";
+import { useEffect } from "react";
+import { View } from "react-native";
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withDelay,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
+} from "react-native-reanimated";
+import { FaceGuide, styles } from "./FaceGuideoverlay.styles";
 
-const FaceGuide = {
-  width: 30,
-  height: 30,
-  top: 125,
-  bottom: -60,
-  horizontal: 10,
-  borderVerticalWidth: 3,
-  borderHorizontalWidth: 3,
-  radius: 20,
-  color: "#fefcfb",
-};
-
-interface FaceGuideOverlayProps {
-  cornerAnim: Animated.Value;
+interface FaceGuideOverlayType {
+  isDetectedFace: boolean;
 }
 
-export const FaceGuideOverlay = ({ cornerAnim }: FaceGuideOverlayProps) => {
+export const FaceGuideOverlay = ({ isDetectedFace }: FaceGuideOverlayType) => {
+  const isFocused = useIsFocused();
+  const translateTL = { x: useSharedValue(0), y: useSharedValue(0) };
+  const translateTR = { x: useSharedValue(0), y: useSharedValue(0) };
+  const translateBL = { x: useSharedValue(0), y: useSharedValue(0) };
+  const translateBR = { x: useSharedValue(0), y: useSharedValue(0) };
+  const circle = useSharedValue(0);
+
+  // Handle border radius animation when face is detected
+  useEffect(() => {
+    if (isDetectedFace) {
+      circle.value = withSpring(1, {
+        damping: 100,
+        stiffness: 500,
+      });
+      // Stop all translate animations when face is detected
+      translateTL.x.value = withTiming(0, { duration: 300 });
+      translateTL.y.value = withTiming(0, { duration: 300 });
+      translateTR.x.value = withTiming(0, { duration: 300 });
+      translateTR.y.value = withTiming(0, { duration: 300 });
+      translateBL.x.value = withTiming(0, { duration: 300 });
+      translateBL.y.value = withTiming(0, { duration: 300 });
+      translateBR.x.value = withTiming(0, { duration: 300 });
+      translateBR.y.value = withTiming(0, { duration: 300 });
+    } else {
+      circle.value = withSpring(0, {
+        damping: 100,
+        stiffness: 500,
+      });
+    }
+  }, [isDetectedFace]);
+
+  useEffect(() => {
+    if (!isFocused || isDetectedFace) return;
+
+    // Wait 1 second before starting animations
+    const timer = setTimeout(() => {
+      // Top Left (-X, -Y)
+      translateTL.x.value = withRepeat(
+        withSequence(
+          withTiming(-10, { duration: 400 }),
+          withTiming(0, { duration: 400 }),
+          withDelay(1500, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      );
+
+      translateTL.y.value = withRepeat(
+        withSequence(
+          withTiming(-10, { duration: 400 }),
+          withTiming(0, { duration: 400 }),
+          withDelay(1500, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      );
+
+      // Top Right (+X, -Y)
+      translateTR.x.value = withRepeat(
+        withSequence(
+          withTiming(10, { duration: 400 }),
+          withTiming(0, { duration: 400 }),
+          withDelay(1500, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      );
+
+      translateTR.y.value = withRepeat(
+        withSequence(
+          withTiming(-10, { duration: 400 }),
+          withTiming(0, { duration: 400 }),
+          withDelay(1500, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      );
+
+      // Bottom Left (-X, +Y)
+      translateBL.x.value = withRepeat(
+        withSequence(
+          withTiming(-10, { duration: 400 }),
+          withTiming(0, { duration: 400 }),
+          withDelay(1500, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      );
+
+      translateBL.y.value = withRepeat(
+        withSequence(
+          withTiming(10, { duration: 400 }),
+          withTiming(0, { duration: 400 }),
+          withDelay(1500, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      );
+
+      // Bottom Right (+X, +Y)
+      translateBR.x.value = withRepeat(
+        withSequence(
+          withTiming(10, { duration: 400 }),
+          withTiming(0, { duration: 400 }),
+          withDelay(1500, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      );
+
+      translateBR.y.value = withRepeat(
+        withSequence(
+          withTiming(10, { duration: 400 }),
+          withTiming(0, { duration: 400 }),
+          withDelay(1500, withTiming(0, { duration: 0 })),
+        ),
+        -1,
+        false,
+      );
+    }, 1000); // Wait 1 second before starting animations
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [isFocused, isDetectedFace]);
+
+  const animTL = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateTL.x.value },
+      { translateY: translateTL.y.value },
+    ],
+  }));
+  const animTR = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateTR.x.value },
+      { translateY: translateTR.y.value },
+    ],
+  }));
+  const animBL = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateBL.x.value },
+      { translateY: translateBL.y.value },
+    ],
+  }));
+  const animBR = useAnimatedStyle(() => ({
+    transform: [
+      { translateX: translateBR.x.value },
+      { translateY: translateBR.y.value },
+    ],
+  }));
+
+  // Calculate border radius: from FaceGuide.radius (15) to 50% of width/height (20)
+
+  const maxRadius = 100;
+  const animBorderRadiusTL = useAnimatedStyle(() => {
+    const borderTopLeftRadiusValue = interpolate(
+      circle.value,
+      [0, 1],
+      [FaceGuide.radius, maxRadius],
+    );
+    return {
+      borderTopLeftRadius: `${borderTopLeftRadiusValue}%`,
+    };
+  });
+
+  const animBorderRadiusTR = useAnimatedStyle(() => {
+    const borderTopRightRadiusValue = interpolate(
+      circle.value,
+      [0, 1],
+      [FaceGuide.radius, maxRadius],
+    );
+    return {
+      borderTopRightRadius: `${borderTopRightRadiusValue}%`,
+    };
+  });
+
+  const animBorderRadiusBL = useAnimatedStyle(() => {
+    const borderBottomLeftRadiusValue = interpolate(
+      circle.value,
+      [0, 1],
+      [FaceGuide.radius, maxRadius],
+    );
+    return {
+      borderBottomLeftRadius: `${borderBottomLeftRadiusValue}%`,
+    };
+  });
+
+  const animBorderRadiusBR = useAnimatedStyle(() => {
+    const borderBottomRightRadiusValue = interpolate(
+      circle.value,
+      [0, 1],
+      [FaceGuide.radius, maxRadius],
+    );
+    return {
+      borderBottomRightRadius: `${borderBottomRightRadiusValue}%`,
+    };
+  });
+
+  const animSizeCorner = useAnimatedStyle(() => ({
+    width: interpolate(circle.value, [0, 1], [FaceGuide.width, 110]),
+    height: interpolate(circle.value, [0, 1], [FaceGuide.height, 113]),
+  }));
+  const animBorderStyle = useAnimatedStyle(() => ({
+    borderColor: isDetectedFace ? "red" : FaceGuide.color,
+    borderStyle: isDetectedFace ? "dashed" : "solid",
+  }));
+
   return (
     <View style={styles.overlay}>
       {/* Face Detection Guide */}
@@ -25,37 +233,37 @@ export const FaceGuideOverlay = ({ cornerAnim }: FaceGuideOverlayProps) => {
           <Animated.View
             style={[
               styles.cornerTopLeft,
-              {
-                shadowOpacity: cornerAnim,
-                elevation: cornerAnim,
-              },
+              animTL,
+              animBorderRadiusTL,
+              animSizeCorner,
+              animBorderStyle,
             ]}
           />
           <Animated.View
             style={[
               styles.cornerTopRight,
-              {
-                shadowOpacity: cornerAnim,
-                elevation: cornerAnim,
-              },
+              animTR,
+              animBorderRadiusTR,
+              animSizeCorner,
+              animBorderStyle,
             ]}
           />
           <Animated.View
             style={[
               styles.cornerBottomLeft,
-              {
-                shadowOpacity: cornerAnim,
-                elevation: cornerAnim,
-              },
+              animBL,
+              animBorderRadiusBL,
+              animSizeCorner,
+              animBorderStyle,
             ]}
           />
           <Animated.View
             style={[
               styles.cornerBottomRight,
-              {
-                shadowOpacity: cornerAnim,
-                elevation: cornerAnim,
-              },
+              animBR,
+              animBorderRadiusBR,
+              animSizeCorner,
+              animBorderStyle,
             ]}
           />
         </View>
@@ -63,77 +271,3 @@ export const FaceGuideOverlay = ({ cornerAnim }: FaceGuideOverlayProps) => {
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  // Modern overlay styles
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    justifyContent: "space-between",
-  },
-  // Enhanced face detection guide
-  faceGuideContainer: {
-    alignItems: "center",
-    justifyContent: "flex-start",
-  },
-  faceGuide: {
-    width: 300,
-    height: 380,
-    position: "relative",
-  },
-  cornerTopLeft: {
-    position: "absolute",
-    top: FaceGuide.top,
-    left: FaceGuide.horizontal,
-    width: FaceGuide.width,
-    height: FaceGuide.height,
-    borderTopWidth: FaceGuide.borderVerticalWidth,
-    borderLeftWidth: FaceGuide.borderHorizontalWidth,
-    borderColor: FaceGuide.color,
-    borderTopLeftRadius: FaceGuide.radius,
-    shadowColor: FaceGuide.color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-  },
-  cornerTopRight: {
-    position: "absolute",
-    top: FaceGuide.top,
-    right: FaceGuide.horizontal,
-    width: FaceGuide.width,
-    height: FaceGuide.height,
-    borderTopWidth: FaceGuide.borderVerticalWidth,
-    borderRightWidth: FaceGuide.borderHorizontalWidth,
-    borderColor: FaceGuide.color,
-    borderTopRightRadius: FaceGuide.radius,
-    shadowColor: FaceGuide.color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-  },
-  cornerBottomLeft: {
-    position: "absolute",
-    bottom: FaceGuide.bottom,
-    left: FaceGuide.horizontal,
-    width: FaceGuide.width,
-    height: FaceGuide.height,
-    borderBottomWidth: FaceGuide.borderVerticalWidth,
-    borderLeftWidth: FaceGuide.borderHorizontalWidth,
-    borderColor: FaceGuide.color,
-    borderBottomLeftRadius: FaceGuide.radius,
-    shadowColor: FaceGuide.color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-  },
-  cornerBottomRight: {
-    position: "absolute",
-    bottom: FaceGuide.bottom,
-    right: FaceGuide.horizontal,
-    width: FaceGuide.width,
-    height: FaceGuide.height,
-    borderBottomWidth: FaceGuide.borderVerticalWidth,
-    borderRightWidth: FaceGuide.borderHorizontalWidth,
-    borderColor: FaceGuide.color,
-    borderBottomRightRadius: FaceGuide.radius,
-    shadowColor: FaceGuide.color,
-    shadowOffset: { width: 0, height: 0 },
-    shadowRadius: 8,
-  },
-});

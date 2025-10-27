@@ -1,5 +1,12 @@
-import { RefObject } from "react";
+import { useIsFocused } from "@react-navigation/native";
+import { RefObject, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
+import Animated, {
+  interpolate,
+  useAnimatedStyle,
+  useSharedValue,
+  withSpring,
+} from "react-native-reanimated";
 import { Camera, CameraDevice } from "react-native-vision-camera";
 
 interface CameraViewProps {
@@ -9,6 +16,7 @@ interface CameraViewProps {
   isPending: boolean;
   frameProcessor: any;
   onLayout: (e: any) => void;
+  isDetectedFace: boolean;
 }
 
 export const CameraView = ({
@@ -18,9 +26,36 @@ export const CameraView = ({
   isPending,
   frameProcessor,
   onLayout,
+  isDetectedFace,
 }: CameraViewProps) => {
+  const circle = useSharedValue(0);
+  useEffect(() => {
+    if (isDetectedFace)
+      circle.value = withSpring(1, {
+        damping: 100,
+        stiffness: 500,
+      });
+    else
+      circle.value = withSpring(0, {
+        damping: 100,
+        stiffness: 500,
+      });
+  }, [isDetectedFace]);
+
+  const animRound = useAnimatedStyle(() => {
+    const heightValue = interpolate(circle.value, [0, 1], [55, 29]);
+    const widthValue = interpolate(circle.value, [0, 1], [90, 57]);
+    const marginTopValue = interpolate(circle.value, [0, 1], [0, 26]);
+    const borderRadiusValue = interpolate(circle.value, [0, 1], [10, 50]);
+    return {
+      height: `${heightValue}%`,
+      width: `${widthValue}%`,
+      marginTop: `${marginTopValue}%`,
+      borderRadius: `${borderRadiusValue}%`,
+    };
+  });
   return (
-    <View style={styles.camera}>
+    <Animated.View style={[styles.camera, animRound]}>
       <Camera
         ref={cameraRef}
         style={StyleSheet.absoluteFill}
@@ -31,16 +66,16 @@ export const CameraView = ({
         isMirrored={false}
         onLayout={onLayout}
       />
-    </View>
+    </Animated.View>
   );
 };
 
 const styles = StyleSheet.create({
   camera: {
-    height: "50%",
+    height: "55%",
     width: "90%",
     marginHorizontal: "auto",
-    borderRadius: 25,
+    borderRadius: "",
     overflow: "hidden",
   },
 });

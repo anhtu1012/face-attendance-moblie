@@ -1,27 +1,21 @@
-import {
-    AlertModalProps,
-    initialModalValue,
-} from "@/components/ui/AlertModal";
+import { AlertModalProps, initialModalValue } from "@/components/ui/AlertModal";
 import { getMissingPose, registerFace } from "@/services/face/api";
 import { submitForm } from "@/services/form/api";
-import {
-    classifyPose,
-    initialPoseData,
-} from "@/utils/faceRecognitionUtils";
+import { classifyPose, initialPoseData } from "@/utils/faceRecognitionUtils";
 import { createZip } from "@/utils/zipUtils";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
-    Camera,
-    runAsync,
-    useFrameProcessor,
+  Camera,
+  runAsync,
+  useFrameProcessor,
 } from "react-native-vision-camera";
 import {
-    Face,
-    FaceDetectionOptions,
-    useFaceDetector,
+  Face,
+  FaceDetectionOptions,
+  useFaceDetector,
 } from "react-native-vision-camera-face-detector";
 import { Worklets } from "react-native-worklets-core";
 
@@ -37,7 +31,7 @@ export const useFaceRegistration = () => {
   }).current;
   const [imagePaths, setImagePaths] = useState<string[]>([]);
   const [cameraLayout, setCameraLayout] = useState({ width: 0, height: 0 });
-  const [userFace, setUserFace] = useState<any>();
+  const [userFace, setUserFace] = useState<any>(null);
   const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
   const isRegisteringRef = useRef(false);
   const registrationGeneration = useRef(0);
@@ -104,7 +98,13 @@ export const useFaceRegistration = () => {
   // flag variable to only allow one request at a time
   const handleDetectedFaces = Worklets.createRunOnJS(async (faces: Face[]) => {
     if (isRegisteringRef.current) return;
-    if (faces.length !== 1) return;
+    
+    // Update userFace state based on face detection
+    if (faces.length !== 1) {
+      setUserFace(null); // Clear face when no face or multiple faces detected
+      return;
+    }
+    
     const face = faces[0];
     setUserFace(face);
 
@@ -242,6 +242,7 @@ export const useFaceRegistration = () => {
     };
 
     if (isFocused) getUserProfile();
+    else if (!isFocused) setUserFace(null);
   }, [isFocused]);
 
   const handleCameraLayout = (e: any) => {
@@ -260,5 +261,6 @@ export const useFaceRegistration = () => {
     setModal,
     frameProcessor,
     handleCameraLayout,
+    userFace,
   };
 };

@@ -5,13 +5,11 @@ import { ProgressBar } from "@/components/FaceRegistration/ProgressBar";
 import SpinnerOverlay from "@/components/SpinnerOverlay";
 import AlertModal from "@/components/ui/AlertModal";
 import { useFaceRegistration } from "@/hooks/useFaceRegistration";
-import { useRef } from "react";
-import { Animated, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import { useCameraDevice } from "react-native-vision-camera";
 import { styles } from "./camera.styles";
 
 const CameraPage = () => {
-  const cornerAnim = useRef(new Animated.Value(0)).current;
   const device = useCameraDevice("front");
   const {
     cameraRef,
@@ -24,8 +22,8 @@ const CameraPage = () => {
     setModal,
     frameProcessor,
     handleCameraLayout,
+    userFace,
   } = useFaceRegistration();
-
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
       <SpinnerOverlay visible={isPending} content="Đang upload ảnh..." />
@@ -39,11 +37,12 @@ const CameraPage = () => {
           isPending={isPending}
           frameProcessor={frameProcessor}
           onLayout={handleCameraLayout}
+          isDetectedFace={userFace}
         />
       )}
       {/* Face Detection Overlay */}
-      <FaceGuideOverlay cornerAnim={cornerAnim} />
-      <InstructionText missingPose={missingPose} />
+      <FaceGuideOverlay isDetectedFace={userFace} />
+      <InstructionText missingPose={missingPose} isDetectedFace={userFace} />
 
       {/* Progress bar */}
       <ProgressBar missingPose={missingPose} />
