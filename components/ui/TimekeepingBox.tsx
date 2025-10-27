@@ -37,8 +37,6 @@ const TimekeepingBox = ({
   const isNotCurrentMonth = date?.month !== calendarMonth;
   const currentDateObj = date?.dateString ? new Date(date.dateString) : null;
   const isFutureDate = !!(currentDateObj && currentDateObj > today);
-
-  // Tính backgroundColor và color trực tiếp
   let backgroundColor = "#FFFFFF";
   let totalWorkHourColor = "#8C8F92";
 

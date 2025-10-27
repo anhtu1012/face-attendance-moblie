@@ -10,6 +10,7 @@ import {
   View,
 } from "react-native";
 import CheckTimeBox from "./CheckTimeBox";
+import TimeDetailBox from "./TimeDetailBox";
 
 interface Props {
   visible: boolean;
@@ -27,6 +28,10 @@ export default function TimekeepingModal({
       timekeepingDetail.timeKeepingId === selectedTimekeepingId
   );
 
+  const date = new Date(timekeeping?.date ?? "").toLocaleDateString("vi-VN");
+  const dateString = new Date(timekeeping?.date ?? "").toLocaleDateString(
+    "vi-VN"
+  );
   return (
     <Modal
       animationType="slide"
@@ -39,10 +44,7 @@ export default function TimekeepingModal({
           {/* HEADER */}
           <View style={styles.header}>
             <View style={{ width: 10, height: 10 }} />
-            <Text style={styles.headerTitle}>
-              Chấm công, ngày{" "}
-              {new Date(timekeeping?.date ?? "").toLocaleDateString("vi-VN")}
-            </Text>
+            <Text style={styles.headerTitle}>Chấm công, ngày {dateString}</Text>
             <TouchableOpacity onPress={onClose}>
               <X size={22} color="#444" />
             </TouchableOpacity>
@@ -88,48 +90,61 @@ export default function TimekeepingModal({
             </View>
 
             {/* CA LÀM VIỆC */}
-            <View style={styles.shiftBox}>
-              <Text style={styles.shiftTitle}>
-                Ca làm việc{" "}
-                {timekeeping?.shiftInfo?.shiftStartTime ?? "CHC - CH CA CHIỀU"}
-              </Text>
-              <View style={styles.shiftRow}>
-                <Text style={styles.shiftLabel}>Thời gian</Text>
-                <Text style={styles.shiftValue}>
-                  {timekeeping?.shiftInfo?.shiftStartTime ?? "15:30"} -{" "}
-                  {timekeeping?.shiftInfo?.shiftEndTime ?? "22:30"}
-                </Text>
-              </View>
-              <View style={styles.shiftRow}>
-                <Text style={styles.shiftLabel}>Số giờ</Text>
-                <Text style={styles.shiftValue}>7</Text>
-              </View>
-              <View style={styles.shiftRow}>
-                <Text style={styles.shiftLabel}>Số công</Text>
-                <Text style={styles.shiftValue}>
-                  {timekeeping?.shiftInfo?.shiftTimekeepingNumber || "1"}
-                </Text>
-              </View>
-              <View style={styles.shiftRow}>
-                <Text style={styles.shiftLabel}>Chốt định vị</Text>
-                <Text style={styles.shiftValue}>
-                  {timekeeping?.checkinTime} (GPS📍) -{" "}
-                  {timekeeping?.checkoutTime} (GPS📍)
-                </Text>
-              </View>
-            </View>
+            <TimeDetailBox
+              title="Ca làm việc"
+              data={[
+                {
+                  label: "Thời gian",
+                  value: `${timekeeping?.shiftInfo?.shiftStartTime} - ${timekeeping?.shiftInfo?.shiftEndTime}`,
+                },
+                {
+                  label: "Số giờ",
+                  value: timekeeping?.shiftInfo?.shiftWorkHour ?? "--",
+                },
+                {
+                  label: "Số công",
+                  value: timekeeping?.shiftInfo?.shiftTimekeepingNumber ?? "--",
+                },
+              ]}
+            />
 
             {/* OT SECTION */}
-            {timekeeping?.otInfo ? (
-              <View style={[styles.shiftBox, { backgroundColor: "#FFF9E6" }]}>
-                <Text style={[styles.shiftTitle, { color: "#F39C12" }]}>
-                  Làm thêm giờ
-                </Text>
-                <Text style={{ fontSize: 13, color: "#555", marginTop: 6 }}>
-                  Được tính hệ số x1.5 cho 2 giờ OT cuối ca.
-                </Text>
-              </View>
-            ) : null}
+            {timekeeping?.otInfo && (
+              <TimeDetailBox
+                title="Làm thêm giờ"
+                data={[
+                  {
+                    label: "Thời gian",
+                    value: `${timekeeping?.otInfo?.otStartTime} - ${timekeeping?.otInfo?.otEndTime}`,
+                  },
+                  {
+                    label: "Số giờ",
+                    value: timekeeping?.otInfo?.otWorkHour ?? "--",
+                  },
+                  {
+                    label: "Số công",
+                    value: timekeeping?.otInfo?.otTimekeepingNumber ?? "--",
+                  },
+                ]}
+              />
+            )}
+            <TimeDetailBox
+              title="Chốt gương mặt trong ngày"
+              data={[
+                {
+                  label: `Giờ vào: ${
+                    timekeeping?.checkinTime ?? "--"
+                  }, ${dateString}`,
+                  value: timekeeping?.checkinStatus ?? "--",
+                },
+                {
+                  label: `Giờ ra: ${
+                    timekeeping?.checkoutTime ?? "--"
+                  }, ${dateString}`,
+                  value: timekeeping?.checkoutStatus ?? "--",
+                },
+              ]}
+            />
           </ScrollView>
         </View>
       </View>
