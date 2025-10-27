@@ -144,36 +144,6 @@ export default function TabLayout() {
         tabBar={(props) => <CustomTabBar {...props} />}
         screenOptions={{
           headerShown: false,
-          tabBarActiveTintColor: "#3674B5",
-          tabBarInactiveTintColor: "#888",
-          tabBarStyle: {
-            backgroundColor: "#ffffff",
-            paddingBottom: 5,
-            height: 65,
-            borderTopWidth: 0,
-            elevation: 10,
-            shadowColor: "#000",
-            shadowOffset: {
-              width: 0,
-              height: -4,
-            },
-            shadowOpacity: 0.1,
-            shadowRadius: 8,
-            borderTopLeftRadius: 20,
-            borderTopRightRadius: 20,
-            position: "absolute",
-            bottom: 0,
-            zIndex: 8,
-          },
-          tabBarIconStyle: {
-            marginTop: 5,
-          },
-          tabBarLabelStyle: {
-            fontSize: 12,
-            marginTop: 3,
-            marginBottom: 5,
-            fontWeight: "500",
-          },
         }}
       >
         <Tabs.Screen

@@ -1,5 +1,7 @@
 import { Pose } from "@/constants/face";
 
+export const initialPoseData = [0, 1, 2, 3, 4, 5];
+
 export const printCurrentPose = (currentPose: number) => {
   if (currentPose == Pose.TOP) {
     return "top";
@@ -18,13 +20,15 @@ export const printCurrentPose = (currentPose: number) => {
 
 export const classifyPose = (yaw: number, pitch: number) => {
   // Check if currently look up
-  if (pitch > 5) {
-    if (yaw < -15) return Pose.TOP_RIGHT;
-    else if (yaw > 15) return Pose.TOP_LEFT;
+  const pitch_threshold = 5;
+  const yaw_threshold = 15;
+  if (pitch > pitch_threshold) {
+    if (yaw < -yaw_threshold) return Pose.TOP_RIGHT;
+    else if (yaw > yaw_threshold) return Pose.TOP_LEFT;
     else return Pose.TOP;
   }
-  if (yaw < -15) return Pose.RIGHT;
-  if (yaw > 15) return Pose.LEFT;
+  if (yaw < -yaw_threshold) return Pose.RIGHT;
+  if (yaw > yaw_threshold) return Pose.LEFT;
   else return Pose.FRONT;
 };
 

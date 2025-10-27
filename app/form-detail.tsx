@@ -15,7 +15,7 @@ export default function FormDetailScreen() {
           style={styles.backButton}
           onPress={() => router.back()}
         >
-          <AntDesign name="arrow-left" size={24} color="#fff" />
+          <AntDesign name="arrow-left" size={24} color="#3674B5" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Chi tiết đơn</Text>
         <View style={styles.placeholder} />

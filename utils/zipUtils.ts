@@ -1,6 +1,6 @@
 import { zip } from "react-native-zip-archive";
 import { Directory, File, Paths } from "expo-file-system";
-import { copyAsync, makeDirectoryAsync } from "expo-file-system/legacy";
+import { copyAsync } from "expo-file-system/legacy";
 
 export const createZip = async (imagePaths: string[]) => {
   try {

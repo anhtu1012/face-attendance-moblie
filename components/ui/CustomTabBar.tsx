@@ -9,8 +9,9 @@ import Animated, {
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
+import { NavigationRoute, ParamListBase } from "@react-navigation/native";
 
-const EXCLUDE_ROUTE = [
+export const EXCLUDE_ROUTE = [
   "(form)/create-form",
   "(form)/form-detail",
   "(form)/view-all-submitted-form",
@@ -46,11 +47,23 @@ const CustomTabBar = ({
     dimensions.width / (state.routes.length - EXCLUDE_ROUTE.length);
 
   useEffect(() => {
-    tabPositionX.value = withSpring(buttonWidth * state.index, {
-      damping: 80,
-      stiffness: 1000,
-    });
+    if (!EXCLUDE_ROUTE.includes(state.routeNames[state.index])) {
+      tabPositionX.value = withSpring(buttonWidth * state.index, {
+        damping: 80,
+        stiffness: 1000,
+      });
+    }
   }, [state.index]);
+
+  const handleSetIsFocused = (
+    route: NavigationRoute<ParamListBase, string>,
+    index: number,
+  ) => {
+    if (!EXCLUDE_ROUTE.includes(state.routeNames[state.index]))
+      return state.index === index;
+
+    return false;
+  };
 
   const onTabbarLayout = (e: LayoutChangeEvent) => {
     setDimensions({
@@ -73,25 +86,27 @@ const CustomTabBar = ({
       style={styles.tabbar}
       onLayout={onTabbarLayout}
     >
-      <Animated.View
-        style={[
-          animatedStyle,
-          {
-            position: "absolute",
-            backgroundColor: "#3674B5",
-            borderRadius: 30,
-            marginHorizontal: 17,
-            height: dimensions.height - 10,
-            width: buttonWidth - 35,
-          },
-        ]}
-      />
+      {!EXCLUDE_ROUTE.includes(state.routeNames[state.index]) && (
+        <Animated.View
+          style={[
+            animatedStyle,
+            {
+              position: "absolute",
+              backgroundColor: "#3674B5",
+              borderRadius: 30,
+              marginHorizontal: 17,
+              height: dimensions.height - 10,
+              width: buttonWidth - 35,
+            },
+          ]}
+        />
+      )}
       {state.routes.map((route, index) => {
         if (EXCLUDE_ROUTE.includes(route.name)) return null;
 
         const { options } = descriptors[route.key];
         const label = options.title;
-        const isFocused = state.index === index;
+        const isFocused = handleSetIsFocused(route, index);
 
         const onPress = () => {
           const event = navigation.emit({
