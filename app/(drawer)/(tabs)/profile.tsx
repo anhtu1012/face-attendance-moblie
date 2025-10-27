@@ -1,7 +1,8 @@
 import AlertModal from "@/components/ui/AlertModal";
+import CustomHeaders from "@/components/ui/CustomHeaders";
+import CustomTabs from "@/components/ui/CustomTabs";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { useUpdateUser } from "@/hooks/useUpdateUser";
-import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import {
@@ -10,7 +11,6 @@ import {
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -19,7 +19,6 @@ import DependentInfo from "./profile/DependentInfo";
 import GeneralInfo from "./profile/GeneralInfo";
 import ResumeInfo from "./profile/ResumeInfo";
 import WorkContractInfo from "./profile/WorkContractInfo";
-
 export default function ProfilePage() {
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState(0);
@@ -83,11 +82,7 @@ export default function ProfilePage() {
           />
         );
       case 2:
-        return (
-          <DependentInfo
-            userId={userId || ""}
-          />
-        );
+        return <DependentInfo userId={userId || ""} />;
       case 3:
         return <WorkContractInfo userData={userProfile} />;
       default:
@@ -112,17 +107,10 @@ export default function ProfilePage() {
   return (
     <View style={[styles.container]}>
       {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerTop}>
-          <TouchableOpacity
-            style={styles.backButton}
-            onPress={() => router.back()}
-          >
-            <AntDesign name="arrow-left" size={24} color="#3674B5" />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Thông tin nhân sự</Text>
-        </View>
-      </View>
+      <CustomHeaders
+        title="Thông tin nhân sự"
+        onBack={() => router.navigate("/(drawer)/(tabs)")}
+      />
 
       {/* Profile Card */}
       <View style={styles.profileCard}>
@@ -150,41 +138,11 @@ export default function ProfilePage() {
         </View>
       </View>
 
-      {/* Tab Navigation */}
-      <View style={styles.tabContainer}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabScrollContent}
-          decelerationRate="fast"
-          snapToInterval={120}
-          snapToAlignment="start"
-        >
-          {tabs.map((tab) => (
-            <TouchableOpacity
-              key={tab.id}
-              style={[
-                styles.tabButton,
-                activeTab === tab.id && styles.activeTabButton,
-              ]}
-              onPress={() => setActiveTab(tab.id)}
-              activeOpacity={0.7}
-            >
-              <Text
-                style={[
-                  styles.tabButtonText,
-                  activeTab === tab.id && styles.activeTabButtonText,
-                ]}
-              >
-                {tab.title}
-              </Text>
-              {activeTab === tab.id && (
-                <View style={styles.activeTabIndicator} />
-              )}
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
+      <CustomTabs
+        tabs={tabs}
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+      />
 
       {/* Tab Content */}
       <ScrollView
