@@ -24,7 +24,30 @@ const TimesheetNotes = () => {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
         <View
           style={{
-            backgroundColor: "#E3F2FD",
+            backgroundColor: "#C5F0DD",
+            width: 20,
+            height: 20,
+            borderRadius: 4,
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
+          <Text
+            style={{
+              color: "#00A854",
+              fontSize: 12,
+              fontWeight: "600",
+            }}
+          >
+            8
+          </Text>
+        </View>
+        <Text style={{ color: "#666", fontSize: 13 }}>Hoàn thành</Text>
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+        <View
+          style={{
+            backgroundColor: "#E6F0FF",
             width: 20,
             height: 20,
             borderRadius: 4,
@@ -35,29 +58,6 @@ const TimesheetNotes = () => {
           <Text
             style={{
               color: "#1976D2",
-              fontSize: 12,
-              fontWeight: "600",
-            }}
-          >
-            8
-          </Text>
-        </View>
-        <Text style={{ color: "#666", fontSize: 13 }}>Giờ làm</Text>
-      </View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-        <View
-          style={{
-            backgroundColor: "#FDF9E8",
-            width: 20,
-            height: 20,
-            borderRadius: 4,
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
-          <Text
-            style={{
-              color: "#FFC107",
               fontSize: 12,
               fontWeight: "600",
             }}

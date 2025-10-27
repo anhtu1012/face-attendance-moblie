@@ -1,9 +1,11 @@
 import { Timekeeping } from "@/models/timesheet/timekeeping";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { Text, TouchableOpacity } from "react-native";
 const TimekeepingBox = ({
   date,
   calendarMonth,
+  onPress,
+  fakeTimekeepings,
 }: {
   date: {
     dateString: string;
@@ -12,13 +14,13 @@ const TimekeepingBox = ({
     year: number;
   };
   calendarMonth: number;
+  onPress: (timekeepingId: number) => void;
+  fakeTimekeepings: Timekeeping[];
 }) => {
-  const [backgroundColor, setBackgroundColor] = useState("#FFFFFF");
-  const [totalWorkHourColor, setTotalWorkHourColor] = useState("#000");
-  const [isFutureDate, setIsFutureDate] = useState(false);
   const timekeeping = fakeTimekeepings.find(
     (timekeeping) => timekeeping.date === date?.dateString
   );
+
   const renderDayNumber = (day: number, month: number) => {
     if (day < 10 && day > 1) {
       return `0${day}`;
@@ -28,32 +30,32 @@ const TimekeepingBox = ({
     }
     return `${day}`;
   };
-  useEffect(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const isNotCurrentMonth = date?.month !== calendarMonth;
-    const currentDateObj = date?.dateString ? new Date(date.dateString) : null;
-    setIsFutureDate(!!(currentDateObj && currentDateObj > today));
-    if (!timekeeping) {
-      setBackgroundColor("#FFFFFF");
-      setTotalWorkHourColor("#8C8F92");
-    }
-    if (timekeeping?.status === "END") {
-      setBackgroundColor("#E3F2FD");
-      setTotalWorkHourColor("#1976D2");
-    }
-    if (timekeeping?.status === "PENDING") {
-      setBackgroundColor("#FDF9E8");
-      setTotalWorkHourColor("#F57C00");
-    }
-    if (isFutureDate && timekeeping?.status !== "PENDING") {
-      setBackgroundColor("#FFFFFF");
-      setTotalWorkHourColor("#8C8F92");
-    }
-    if (isNotCurrentMonth) {
-      setBackgroundColor("#F8F8F8");
-    }
-  }, [calendarMonth, date]);
+
+  // Tính toán trực tiếp thay vì dùng state
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const isNotCurrentMonth = date?.month !== calendarMonth;
+  const currentDateObj = date?.dateString ? new Date(date.dateString) : null;
+  const isFutureDate = !!(currentDateObj && currentDateObj > today);
+
+  // Tính backgroundColor và color trực tiếp
+  let backgroundColor = "#FFFFFF";
+  let totalWorkHourColor = "#8C8F92";
+
+  if (isNotCurrentMonth) {
+    backgroundColor = "#F8F8F8";
+  } else if (timekeeping?.status === "END") {
+    backgroundColor = "#C5F0DD";
+    totalWorkHourColor = "#00A854";
+  } else if (timekeeping?.status === "PENDING") {
+    backgroundColor = "#E6F0FF";
+    totalWorkHourColor = "#1976D2";
+  }
+
+  if (isFutureDate && timekeeping?.status !== "PENDING" && !isNotCurrentMonth) {
+    backgroundColor = "#FFFFFF";
+    totalWorkHourColor = "#8C8F92";
+  }
 
   return (
     <TouchableOpacity
@@ -67,10 +69,7 @@ const TimekeepingBox = ({
         justifyContent: "flex-start",
         alignItems: "center",
       }}
-      onPress={() => {
-        console.log("date", date);
-        console.log(`Is future date: ${isFutureDate}`);
-      }}
+      onPress={() => onPress(timekeeping?.timekeepingId ?? 0)}
     >
       <Text
         style={{
@@ -115,69 +114,3 @@ const TimekeepingBox = ({
 };
 
 export default TimekeepingBox;
-const fakeTimekeepings: Timekeeping[] = [
-  {
-    date: "2025-10-26",
-    totalWorkHour: 0,
-    checkinTime: "",
-    checkoutTime: "",
-    hasOT: false,
-    status: "PENDING",
-  },
-  {
-    date: "2025-10-25",
-    totalWorkHour: 8,
-    checkinTime: "08:00",
-    checkoutTime: "12:00",
-    hasOT: false,
-    status: "END",
-  },
-  {
-    date: "2025-10-24",
-    totalWorkHour: 10.0,
-    checkinTime: "07:30",
-    checkoutTime: "18:00",
-    hasOT: true,
-    status: "END",
-  },
-  {
-    date: "2025-10-23",
-    totalWorkHour: 8,
-    checkinTime: "",
-    checkoutTime: "",
-    hasOT: false,
-    status: "END",
-  },
-  {
-    date: "2025-10-22",
-    totalWorkHour: 8,
-    checkinTime: "",
-    checkoutTime: "",
-    hasOT: false,
-    status: "END",
-  },
-  {
-    date: "2025-10-21",
-    totalWorkHour: 8,
-    checkinTime: "09:15",
-    checkoutTime: "17:00",
-    hasOT: false,
-    status: "END",
-  },
-  {
-    date: "2025-10-20",
-    totalWorkHour: 8.5,
-    checkinTime: "08:30",
-    checkoutTime: "17:30",
-    hasOT: true,
-    status: "END",
-  },
-  {
-    date: "2025-10-19",
-    totalWorkHour: 8,
-    checkinTime: "",
-    checkoutTime: "",
-    hasOT: false,
-    status: "END",
-  },
-];

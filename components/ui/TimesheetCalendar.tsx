@@ -1,3 +1,4 @@
+import { Timekeeping } from "@/models/timesheet/timekeeping";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import localeData from "dayjs/plugin/localeData";
@@ -6,6 +7,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import TimekeepingBox from "./TimekeepingBox";
+import TimekeepingModal from "./TimekeepingModal";
 import TimesheetNotes from "./TimesheetNotes";
 
 dayjs.extend(weekday);
@@ -14,12 +16,13 @@ dayjs.locale("vi");
 
 export default function TimesheetCalendar() {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
+  const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
 
+  const [showModal, setShowModal] = useState(false);
   const calendarDays = useMemo(() => {
     const startOfMonth = currentMonth.startOf("month");
     const endOfMonth = currentMonth.endOf("month");
     const daysInMonth = endOfMonth.date();
-
     const firstDayIndex = startOfMonth.day() === 0 ? 6 : startOfMonth.day() - 1;
     const daysArray = [];
 
@@ -77,6 +80,7 @@ export default function TimesheetCalendar() {
           <View key={index} style={styles.dayCell}>
             {date ? (
               <TimekeepingBox
+                fakeTimekeepings={fakeTimekeepings}
                 date={{
                   dateString: date.format("YYYY-MM-DD"),
                   day: date.date(),
@@ -84,6 +88,13 @@ export default function TimesheetCalendar() {
                   year: date.year(),
                 }}
                 calendarMonth={currentMonth.month() + 1}
+                onPress={(timekeepingId) => {
+                  if (timekeepingId === 0) {
+                    return;
+                  }
+                  setSelectedTimekeepingId(timekeepingId);
+                  setShowModal(true);
+                }}
               />
             ) : (
               <View style={styles.emptyCell} />
@@ -91,7 +102,11 @@ export default function TimesheetCalendar() {
           </View>
         ))}
       </View>
-
+      <TimekeepingModal
+        visible={showModal}
+        onClose={() => setShowModal(false)}
+        selectedTimekeepingId={selectedTimekeepingId}
+      />
       {/* ==== LEGEND ==== */}
       <TimesheetNotes />
     </View>
@@ -173,3 +188,77 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
   },
 });
+const fakeTimekeepings: Timekeeping[] = [
+  {
+    timekeepingId: 1,
+    date: "2025-10-26",
+    totalWorkHour: 0,
+    checkinTime: "",
+    checkoutTime: "",
+    hasOT: false,
+    status: "PENDING",
+  },
+  {
+    timekeepingId: 2,
+    date: "2025-10-25",
+    totalWorkHour: 8,
+    checkinTime: "08:00",
+    checkoutTime: "12:00",
+    hasOT: false,
+    status: "END",
+  },
+  {
+    timekeepingId: 3,
+    date: "2025-10-24",
+    totalWorkHour: 10.0,
+    checkinTime: "07:30",
+    checkoutTime: "18:00",
+    hasOT: true,
+    status: "END",
+  },
+  {
+    timekeepingId: 4,
+    date: "2025-10-23",
+    totalWorkHour: 8,
+    checkinTime: "",
+    checkoutTime: "",
+    hasOT: false,
+    status: "END",
+  },
+  {
+    timekeepingId: 5,
+    date: "2025-10-22",
+    totalWorkHour: 8,
+    checkinTime: "",
+    checkoutTime: "",
+    hasOT: false,
+    status: "END",
+  },
+  {
+    timekeepingId: 6,
+    date: "2025-10-21",
+    totalWorkHour: 8,
+    checkinTime: "09:15",
+    checkoutTime: "17:00",
+    hasOT: false,
+    status: "END",
+  },
+  {
+    timekeepingId: 7,
+    date: "2025-10-20",
+    totalWorkHour: 8.5,
+    checkinTime: "08:30",
+    checkoutTime: "17:30",
+    hasOT: true,
+    status: "END",
+  },
+  {
+    timekeepingId: 8,
+    date: "2025-10-19",
+    totalWorkHour: 8,
+    checkinTime: "",
+    checkoutTime: "",
+    hasOT: false,
+    status: "END",
+  },
+];

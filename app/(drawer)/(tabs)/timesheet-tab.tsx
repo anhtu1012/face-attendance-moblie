@@ -151,34 +151,3 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 });
-const calendarTheme: any = {
-  calendarBackground: "#fff",
-  arrowColor: "#3674B5",
-  monthTextColor: "#3674B5",
-  textMonthFontWeight: "bold",
-  textSectionTitleColor: "#000",
-  "stylesheet.calendar.header": {
-    week: {
-      marginTop: 5,
-      flexDirection: "row",
-      justifyContent: "space-around",
-      backgroundColor: "#F8F8F8",
-      paddingVertical: 8,
-    },
-    dayHeader: {
-      marginTop: 2,
-      marginBottom: 7,
-      width: 32,
-      textAlign: "center",
-      fontSize: 13,
-      fontWeight: "600",
-      color: "#000",
-    },
-  },
-  "stylesheet.calendar.main": {
-    week: {
-      marginVertical: 0,
-      flexDirection: "row",
-    },
-  },
-};
