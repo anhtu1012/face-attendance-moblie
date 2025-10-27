@@ -1,3 +1,4 @@
+import CustomHeaders from "@/components/ui/CustomHeaders";
 import { formTypes } from "@/constants/form";
 import { AntDesign } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
@@ -14,24 +15,7 @@ import {
 export default function ChooseFormPage() {
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
-          <TouchableOpacity onPress={() => router.replace("/")}>
-            <AntDesign
-              name="arrow-left"
-              size={24}
-              color="#919296"
-              style={styles.goBackArrow}
-            />
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Tạo mới đơn từ</Text>
-        </View>
-      </View>
+      <CustomHeaders title="Tạo mới đơn từ" onBack={() => router.navigate("/(drawer)/(tabs)")} />
       <ScrollView style={[styles.scrollViewContainer]}>
         <View style={styles.content}>
           <View style={styles.formTypesGrid}>
