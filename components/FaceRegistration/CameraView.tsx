@@ -1,9 +1,6 @@
 import { RefObject } from "react";
 import { StyleSheet, View } from "react-native";
-import {
-    Camera,
-    CameraDevice,
-} from "react-native-vision-camera";
+import { Camera, CameraDevice } from "react-native-vision-camera";
 
 interface CameraViewProps {
   cameraRef: RefObject<Camera | null>;

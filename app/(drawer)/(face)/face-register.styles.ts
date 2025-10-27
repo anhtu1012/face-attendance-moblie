@@ -1,0 +1,181 @@
+import { StyleSheet } from "react-native";
+
+export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#f5f5f5",
+  },
+  header: {
+    alignItems: "center",
+    padding: 30,
+    paddingBottom: 40,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#fff",
+    marginTop: 15,
+    marginBottom: 5,
+  },
+  headerSubtitle: {
+    fontSize: 16,
+    color: "#fff",
+    opacity: 0.9,
+    textAlign: "center",
+  },
+  content: {
+    padding: 20,
+  },
+  statusCard: {
+    marginBottom: 30,
+    borderRadius: 16,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+  statusGradient: {
+    padding: 25,
+    alignItems: "center",
+  },
+  statusTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    marginTop: 15,
+    marginBottom: 10,
+  },
+  statusDescription: {
+    fontSize: 14,
+    color: "#fff",
+    opacity: 0.9,
+    textAlign: "center",
+  },
+  stepsContainer: {
+    marginBottom: 30,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 15,
+  },
+  stepCard: {
+    flexDirection: "row",
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 15,
+    marginBottom: 10,
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  activeStep: {
+    borderLeftWidth: 4,
+    borderLeftColor: "#4CAF50",
+  },
+  stepIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 15,
+  },
+  stepContent: {
+    flex: 1,
+  },
+  stepTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 3,
+  },
+  activeStepText: {
+    color: "#333",
+  },
+  stepDescription: {
+    fontSize: 12,
+    color: "#999",
+  },
+  guidelinesContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 30,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  guidelineItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 10,
+  },
+  guidelineText: {
+    fontSize: 14,
+    color: "#333",
+    marginLeft: 10,
+    flex: 1,
+  },
+  actionButton: {
+    borderRadius: 8,
+    overflow: "hidden",
+    marginBottom: 20,
+  },
+  actionButtonGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 15,
+  },
+  actionButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    marginLeft: 8,
+  },
+  infoSection: {
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: "bold",
+    color: "#333",
+    marginBottom: 10,
+  },
+  infoText: {
+    fontSize: 14,
+    color: "#666",
+    marginBottom: 5,
+    lineHeight: 18,
+  },
+});
