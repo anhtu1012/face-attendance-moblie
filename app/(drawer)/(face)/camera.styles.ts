@@ -3,10 +3,10 @@ import { StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   cameraWrapper: {
     flex: 1,
-    backgroundColor: "#020002",
+    backgroundColor: "#fffeff",
   },
   title: {
-    color: "#fffeff",
+    color: "#000",
     fontSize: 17,
     fontWeight: "600",
     textAlign: "center",

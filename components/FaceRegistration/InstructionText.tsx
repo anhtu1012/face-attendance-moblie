@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     marginTop: 30,
   },
   modernInstructionText: {
-    color: "#fffeff",
+    color: "#000",
     fontSize: 17,
     fontWeight: "800",
     textAlign: "center",

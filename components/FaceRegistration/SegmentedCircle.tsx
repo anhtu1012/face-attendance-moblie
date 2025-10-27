@@ -21,7 +21,7 @@ const SegmentedCircle: React.FC<SegmentedCircleProps> = ({
   segments,
   radius = 112,
   // defaultColor = "#44ce71",
-  defaultColor = "#a5a1a2",
+  defaultColor = "#709ED4",
   defaultStrokeWidth = 4,
 }) => {
   // Default segments if none provided - creates a dotted circle effect

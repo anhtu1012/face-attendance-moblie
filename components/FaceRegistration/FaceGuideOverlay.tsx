@@ -230,7 +230,7 @@ export const FaceGuideOverlay = ({ isDetectedFace }: FaceGuideOverlayType) => {
     height: interpolate(circle.value, [0, 1], [FaceGuide.height, 113]),
   }));
   const animBorderStyle = useAnimatedStyle(() => ({
-    borderColor: isDetectedFace ? "#a5a1a2" : FaceGuide.color,
+    borderColor: isDetectedFace ? "#709ED4" : FaceGuide.color,
     borderStyle: isDetectedFace ? "dashed" : "solid",
     opacity: animationsFinished ? 0 : 1,
   }));
