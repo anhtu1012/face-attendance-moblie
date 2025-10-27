@@ -55,13 +55,13 @@ export default function TimekeepingModal({
             <View style={styles.row}>
               <CheckTimeBox
                 type="in"
-                time={timekeeping?.checkinTime ?? ""}
+                time={timekeeping?.checkinTime ?? "--:--"}
                 checkinStatus={timekeeping?.checkinStatus ?? "ontime"}
                 checkoutStatus={timekeeping?.checkoutStatus ?? "ontime"}
               />
               <CheckTimeBox
                 type="out"
-                time={timekeeping?.checkoutTime ?? ""}
+                time={timekeeping?.checkoutTime ?? "--:--"}
                 checkinStatus={timekeeping?.checkinStatus ?? "ontime"}
                 checkoutStatus={timekeeping?.checkoutStatus ?? "ontime"}
               />
@@ -175,9 +175,10 @@ const styles = StyleSheet.create({
     borderBottomColor: "#E0E0E0",
   },
   headerTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "700",
     color: "#333",
+    paddingVertical: 2,
   },
   row: {
     flexDirection: "row",

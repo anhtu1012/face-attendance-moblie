@@ -1,6 +1,7 @@
 import CustomHeaders from "@/components/ui/CustomHeaders";
 import CustomTabs from "@/components/ui/CustomTabs";
 import TimesheetCalendar from "@/components/ui/TimesheetCalendar";
+import TimesheetWeek from "@/components/ui/TimesheetWeek";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
@@ -59,11 +60,7 @@ export default function TimesheetTabPlaceholder() {
       case 0:
         return <TimesheetCalendar />;
       case 1:
-        return (
-          <View style={styles.placeholderContainer}>
-            <Text style={styles.placeholderText}>Công tuần</Text>
-          </View>
-        );
+        return <TimesheetWeek />;
       case 2:
         return (
           <View style={styles.placeholderContainer}>

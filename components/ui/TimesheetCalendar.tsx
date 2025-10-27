@@ -44,7 +44,7 @@ export default function TimesheetCalendar() {
       {/* ==== HEADER ==== */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handlePrevMonth} style={styles.arrowButton}>
-          <ChevronLeft color="#3674B5" size={26} />
+          <ChevronLeft color="#000" size={26} />
         </TouchableOpacity>
 
         <View>
@@ -54,7 +54,7 @@ export default function TimesheetCalendar() {
         </View>
 
         <TouchableOpacity onPress={handleNextMonth} style={styles.arrowButton}>
-          <ChevronRight color="#3674B5" size={26} />
+          <ChevronRight color="#000" size={26} />
         </TouchableOpacity>
       </View>
 
@@ -131,21 +131,20 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     paddingVertical: 12,
-    backgroundColor: "#F7FAFC",
+    backgroundColor: "#fff",
     borderTopLeftRadius: 16,
     borderTopRightRadius: 16,
   },
   monthText: {
     fontSize: 18,
     fontWeight: "700",
-    color: "#3674B5",
+    color: "#000",
     textAlign: "center",
   },
   arrowButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#E3F2FD",
     justifyContent: "center",
     alignItems: "center",
   },
