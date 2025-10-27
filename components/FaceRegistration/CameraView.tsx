@@ -6,6 +6,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 import { Camera, CameraDevice } from "react-native-vision-camera";
 
@@ -31,14 +32,12 @@ export const CameraView = ({
   const circle = useSharedValue(0);
   useEffect(() => {
     if (isDetectedFace)
-      circle.value = withSpring(1, {
-        damping: 100,
-        stiffness: 500,
+      circle.value = withTiming(1, {
+        duration: 500,
       });
     else
-      circle.value = withSpring(0, {
-        damping: 100,
-        stiffness: 500,
+      circle.value = withTiming(0, {
+        duration: 500,
       });
   }, [isDetectedFace]);
 

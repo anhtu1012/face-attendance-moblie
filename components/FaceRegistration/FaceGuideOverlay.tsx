@@ -1,17 +1,18 @@
 import { useIsFocused } from "@react-navigation/native";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { View } from "react-native";
 import Animated, {
   interpolate,
+  runOnJS,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
   withRepeat,
   withSequence,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { FaceGuide, styles } from "./FaceGuideoverlay.styles";
+import SegmentedCircle from "./SegmentedCircle";
 
 interface FaceGuideOverlayType {
   isDetectedFace: boolean;
@@ -19,6 +20,7 @@ interface FaceGuideOverlayType {
 
 export const FaceGuideOverlay = ({ isDetectedFace }: FaceGuideOverlayType) => {
   const isFocused = useIsFocused();
+  const [animationsFinished, setAnimationsFinished] = useState(false);
   const translateTL = { x: useSharedValue(0), y: useSharedValue(0) };
   const translateTR = { x: useSharedValue(0), y: useSharedValue(0) };
   const translateBL = { x: useSharedValue(0), y: useSharedValue(0) };
@@ -28,10 +30,17 @@ export const FaceGuideOverlay = ({ isDetectedFace }: FaceGuideOverlayType) => {
   // Handle border radius animation when face is detected
   useEffect(() => {
     if (isDetectedFace) {
-      circle.value = withSpring(1, {
-        damping: 100,
-        stiffness: 500,
-      });
+      circle.value = withTiming(
+        1,
+        {
+          duration: 500,
+        },
+        (finished) => {
+          if (finished) {
+            runOnJS(setAnimationsFinished)(true);
+          }
+        },
+      );
       // Stop all translate animations when face is detected
       translateTL.x.value = withTiming(0, { duration: 300 });
       translateTL.y.value = withTiming(0, { duration: 300 });
@@ -42,9 +51,9 @@ export const FaceGuideOverlay = ({ isDetectedFace }: FaceGuideOverlayType) => {
       translateBR.x.value = withTiming(0, { duration: 300 });
       translateBR.y.value = withTiming(0, { duration: 300 });
     } else {
-      circle.value = withSpring(0, {
-        damping: 100,
-        stiffness: 500,
+      setAnimationsFinished(false);
+      circle.value = withTiming(0, {
+        duration: 500,
       });
     }
   }, [isDetectedFace]);
@@ -221,13 +230,15 @@ export const FaceGuideOverlay = ({ isDetectedFace }: FaceGuideOverlayType) => {
     height: interpolate(circle.value, [0, 1], [FaceGuide.height, 113]),
   }));
   const animBorderStyle = useAnimatedStyle(() => ({
-    borderColor: isDetectedFace ? "red" : FaceGuide.color,
+    borderColor: isDetectedFace ? "#a5a1a2" : FaceGuide.color,
     borderStyle: isDetectedFace ? "dashed" : "solid",
+    opacity: animationsFinished ? 0 : 1,
   }));
 
   return (
     <View style={styles.overlay}>
       {/* Face Detection Guide */}
+      {isDetectedFace && animationsFinished && <SegmentedCircle />}
       <View style={styles.faceGuideContainer}>
         <View style={styles.faceGuide}>
           <Animated.View
