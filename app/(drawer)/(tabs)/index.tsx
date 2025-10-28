@@ -181,7 +181,7 @@ function HomePage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuoteIndex(
-        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length,
+        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length
       );
     }, 5000);
 
@@ -212,7 +212,6 @@ function HomePage() {
             }
             style={styles.avatar}
           />
-          <View style={styles.statusDot} />
         </TouchableOpacity>
       </View>
 
@@ -224,32 +223,31 @@ function HomePage() {
         }
       >
         {/* Register face widget */}
-        {!userProfile?.faceImg && (
-          <View style={styles.widgetContainer}>
-            <View style={styles.faceRegisterHeader}>
-              <View style={styles.faceIconContainer}>
-                <MaterialCommunityIcons
-                  name="face-recognition"
-                  size={32}
-                  color="#3674B5"
-                />
-              </View>
-              <View style={styles.faceRegisterContent}>
-                <Text style={styles.faceRegisterTitle}>Đăng ký khuôn mặt</Text>
-                <Text style={styles.faceRegisterSubtitle}>
-                  Vui lòng thiết lập nhận diện khuôn mặt để có thể chấm công!
-                </Text>
-              </View>
+
+        <View style={styles.widgetContainer}>
+          <View style={styles.faceRegisterHeader}>
+            <View style={styles.faceIconContainer}>
+              <MaterialCommunityIcons
+                name="face-recognition"
+                size={32}
+                color="#3674B5"
+              />
             </View>
-            <TouchableOpacity
-              style={styles.faceRegisterButton}
-              onPress={() => router.replace("/(drawer)/(face)/face-register")}
-            >
-              <Text style={styles.faceRegisterButtonText}>Đăng ký ngay</Text>
-              <AntDesign name="account-book" size={16} color="#fff" />
-            </TouchableOpacity>
+            <View style={styles.faceRegisterContent}>
+              <Text style={styles.faceRegisterTitle}>Đăng ký khuôn mặt</Text>
+              <Text style={styles.faceRegisterSubtitle}>
+                Vui lòng thiết lập nhận diện khuôn mặt để có thể chấm công!
+              </Text>
+            </View>
           </View>
-        )}
+          <TouchableOpacity
+            style={styles.faceRegisterButton}
+            onPress={() => router.replace("/(drawer)/(face)/face-register")}
+          >
+            <Text style={styles.faceRegisterButtonText}>Đăng ký ngay</Text>
+            <AntDesign name="account-book" size={16} color="#fff" />
+          </TouchableOpacity>
+        </View>
 
         {/* Motivational Quote Widget 
         <View style={styles.widgetContainer}>
@@ -373,8 +371,8 @@ function HomePage() {
                               form.status === "PENDING"
                                 ? "#FFF4E6"
                                 : form.status === "APPROVED"
-                                  ? "#E8F5E9"
-                                  : "#FFEBEE",
+                                ? "#E8F5E9"
+                                : "#FFEBEE",
                           },
                         ]}
                       >
@@ -385,8 +383,8 @@ function HomePage() {
                             form.status === "PENDING"
                               ? "#FF9800"
                               : form.status === "APPROVED"
-                                ? "#4CAF50"
-                                : "#F44336"
+                              ? "#4CAF50"
+                              : "#F44336"
                           }
                         />
                       </View>
@@ -408,7 +406,7 @@ function HomePage() {
                                 day: "2-digit",
                                 month: "short",
                                 year: "numeric",
-                              },
+                              }
                             )}
                           </Text>
                         </View>

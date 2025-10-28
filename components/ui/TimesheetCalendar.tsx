@@ -1,4 +1,5 @@
-import { Timekeeping } from "@/models/timesheet/timekeeping";
+import { fakeTimekeepings } from "@/models/data/timekeepingData";
+import { LegacyTimekeepingStatus } from "@/models/timesheet/timekeeping";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import localeData from "dayjs/plugin/localeData";
@@ -18,22 +19,91 @@ export default function TimesheetCalendar() {
   const [currentMonth, setCurrentMonth] = useState(dayjs());
   const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
 
-  const [showModal, setShowModal] = useState(false);
+  // Generate calendar days with timekeeping data
   const calendarDays = useMemo(() => {
     const startOfMonth = currentMonth.startOf("month");
     const endOfMonth = currentMonth.endOf("month");
     const daysInMonth = endOfMonth.date();
     const firstDayIndex = startOfMonth.day() === 0 ? 6 : startOfMonth.day() - 1;
-    const daysArray = [];
+    const daysArray: (dayjs.Dayjs | null)[] = [];
 
+    // Add empty cells for days before month starts
     for (let i = 0; i < firstDayIndex; i++) daysArray.push(null);
+
+    // Add actual days of the month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = startOfMonth.date(day);
       daysArray.push(date);
     }
+
+    // Add empty cells to complete the grid
     while (daysArray.length % 7 !== 0) daysArray.push(null);
+
     return daysArray;
   }, [currentMonth]);
+
+  // Map calendar days to data with timekeeping info
+  const calendarData = useMemo(() => {
+    return calendarDays.map((date) => {
+      if (!date) return null;
+
+      const dateString = date.format("YYYY-MM-DD");
+      const timekeeping = fakeTimekeepings.find((t) => t.date === dateString);
+      const isNotCurrentMonth = date.month() !== currentMonth.month();
+      const today = dayjs().startOf("day");
+      const isFutureDate = date.isAfter(today);
+
+      let backgroundColor = "#FFFFFF";
+      let totalWorkHourColor = "#8C8F92";
+      let displayValue: string | number = "N";
+      let timekeepingId = 0;
+
+      if (isNotCurrentMonth) {
+        backgroundColor = "#F8F8F8";
+        displayValue = timekeeping?.totalWorkHour ?? "N";
+      } else if (timekeeping) {
+        timekeepingId = timekeeping.timekeepingId;
+        if (timekeeping.status === LegacyTimekeepingStatus.PENDING) {
+          backgroundColor = "#E6F0FF";
+          totalWorkHourColor = "#1976D2";
+          displayValue = "0";
+        }
+      } else if (isFutureDate) {
+        displayValue = "0";
+      }
+
+      if (
+        isFutureDate &&
+        timekeeping?.status !== LegacyTimekeepingStatus.PENDING &&
+        !isNotCurrentMonth
+      ) {
+        backgroundColor = "#FFFFFF";
+        totalWorkHourColor = "#8C8F92";
+      }
+      if (timekeeping?.status === LegacyTimekeepingStatus.END) {
+        backgroundColor = "#C5F0DD";
+        totalWorkHourColor = "#00A854";
+        displayValue = timekeeping.totalWorkHour;
+      }
+      if (timekeeping?.status === LegacyTimekeepingStatus.NOT_WORK) {
+        displayValue = "N";
+      }
+      return {
+        date: date,
+        dateString: dateString,
+        day: date.date(),
+        month: date.month() + 1,
+        year: date.year(),
+        timekeepingId: timekeepingId,
+        backgroundColor: backgroundColor,
+        totalWorkHourColor: totalWorkHourColor,
+        displayValue: displayValue,
+        hasOT: timekeeping?.hasOT ?? false,
+        isNotCurrentMonth: isNotCurrentMonth,
+        isFutureDate: isFutureDate,
+      };
+    });
+  }, [calendarDays, currentMonth]);
 
   const handlePrevMonth = () =>
     setCurrentMonth(currentMonth.subtract(1, "month"));
@@ -76,24 +146,16 @@ export default function TimesheetCalendar() {
 
       {/* ==== CALENDAR GRID ==== */}
       <View style={styles.daysGrid}>
-        {calendarDays.map((date, index) => (
+        {calendarData.map((dayData, index) => (
           <View key={index} style={styles.dayCell}>
-            {date ? (
+            {dayData ? (
               <TimekeepingBox
-                fakeTimekeepings={fakeTimekeepings}
-                date={{
-                  dateString: date.format("YYYY-MM-DD"),
-                  day: date.date(),
-                  month: date.month() + 1,
-                  year: date.year(),
-                }}
-                calendarMonth={currentMonth.month() + 1}
+                dayData={dayData}
                 onPress={(timekeepingId) => {
                   if (timekeepingId === 0) {
                     return;
                   }
                   setSelectedTimekeepingId(timekeepingId);
-                  setShowModal(true);
                 }}
               />
             ) : (
@@ -103,8 +165,8 @@ export default function TimesheetCalendar() {
         ))}
       </View>
       <TimekeepingModal
-        visible={showModal}
-        onClose={() => setShowModal(false)}
+        visible={selectedTimekeepingId !== 0}
+        onClose={() => setSelectedTimekeepingId(0)}
         selectedTimekeepingId={selectedTimekeepingId}
       />
       {/* ==== LEGEND ==== */}
@@ -187,77 +249,3 @@ const styles = StyleSheet.create({
     borderTopWidth: 0,
   },
 });
-const fakeTimekeepings: Timekeeping[] = [
-  {
-    timekeepingId: 1,
-    date: "2025-10-26",
-    totalWorkHour: 0,
-    checkinTime: "",
-    checkoutTime: "",
-    hasOT: false,
-    status: "PENDING",
-  },
-  {
-    timekeepingId: 2,
-    date: "2025-10-25",
-    totalWorkHour: 8,
-    checkinTime: "08:00",
-    checkoutTime: "12:00",
-    hasOT: false,
-    status: "END",
-  },
-  {
-    timekeepingId: 3,
-    date: "2025-10-24",
-    totalWorkHour: 10.0,
-    checkinTime: "07:30",
-    checkoutTime: "18:00",
-    hasOT: true,
-    status: "END",
-  },
-  {
-    timekeepingId: 4,
-    date: "2025-10-23",
-    totalWorkHour: 8,
-    checkinTime: "",
-    checkoutTime: "",
-    hasOT: false,
-    status: "END",
-  },
-  {
-    timekeepingId: 5,
-    date: "2025-10-22",
-    totalWorkHour: 8,
-    checkinTime: "",
-    checkoutTime: "",
-    hasOT: false,
-    status: "END",
-  },
-  {
-    timekeepingId: 6,
-    date: "2025-10-21",
-    totalWorkHour: 8,
-    checkinTime: "09:15",
-    checkoutTime: "17:00",
-    hasOT: false,
-    status: "END",
-  },
-  {
-    timekeepingId: 7,
-    date: "2025-10-20",
-    totalWorkHour: 8.5,
-    checkinTime: "08:30",
-    checkoutTime: "17:30",
-    hasOT: true,
-    status: "END",
-  },
-  {
-    timekeepingId: 8,
-    date: "2025-10-19",
-    totalWorkHour: 8,
-    checkinTime: "",
-    checkoutTime: "",
-    hasOT: false,
-    status: "END",
-  },
-];

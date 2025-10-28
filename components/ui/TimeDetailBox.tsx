@@ -1,13 +1,14 @@
+import { CheckinStatus, CheckoutStatus } from "@/models/timesheet/timekeeping";
 import { CheckCircle, Clock, XCircle } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
 // Types
-type StatusValue = "late" | "early" | "ontime";
+type StatusValue = CheckinStatus | CheckoutStatus;
 
 interface TimeDetailItem {
   label: string;
-  value: string | number;
+  value: string | number | StatusValue;
 }
 
 interface TimeDetailBoxProps {
@@ -15,27 +16,32 @@ interface TimeDetailBoxProps {
   data: TimeDetailItem[];
 }
 
-
 const STATUS_CONFIG = {
-  late: {
+  [CheckinStatus.START_LATE]: {
     color: "#E74C3C",
     icon: Clock,
-    label: "Trễ",
+    label: "Đi muộn",
   },
-  early: {
+  [CheckoutStatus.END_EARLY]: {
     color: "#E74C3C",
     icon: XCircle,
     label: "Về sớm",
   },
-  ontime: {
+  [CheckinStatus.START_ONTIME]: {
+    color: "#2ECC71",
+    icon: CheckCircle,
+    label: "Đúng giờ",
+  },
+  [CheckoutStatus.END_ONTIME]: {
     color: "#2ECC71",
     icon: CheckCircle,
     label: "Đúng giờ",
   },
 } as const;
 
-
-const isStatusValue = (value: string | number): value is StatusValue => {
+const isStatusValue = (
+  value: string | number | StatusValue
+): value is StatusValue => {
   return typeof value === "string" && value in STATUS_CONFIG;
 };
 
