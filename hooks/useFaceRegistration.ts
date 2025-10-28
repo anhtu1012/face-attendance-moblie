@@ -32,6 +32,7 @@ export const useFaceRegistration = () => {
   const [imagePaths, setImagePaths] = useState<string[]>([]);
   const [cameraLayout, setCameraLayout] = useState({ width: 0, height: 0 });
   const [userFace, setUserFace] = useState<any>(null);
+  const [currentPose, setCurrentPose] = useState<number | null>(null);
   const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
   const isRegisteringRef = useRef(false);
   const registrationGeneration = useRef(0);
@@ -102,6 +103,7 @@ export const useFaceRegistration = () => {
     // Update userFace state based on face detection
     if (faces.length !== 1) {
       setUserFace(null); // Clear face when no face or multiple faces detected
+      setCurrentPose(null);
       return;
     }
     
@@ -113,6 +115,7 @@ export const useFaceRegistration = () => {
 
     // Get current pose
     const currentPose = classifyPose(face.yawAngle, face.pitchAngle);
+    setCurrentPose(currentPose);
 
     // If missing pose mismatch current pose -> stop
     if (currentPose !== currentMissingPose) return;
@@ -262,5 +265,6 @@ export const useFaceRegistration = () => {
     frameProcessor,
     handleCameraLayout,
     userFace,
+    currentPose,
   };
 };

@@ -16,9 +16,15 @@ import SegmentedCircle from "./SegmentedCircle";
 
 interface FaceGuideOverlayType {
   isDetectedFace: boolean;
+  currentPose: number | null;
+  currentMissingPose: number | undefined;
 }
 
-export const FaceGuideOverlay = ({ isDetectedFace }: FaceGuideOverlayType) => {
+export const FaceGuideOverlay = ({
+  isDetectedFace,
+  currentPose,
+  currentMissingPose,
+}: FaceGuideOverlayType) => {
   const isFocused = useIsFocused();
   const [animationsFinished, setAnimationsFinished] = useState(false);
   const translateTL = { x: useSharedValue(0), y: useSharedValue(0) };
@@ -230,7 +236,7 @@ export const FaceGuideOverlay = ({ isDetectedFace }: FaceGuideOverlayType) => {
     height: interpolate(circle.value, [0, 1], [FaceGuide.height, 113]),
   }));
   const animBorderStyle = useAnimatedStyle(() => ({
-    borderColor: isDetectedFace ? "#709ED4" : FaceGuide.color,
+    borderColor: isDetectedFace ? "#918784" : FaceGuide.color,
     borderStyle: isDetectedFace ? "dashed" : "solid",
     opacity: animationsFinished ? 0 : 1,
   }));
@@ -238,7 +244,12 @@ export const FaceGuideOverlay = ({ isDetectedFace }: FaceGuideOverlayType) => {
   return (
     <View style={styles.overlay}>
       {/* Face Detection Guide */}
-      {isDetectedFace && animationsFinished && <SegmentedCircle />}
+      {isDetectedFace && animationsFinished && (
+        <SegmentedCircle
+          currentPose={currentPose}
+          currentMissingPose={currentMissingPose}
+        />
+      )}
       <View style={styles.faceGuideContainer}>
         <View style={styles.faceGuide}>
           <Animated.View

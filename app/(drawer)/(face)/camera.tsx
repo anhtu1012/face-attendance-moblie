@@ -23,6 +23,7 @@ const CameraPage = () => {
     frameProcessor,
     handleCameraLayout,
     userFace,
+    currentPose,
   } = useFaceRegistration();
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
@@ -41,7 +42,11 @@ const CameraPage = () => {
         />
       )}
       {/* Face Detection Overlay */}
-      <FaceGuideOverlay isDetectedFace={userFace} />
+      <FaceGuideOverlay 
+        isDetectedFace={userFace} 
+        currentPose={currentPose}
+        currentMissingPose={missingPose[0]}
+      />
       <InstructionText missingPose={missingPose} isDetectedFace={userFace} />
 
       {/* Progress bar */}
