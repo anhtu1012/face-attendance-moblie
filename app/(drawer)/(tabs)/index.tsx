@@ -212,7 +212,6 @@ function HomePage() {
             }
             style={styles.avatar}
           />
-          <View style={styles.statusDot} />
         </TouchableOpacity>
       </View>
 
@@ -224,6 +223,7 @@ function HomePage() {
         }
       >
         {/* Register face widget */}
+
         <View style={styles.widgetContainer}>
           <View style={styles.faceRegisterHeader}>
             <View style={styles.faceIconContainer}>

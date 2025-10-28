@@ -1,18 +1,24 @@
+import { CheckinStatus, CheckoutStatus } from "@/models/timesheet/timekeeping";
 import { CheckCircle, XCircle } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
+
 interface CheckTimeBoxProps {
   type: "out" | "in";
   time: string;
-  checkinStatus: "ontime" | "late";
-  checkoutStatus: "ontime" | "early";
+  checkinStatus: CheckinStatus;
+  checkoutStatus: CheckoutStatus;
 }
+
 const CheckTimeBox = ({
   type,
   time,
   checkinStatus,
   checkoutStatus,
 }: CheckTimeBoxProps) => {
+  const isCheckinOntime = checkinStatus === CheckinStatus.START_ONTIME;
+  const isCheckoutOntime = checkoutStatus === CheckoutStatus.END_ONTIME;
+
   return (
     <View
       style={[
@@ -20,10 +26,10 @@ const CheckTimeBox = ({
         {
           backgroundColor:
             type === "in"
-              ? checkinStatus === "ontime"
+              ? isCheckinOntime
                 ? "#E9F7EF"
                 : "#FFE8E8"
-              : checkoutStatus === "ontime"
+              : isCheckoutOntime
               ? "#E8F6F3"
               : "#FFE8E8",
         },
@@ -39,10 +45,10 @@ const CheckTimeBox = ({
             {
               color:
                 type === "in"
-                  ? checkinStatus === "ontime"
+                  ? isCheckinOntime
                     ? "#2ECC71"
                     : "#E74C3C"
-                  : checkoutStatus === "ontime"
+                  : isCheckoutOntime
                   ? "#2ECC71"
                   : "#E74C3C",
             },
@@ -51,12 +57,12 @@ const CheckTimeBox = ({
           {time}
         </Text>
         {type === "in" ? (
-          checkinStatus === "ontime" ? (
+          isCheckinOntime ? (
             <CheckCircle color="#2ECC71" size={18} />
           ) : (
             <XCircle color="#E74C3C" size={18} />
           )
-        ) : checkoutStatus === "ontime" ? (
+        ) : isCheckoutOntime ? (
           <CheckCircle color="#2ECC71" size={18} />
         ) : (
           <XCircle color="#E74C3C" size={18} />
@@ -64,10 +70,10 @@ const CheckTimeBox = ({
       </View>
       <Text style={[styles.cardNote]}>
         {type === "in"
-          ? checkinStatus === "ontime"
+          ? isCheckinOntime
             ? "Đến đúng giờ"
             : "Đi muộn"
-          : checkoutStatus === "ontime"
+          : isCheckoutOntime
           ? "Về đúng giờ"
           : "Về sớm"}
       </Text>
