@@ -42,15 +42,17 @@ const CameraPage = () => {
         />
       )}
       {/* Face Detection Overlay */}
-      <FaceGuideOverlay 
-        isDetectedFace={userFace} 
+      <FaceGuideOverlay
+        isDetectedFace={userFace}
         currentPose={currentPose}
         currentMissingPose={missingPose[0]}
       />
       <InstructionText missingPose={missingPose} isDetectedFace={userFace} />
 
       {/* Progress bar */}
-      <ProgressBar missingPose={missingPose} />
+      {/*
+<ProgressBar missingPose={missingPose} />
+      */}
 
       {/* Camera Controls */}
       <View style={styles.controlsContainer}>

@@ -12,18 +12,18 @@ export const InstructionText = ({
 }: InstructionTextProps) => {
   return (
     <View style={styles.textContainer}>
-      {isDetectedFace ? (
-        missingPose.length > 0 ? (
+      {missingPose.length > 0 ? (
+        !isDetectedFace ? (
+          <Text style={styles.modernInstructionText}>Không có khuôn mặt</Text>
+        ) : (
           <Text style={styles.modernInstructionText}>
             {"Hãy " + renderpose(missingPose[0]) + " để chụp ảnh"}
           </Text>
-        ) : (
-          <Text style={styles.modernInstructionText}>
-            Bạn đã đăng ký đầy đủ hình ảnh
-          </Text>
         )
       ) : (
-        <Text style={styles.modernInstructionText}>Không có khuôn mặt</Text>
+        <Text style={styles.modernInstructionText}>
+          Bạn đã đăng ký đầy đủ hình ảnh
+        </Text>
       )}
     </View>
   );
