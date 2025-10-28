@@ -1,3 +1,4 @@
+import DrawerScreenWrapper from "@/components/ui/DrawerScreenWrapper";
 import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import React from "react";
@@ -38,58 +39,60 @@ export default function ChatAppPage() {
   ];
 
   return (
-    <View style={[styles.container]}>
-      <LinearGradient colors={["#3674B5", "#2196F3"]} style={styles.header}>
-        <Text style={styles.headerTitle}>Chat App</Text>
-        <Text style={styles.headerSubtitle}>Kết nối với đồng nghiệp</Text>
-      </LinearGradient>
+    <DrawerScreenWrapper>
+      <View style={[styles.container]}>
+        <LinearGradient colors={["#3674B5", "#2196F3"]} style={styles.header}>
+          <Text style={styles.headerTitle}>Chat App</Text>
+          <Text style={styles.headerSubtitle}>Kết nối với đồng nghiệp</Text>
+        </LinearGradient>
 
-      <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>Cuộc trò chuyện gần đây</Text>
+        <ScrollView style={styles.content}>
+          <Text style={styles.sectionTitle}>Cuộc trò chuyện gần đây</Text>
 
-        {chatRooms.map((room) => (
-          <TouchableOpacity key={room.id} style={styles.chatRoomCard}>
-            <View style={styles.avatarContainer}>
-              <LinearGradient
-                colors={["#4CAF50", "#45a049"]}
-                style={styles.avatar}
-              >
-                <MaterialIcons name="group" size={24} color="#fff" />
-              </LinearGradient>
-            </View>
-
-            <View style={styles.chatRoomContent}>
-              <View style={styles.chatRoomHeader}>
-                <Text style={styles.chatRoomName}>{room.name}</Text>
-                <Text style={styles.chatRoomTime}>{room.time}</Text>
+          {chatRooms.map((room) => (
+            <TouchableOpacity key={room.id} style={styles.chatRoomCard}>
+              <View style={styles.avatarContainer}>
+                <LinearGradient
+                  colors={["#4CAF50", "#45a049"]}
+                  style={styles.avatar}
+                >
+                  <MaterialIcons name="group" size={24} color="#fff" />
+                </LinearGradient>
               </View>
-              <View style={styles.chatRoomFooter}>
-                <Text style={styles.lastMessage} numberOfLines={1}>
-                  {room.lastMessage}
-                </Text>
-                {room.unread > 0 && (
-                  <View style={styles.unreadBadge}>
-                    <Text style={styles.unreadText}>{room.unread}</Text>
-                  </View>
-                )}
+
+              <View style={styles.chatRoomContent}>
+                <View style={styles.chatRoomHeader}>
+                  <Text style={styles.chatRoomName}>{room.name}</Text>
+                  <Text style={styles.chatRoomTime}>{room.time}</Text>
+                </View>
+                <View style={styles.chatRoomFooter}>
+                  <Text style={styles.lastMessage} numberOfLines={1}>
+                    {room.lastMessage}
+                  </Text>
+                  {room.unread > 0 && (
+                    <View style={styles.unreadBadge}>
+                      <Text style={styles.unreadText}>{room.unread}</Text>
+                    </View>
+                  )}
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
+          ))}
+
+          <TouchableOpacity style={styles.newChatButton}>
+            <LinearGradient
+              colors={["#2196F3", "#1976D2"]}
+              style={styles.newChatButtonGradient}
+            >
+              <AntDesign name="plus" size={20} color="#fff" />
+              <Text style={styles.newChatButtonText}>
+                Tạo cuộc trò chuyện mới
+              </Text>
+            </LinearGradient>
           </TouchableOpacity>
-        ))}
-
-        <TouchableOpacity style={styles.newChatButton}>
-          <LinearGradient
-            colors={["#2196F3", "#1976D2"]}
-            style={styles.newChatButtonGradient}
-          >
-            <AntDesign name="plus" size={20} color="#fff" />
-            <Text style={styles.newChatButtonText}>
-              Tạo cuộc trò chuyện mới
-            </Text>
-          </LinearGradient>
-        </TouchableOpacity>
-      </ScrollView>
-    </View>
+        </ScrollView>
+      </View>
+    </DrawerScreenWrapper>
   );
 }
 

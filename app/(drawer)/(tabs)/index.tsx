@@ -1,11 +1,18 @@
-import TodayWidget from "@/components/Home/TodayWidget";
+import { motivationalQuotes } from "@/constants/homepage";
+import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
-import { getUserProfileFromStorage } from "@/utils/userProfileUtils";
-import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
-import { router } from "expo-router";
+import { getSubmittedForm } from "@/services/form/api";
+import {
+  AntDesign,
+  Entypo,
+  Feather,
+  MaterialCommunityIcons,
+  Octicons,
+} from "@expo/vector-icons";
+import { DrawerActions, useIsFocused } from "@react-navigation/native";
+import { router, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  Dimensions,
   Image,
   RefreshControl,
   SafeAreaView,
@@ -15,35 +22,24 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-// import FormsStatusWidget from "../../components/FormsStatusWidget";
-// import TodayWidget from "../../components/TodayWidget";
 
-const { width } = Dimensions.get("window");
-
-interface UserProfile {
-  id: string;
-  code: string;
-  userName: string;
-  fullName: string;
-  faceImg: string;
-}
-
-type FormStatus = "PENDING" | "APPROVED" | "REJECTED";
-
-interface FormDescription {
+export interface FormDetail {
   id: string;
   createdAt: string;
   updatedAt: string;
-  code: string;
   reason: string;
-  status: FormStatus;
-  file: string;
+  response: string;
+  formCategoryId: string;
+  formCategoryTitle: string;
+  submittedBy: string;
+  submittedName: string;
+  approvedBy: string;
+  approvedName: string;
   startTime: string;
   endTime: string;
-  approvedTime?: string;
-  formTitle: string;
-  submittedBy: string;
-  approvedBy?: string;
+  approvedTime: string;
+  file: string;
+  status: "PENDING" | "APPROVED" | "REJECTED";
 }
 
 const fakeSchedule: WorkingSchedule = {
@@ -72,80 +68,139 @@ const fakeSchedule: WorkingSchedule = {
   managerFullName: "Tran Thi B",
 };
 function HomePage() {
-  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [forms, setForms] = useState<FormDescription[]>([]);
-  const [loading, setLoading] = useState(true);
-  // const [todaySchedule] = useState<WorkingSchedule | null>(fakeSchedule);
-  const [loadingSchedule] = useState(false);
+  const { userProfile, isLoading, error, refetch, userId } =
+    useGetUserProfile();
+  const [submittedForms, setSubmittedForms] = useState<FormDetail[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const isFocused = useIsFocused();
+  const navigation = useNavigation();
 
-  // Format date to DD/MM/YYYY
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+  useEffect(() => {
+    handleGetSubmittedForm();
+  }, [isFocused, userProfile]);
+
+  const handleGetSubmittedForm = async () => {
+    try {
+      if (!userProfile) return;
+      const res = await getSubmittedForm(userProfile?.id);
+      setSubmittedForms(res.data.data);
+    } catch (error) {
+      console.log(error);
+    }
   };
 
-  const upcomingEvents = [
-    { id: 1, title: "Họp team", time: "10:00 - 11:30", date: "15/07/2024" },
-    { id: 2, title: "Deadline dự án", time: "17:00", date: "20/07/2024" },
-    { id: 3, title: "Workshop", time: "14:00 - 16:00", date: "22/07/2024" },
-  ];
+  const handleRenderFormState = (form: FormDetail) => {
+    if (form.status == "PENDING") {
+      return (
+        <View
+          style={[
+            styles.tickContainer,
+            {
+              backgroundColor: "rgba(255, 180, 10, 0.1)",
+            },
+          ]}
+        >
+          <AntDesign
+            name="clock-circle"
+            size={16}
+            color="#ffb40a"
+            style={{ marginRight: 3 }}
+          />
+          <Text style={{ color: "#ffb40a" }}>Đang chờ</Text>
+        </View>
+      );
+    } else if (form.status == "REJECTED")
+      return (
+        <View
+          style={[
+            styles.tickContainer,
+            {
+              backgroundColor: "rgba(242, 95, 108, 0.1)",
+            },
+          ]}
+        >
+          <Entypo name="circle-with-cross" size={16} color="#f25f6c" />
+          <Text style={{ color: "#f25f6c" }}>Từ chối</Text>
+        </View>
+      );
 
-  const motivationalQuotes = [
-    {
-      text: "Thành công không phải là chìa khóa của hạnh phúc. Hạnh phúc là chìa khóa của thành công.",
-      author: "Albert Schweitzer",
-    },
-    {
-      text: "Điều duy nhất bạn có thể kiểm soát hoàn toàn là nỗ lực của chính mình.",
-      author: "Mark Cuban",
-    },
-    {
-      text: "Cơ hội không xảy ra. Bạn tạo ra chúng.",
-      author: "Chris Grosser",
-    },
-    {
-      text: "Đừng chờ đợi cơ hội. Hãy tạo ra nó.",
-      author: "George Bernard Shaw",
-    },
-    {
-      text: "Mọi chuyên gia đều từng là người mới bắt đầu.",
-      author: "Robin Sharma",
-    },
-  ];
+    return (
+      <View
+        style={[
+          styles.tickContainer,
+          {
+            backgroundColor: "rgba(96, 208, 152, 0.1)",
+          },
+        ]}
+      >
+        <Entypo name="check" size={16} color="#60d098" />
+        <Text style={{ color: "#60d098" }}>Đã duyệt</Text>
+      </View>
+    );
+  };
+
+  const handleRenderFormStateModern = (form: FormDetail) => {
+    if (form.status === "PENDING") {
+      return (
+        <View style={styles.modernStatusBadge}>
+          <View
+            style={[styles.statusDotIndicator, { backgroundColor: "#FF9800" }]}
+          />
+          <Text style={[styles.modernStatusText, { color: "#FF9800" }]}>
+            Chờ duyệt
+          </Text>
+        </View>
+      );
+    } else if (form.status === "REJECTED") {
+      return (
+        <View style={styles.modernStatusBadge}>
+          <View
+            style={[styles.statusDotIndicator, { backgroundColor: "#F44336" }]}
+          />
+          <Text style={[styles.modernStatusText, { color: "#F44336" }]}>
+            Từ chối
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.modernStatusBadge}>
+        <View
+          style={[styles.statusDotIndicator, { backgroundColor: "#4CAF50" }]}
+        />
+        <Text style={[styles.modernStatusText, { color: "#4CAF50" }]}>
+          Đã duyệt
+        </Text>
+      </View>
+    );
+  };
 
   // Auto-rotate quotes every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuoteIndex(
-        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length
+        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length,
       );
     }, 5000);
 
     return () => clearInterval(interval);
   }, []);
-  useEffect(() => {
-    (async () => {
-      const userProfile = await getUserProfileFromStorage();
-      if (userProfile) {
-        console.log("user: ", userProfile);
-        setUserProfile(userProfile);
-      }
-    })();
-  }, []);
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
-        <View>
-          <Text style={styles.greeting}>Xin chào,</Text>
-          <Text style={styles.userName}>
-            {userProfile?.fullName || "Người dùng"}
-          </Text>
-        </View>
+        <TouchableOpacity
+          onPress={() => {
+            navigation.dispatch(DrawerActions.openDrawer());
+          }}
+        >
+          <Feather name="menu" size={24} color="black" />
+        </TouchableOpacity>
         <TouchableOpacity
           style={styles.avatarContainer}
-          onPress={() => router.push("/(drawer)/profile")}
+          onPress={() => router.push("/(drawer)/(tabs)/profile")}
         >
           <Image
             source={
@@ -157,7 +212,6 @@ function HomePage() {
             }
             style={styles.avatar}
           />
-          <View style={styles.statusDot} />
         </TouchableOpacity>
       </View>
 
@@ -169,34 +223,33 @@ function HomePage() {
         }
       >
         {/* Register face widget */}
-        {!userProfile?.faceImg && (
-          <View style={styles.widgetContainer}>
-            <View style={styles.faceRegisterHeader}>
-              <View style={styles.faceIconContainer}>
-                <MaterialCommunityIcons
-                  name="face-recognition"
-                  size={32}
-                  color="#3674B5"
-                />
-              </View>
-              <View style={styles.faceRegisterContent}>
-                <Text style={styles.faceRegisterTitle}>Đăng ký khuôn mặt</Text>
-                <Text style={styles.faceRegisterSubtitle}>
-                  Vui lòng thiết lập nhận diện khuôn mặt để có thể chấm công!
-                </Text>
-              </View>
-            </View>
-            <TouchableOpacity
-              style={styles.faceRegisterButton}
-              onPress={() => router.replace("/(drawer)/(face)/face-register")}
-            >
-              <Text style={styles.faceRegisterButtonText}>Đăng ký ngay</Text>
-              <AntDesign name="account-book" size={16} color="#fff" />
-            </TouchableOpacity>
-          </View>
-        )}
 
-        {/* Motivational Quote Widget */}
+        <View style={styles.widgetContainer}>
+          <View style={styles.faceRegisterHeader}>
+            <View style={styles.faceIconContainer}>
+              <MaterialCommunityIcons
+                name="face-recognition"
+                size={32}
+                color="#3674B5"
+              />
+            </View>
+            <View style={styles.faceRegisterContent}>
+              <Text style={styles.faceRegisterTitle}>Đăng ký khuôn mặt</Text>
+              <Text style={styles.faceRegisterSubtitle}>
+                Vui lòng thiết lập nhận diện khuôn mặt để có thể chấm công!
+              </Text>
+            </View>
+          </View>
+          <TouchableOpacity
+            style={styles.faceRegisterButton}
+            onPress={() => router.replace("/(drawer)/(face)/face-register")}
+          >
+            <Text style={styles.faceRegisterButtonText}>Đăng ký ngay</Text>
+            <AntDesign name="account-book" size={16} color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Motivational Quote Widget 
         <View style={styles.widgetContainer}>
           <View style={styles.quoteHeader}>
             <View style={styles.quoteIconContainer}>
@@ -242,10 +295,10 @@ function HomePage() {
               />
             ))}
           </View>
-        </View>
+        </View>*/}
 
-        {/* Today Widget */}
-        <TodayWidget todaySchedule={fakeSchedule} loadingSchedule={false} />
+        {/* Today Widget 
+        <TodayWidget todaySchedule={fakeSchedule} loadingSchedule={false} />*/}
 
         {/* Forms Status */}
         {/* <FormsStatusWidget
@@ -255,34 +308,137 @@ function HomePage() {
           onFormUpdate={fetchForms}
         /> */}
 
-        {/* Upcoming Events */}
-        <View style={styles.eventsContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>Lịch sự kiện</Text>
-            <TouchableOpacity style={styles.viewAllButton}>
-              <Text style={styles.viewAllText}>Xem tất cả</Text>
+        {/* Form section*/}
+        <View style={styles.widgetContainer}>
+          {/* Modern Header with Gradient Background */}
+          <View style={styles.formHeaderContainer}>
+            <View style={styles.formHeaderLeft}>
+              <View style={styles.formIconWrapper}>
+                <AntDesign name="form" size={20} color="#fff" />
+              </View>
+              <View>
+                <Text style={styles.formSectionTitle}>Đơn đã nộp</Text>
+                <Text style={styles.formSectionSubtitle}>
+                  {submittedForms.length} đơn đang xử lý
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity
+              style={styles.viewAllButtonModern}
+              onPress={() =>
+                router.push({
+                  pathname: "/(drawer)/(tabs)/(form)/view-all-submitted-form",
+                  params: {
+                    submittedForms: JSON.stringify(submittedForms),
+                  },
+                })
+              }
+            >
+              <Text style={styles.viewAllTextModern}>Tất cả</Text>
+              <AntDesign name="right" size={16} color="#3674B5" />
             </TouchableOpacity>
           </View>
 
-          {upcomingEvents.map((event) => (
-            <View key={event.id} style={styles.eventItem}>
-              <View style={styles.eventIconContainer}>
-                <MaterialCommunityIcons
-                  name="calendar-clock"
-                  size={24}
-                  color="#3674B5"
-                />
-              </View>
-              <View style={styles.eventContent}>
-                <Text style={styles.eventTitle}>{event.title}</Text>
-                <Text style={styles.eventTime}>{event.time}</Text>
-                <Text style={styles.eventDate}>{event.date}</Text>
-              </View>
-            </View>
-          ))}
-        </View>
+          {/* Form List */}
+          {submittedForms.length > 0 ? (
+            <View style={styles.formListContainer}>
+              {submittedForms
+                .slice(0, 5)
+                .reverse()
+                .map((form, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.modernFormItem,
+                      index !== Math.min(submittedForms.length - 1, 2) &&
+                        styles.formItemBorder,
+                    ]}
+                    onPress={() =>
+                      router.push({
+                        pathname: "/(drawer)/(tabs)/(form)/form-detail",
+                        params: { ...form },
+                      })
+                    }
+                    activeOpacity={0.7}
+                  >
+                    {/* Left Side - Icon and Info */}
+                    <View style={styles.formItemLeft}>
+                      <View
+                        style={[
+                          styles.modernFormIcon,
+                          {
+                            backgroundColor:
+                              form.status === "PENDING"
+                                ? "#FFF4E6"
+                                : form.status === "APPROVED"
+                                  ? "#E8F5E9"
+                                  : "#FFEBEE",
+                          },
+                        ]}
+                      >
+                        <Octicons
+                          name="file"
+                          size={20}
+                          color={
+                            form.status === "PENDING"
+                              ? "#FF9800"
+                              : form.status === "APPROVED"
+                                ? "#4CAF50"
+                                : "#F44336"
+                          }
+                        />
+                      </View>
 
-        {/* Quick Actions */}
+                      <View style={styles.formItemContent}>
+                        <Text style={styles.modernFormTitle} numberOfLines={1}>
+                          {form.formCategoryTitle}
+                        </Text>
+                        <View style={styles.formDateContainer}>
+                          <AntDesign
+                            name="clock-circle"
+                            size={12}
+                            color="#999"
+                          />
+                          <Text style={styles.modernFormDate}>
+                            {new Date(form.createdAt).toLocaleDateString(
+                              "vi-VN",
+                              {
+                                day: "2-digit",
+                                month: "short",
+                                year: "numeric",
+                              },
+                            )}
+                          </Text>
+                        </View>
+                      </View>
+                    </View>
+
+                    {/* Right Side - Status Badge */}
+                    <View style={styles.formItemRight}>
+                      {handleRenderFormStateModern(form)}
+                      <AntDesign
+                        name="right"
+                        size={16}
+                        color="#ccc"
+                        style={styles.formArrow}
+                      />
+                    </View>
+                  </TouchableOpacity>
+                ))}
+            </View>
+          ) : (
+            <View style={styles.emptyStateContainer}>
+              <View style={styles.emptyIconContainer}>
+                <Octicons name="inbox" size={48} color="#ccc" />
+              </View>
+              <Text style={styles.emptyStateTitle}>Chưa có đơn nào</Text>
+              <Text style={styles.emptyStateSubtitle}>
+                Các đơn bạn nộp sẽ hiển thị ở đây
+              </Text>
+            </View>
+          )}
+        </View>
+        {/* Quick Actions 
         <View style={styles.quickActionsContainer}>
           <Text style={styles.sectionTitle}>Truy cập nhanh</Text>
           <View style={styles.quickActionsGrid}>
@@ -326,7 +482,7 @@ function HomePage() {
               <Text style={styles.quickActionText}>Cá nhân</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </View>*/}
 
         {/* Bottom space */}
         <View style={styles.bottomSpace} />
@@ -612,6 +768,168 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "600",
+  },
+  tickContainer: {
+    flexDirection: "row",
+    height: 30,
+    alignItems: "center",
+    gap: 3,
+    borderRadius: 10,
+    paddingRight: 10,
+    paddingLeft: 5,
+  },
+  noSubmittedFormText: {
+    fontStyle: "italic",
+  },
+  // Modern Form Section Styles
+  formHeaderContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+    paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: "#f0f0f0",
+  },
+  formHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  formIconWrapper: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: "#3674B5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    shadowColor: "#3674B5",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3,
+    elevation: 3,
+  },
+  formSectionTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1a1a1a",
+    marginBottom: 2,
+  },
+  formSectionSubtitle: {
+    fontSize: 13,
+    color: "#666",
+    fontWeight: "400",
+  },
+  viewAllButtonModern: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    backgroundColor: "#F0F7FF",
+    borderRadius: 20,
+    gap: 4,
+  },
+  viewAllTextModern: {
+    color: "#3674B5",
+    fontSize: 13,
+    fontWeight: "600",
+  },
+  formListContainer: {
+    marginTop: 4,
+  },
+  modernFormItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 4,
+  },
+  formItemBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: "#f5f5f5",
+  },
+  formItemLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+    marginRight: 12,
+  },
+  modernFormIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+  },
+  formItemContent: {
+    flex: 1,
+    justifyContent: "center",
+  },
+  modernFormTitle: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#1a1a1a",
+    marginBottom: 4,
+  },
+  formDateContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  modernFormDate: {
+    fontSize: 13,
+    color: "#999",
+  },
+  formItemRight: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  modernStatusBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: "#f8f8f8",
+    borderRadius: 12,
+    gap: 4,
+  },
+  statusDotIndicator: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+  },
+  modernStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+  formArrow: {
+    marginLeft: 4,
+  },
+  emptyStateContainer: {
+    alignItems: "center",
+    paddingVertical: 40,
+  },
+  emptyIconContainer: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: "#f5f5f5",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  emptyStateTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#666",
+    marginBottom: 8,
+  },
+  emptyStateSubtitle: {
+    fontSize: 14,
+    color: "#999",
+    textAlign: "center",
   },
 });
 

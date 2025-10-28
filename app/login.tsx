@@ -28,6 +28,7 @@ import { setAuthData } from "../lib/features/loginSlice";
 import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
 import { LoginResponse } from "../models/auth/login";
+import { setToken } from "@/api/axios";
 const { width, height } = Dimensions.get("window");
 
 export interface ILoginScreenProps {
@@ -58,6 +59,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
     const handleIsLogin = async () => {
       try {
         const token = await AsyncStorage.getItem("token");
+        setToken(token);
         const userData = await AsyncStorage.getItem("userData");
         if (token && userData) {
           // Check if token is still valid
@@ -67,6 +69,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
           } else {
             // Token expired, clear storage
             await AsyncStorage.multiRemove(["token", "userData"]);
+            setToken(null);
             Toast.show({
               type: "info",
               text1: "Phiên đăng nhập đã hết hạn",
@@ -78,6 +81,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       } catch (error) {
         console.error("Error checking login status:", error); // Ensure error is logged
         await AsyncStorage.multiRemove(["token", "userData"]);
+        setToken(null);
       }
     };
     handleIsLogin();
@@ -94,11 +98,11 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      onKeyboardShow
+      onKeyboardShow,
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      onKeyboardHide
+      onKeyboardHide,
     );
 
     return () => {
@@ -114,24 +118,17 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
   const handleLogin = async () => {
     try {
-      console.log("Logging in with:", { userName, password });
-      const response = await loginUser({ username: userName, password });
-      const loginResponse: LoginResponse = response.data;
-      await AsyncStorage.setItem("token", loginResponse.accessToken);
-      await AsyncStorage.setItem(
-        "userProfile",
-        JSON.stringify(loginResponse.userProfile)
-      );
-      
-      dispatch(setAuthData(loginResponse));
-      const isOnboarded = false;
-      if (isOnboarded) {
-        console.log("Logged in...");
-        router.replace("/(drawer)" as any);
-      } else {
-        console.log("Onboarding...");
-        router.replace("/onboard" as any);
-      }
+      // console.log("Logging in with:", { userName, password });
+      // const response = await loginUser({ username: userName, password });
+      // const loginResponse: LoginResponse = response.data;
+      // setToken(loginResponse.accessToken);
+      // await AsyncStorage.setItem("token", loginResponse.accessToken);
+      // await AsyncStorage.setItem(
+      //   "userProfile",
+      //   JSON.stringify(loginResponse.userProfile),
+      // );
+      // dispatch(setAuthData(loginResponse));
+      router.replace("/(drawer)" as any);
     } catch (error: any) {
       Toast.show({
         type: "error",
@@ -152,7 +149,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
     >
       <StatusBar barStyle="dark-content" />
       <LinearGradient
-        colors={["#3674B5", "#2196F3"]}
+        colors={["#3674B5", /*"#2196F3"*/ "#3674B5"]}
         style={styles.gradientContainer}
       >
         <SafeAreaView style={styles.safeArea}>
@@ -170,7 +167,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                     source={require("@/assets/images/Psychologist.png")}
                     style={styles.logo}
                   />
-                  <Text style={styles.appTitle}>Attendance System</Text>
+                  <Text style={styles.appTitle}>AttendEase</Text>
                   <Text style={styles.appSubtitle}>Employee Portal</Text>
                 </View>
 
@@ -249,7 +246,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                       activeOpacity={0.8}
                     >
                       <LinearGradient
-                        colors={["#3674B5", "#2196F3"]}
+                        colors={["#3674B5" /*"#2196F3"*/, "#3674B5"]}
                         start={{ x: 0, y: 0 }}
                         end={{ x: 1, y: 0 }}
                         style={styles.buttonGradient}

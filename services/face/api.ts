@@ -19,13 +19,15 @@ export const getMissingPose = (userId: string) => {
   return axios.get(`${BASE_URL}/missing-pose/${userId}`);
 };
 
-export const registerFace = (values: FormData) => {
-  console.log(`${BASE_URL}/register`);
-  console.log("form data: ", values);
+export const registerFace = (values: FormData, config?: any) => {
+  // console.log(`${BASE_URL}/register`);
+  // console.log("form data: ", values);
 
   return axios.post(`${BASE_URL}/register`, values, {
     headers: {
       "Content-Type": "multipart/form-data",
     },
+    timeout: 10000,
+    ...config,
   });
 };

@@ -1,0 +1,241 @@
+import { fakeTimekeepingDetails } from "@/models/data/timekeepingData";
+import {
+  CheckinStatus,
+  CheckoutStatus,
+  TimekeepingStatus,
+} from "@/models/timesheet/timekeeping";
+import React from "react";
+import { Modal, ScrollView, StyleSheet, View } from "react-native";
+import CheckTimeBox from "./CheckTimeBox";
+import NotWorkNotification from "./NotWorkNotification";
+import TimeDetailBox from "./TimeDetailBox";
+import TimesheetModalHeader from "./TimesheetModalHeader";
+import TimesheetTotalHourBox from "./TimesheetTotalHourBox";
+
+interface Props {
+  visible: boolean;
+  onClose: () => void;
+  selectedTimekeepingId: number;
+}
+
+export default function TimekeepingModal({
+  visible,
+  onClose,
+  selectedTimekeepingId,
+}: Props) {
+  const timekeeping = fakeTimekeepingDetails.find(
+    (timekeepingDetail) =>
+      timekeepingDetail.timeKeepingId === selectedTimekeepingId
+  );
+
+  const dateString = new Date(timekeeping?.date ?? "").toLocaleDateString(
+    "vi-VN"
+  );
+  return (
+    <Modal
+      animationType="slide"
+      visible={visible}
+      transparent
+      onRequestClose={onClose}
+    >
+      <View style={styles.overlay}>
+        <View style={styles.modal}>
+          <TimesheetModalHeader dateString={dateString} onClose={onClose} />
+          <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+            {timekeeping?.status === TimekeepingStatus.NOT_WORK ? (
+              <NotWorkNotification />
+            ) : (
+              <>
+                <View style={styles.row}>
+                  <CheckTimeBox
+                    type="in"
+                    time={timekeeping?.checkinTime ?? "--:--"}
+                    checkinStatus={
+                      timekeeping?.checkinStatus ?? CheckinStatus.START_ONTIME
+                    }
+                    checkoutStatus={
+                      timekeeping?.checkoutStatus ?? CheckoutStatus.END_ONTIME
+                    }
+                  />
+                  <CheckTimeBox
+                    type="out"
+                    time={timekeeping?.checkoutTime ?? "--:--"}
+                    checkinStatus={
+                      timekeeping?.checkinStatus ?? CheckinStatus.START_ONTIME
+                    }
+                    checkoutStatus={
+                      timekeeping?.checkoutStatus ?? CheckoutStatus.END_ONTIME
+                    }
+                  />
+                  <TimesheetTotalHourBox
+                    totalWorkHour={timekeeping?.totalWorkHour ?? 0}
+                    totalTimekeepingNumber={
+                      timekeeping?.totalTimekeepingNumber ?? 0
+                    }
+                  />
+                </View>
+
+                <TimeDetailBox
+                  title="Ca làm việc"
+                  data={[
+                    {
+                      label: "Thời gian",
+                      value: `${timekeeping?.shiftInfo?.shiftStartTime} - ${timekeeping?.shiftInfo?.shiftEndTime}`,
+                    },
+                    {
+                      label: "Số giờ",
+                      value: timekeeping?.shiftInfo?.shiftWorkHour ?? "--",
+                    },
+                    {
+                      label: "Số công",
+                      value:
+                        timekeeping?.shiftInfo?.shiftTimekeepingNumber ?? "--",
+                    },
+                  ]}
+                />
+
+                {timekeeping?.otInfo && (
+                  <TimeDetailBox
+                    title="Làm thêm giờ"
+                    data={[
+                      {
+                        label: "Thời gian",
+                        value: `${timekeeping?.otInfo?.otStartTime} - ${timekeeping?.otInfo?.otEndTime}`,
+                      },
+                      {
+                        label: "Số giờ",
+                        value: timekeeping?.otInfo?.otWorkHour ?? "--",
+                      },
+                      {
+                        label: "Số công",
+                        value: timekeeping?.otInfo?.otTimekeepingNumber ?? "--",
+                      },
+                    ]}
+                  />
+                )}
+                <TimeDetailBox
+                  title="Chốt gương mặt trong ngày"
+                  data={[
+                    {
+                      label: `${
+                        timekeeping?.checkinTime ?? "--"
+                      }, ${dateString}`,
+                      value: timekeeping?.checkinStatus ?? "--",
+                    },
+                    {
+                      label: `${
+                        timekeeping?.checkoutTime ?? "--"
+                      }, ${dateString}`,
+                      value: timekeeping?.checkoutStatus ?? "--",
+                    },
+                  ]}
+                />
+              </>
+            )}
+          </ScrollView>
+        </View>
+      </View>
+    </Modal>
+  );
+}
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.3)",
+    justifyContent: "flex-end",
+  },
+  modal: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    padding: 16,
+    height: "70%",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 14,
+    paddingBottom: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E0E0E0",
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#333",
+    paddingVertical: 2,
+  },
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 10,
+  },
+  card: {
+    flex: 1,
+    borderRadius: 12,
+    padding: 14,
+  },
+  cardLabel: {
+    fontSize: 13,
+    color: "#555",
+  },
+  cardRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginVertical: 4,
+  },
+  cardValue: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#2C3E50",
+  },
+  cardNote: {
+    fontSize: 12,
+    color: "#2ECC71",
+  },
+  cardFull: {
+    borderRadius: 12,
+    padding: 14,
+  },
+  totalHourText: {
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
+    color: "#7E57C2",
+  },
+  totalHourValue: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#7E57C2",
+    textAlign: "center",
+  },
+  shiftBox: {
+    backgroundColor: "#F8F9FA",
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 16,
+  },
+  shiftTitle: {
+    fontWeight: "700",
+    fontSize: 15,
+    marginBottom: 8,
+    color: "#333",
+  },
+  shiftRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 4,
+  },
+  shiftLabel: {
+    fontSize: 13,
+    color: "#666",
+  },
+  shiftValue: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#000",
+  },
+});
