@@ -74,25 +74,27 @@ export default function TimekeepingModal({
                     }
                   />
                 </View>
-
-                <TimeDetailBox
-                  title="Ca làm việc"
-                  data={[
-                    {
-                      label: "Thời gian",
-                      value: `${timekeeping?.shiftInfo?.shiftStartTime} - ${timekeeping?.shiftInfo?.shiftEndTime}`,
-                    },
-                    {
-                      label: "Số giờ",
-                      value: timekeeping?.shiftInfo?.shiftWorkHour ?? "--",
-                    },
-                    {
-                      label: "Số công",
-                      value:
-                        timekeeping?.shiftInfo?.shiftTimekeepingNumber ?? "--",
-                    },
-                  ]}
-                />
+                {!timekeeping?.isFromOT && (
+                  <TimeDetailBox
+                    title="Ca làm việc"
+                    data={[
+                      {
+                        label: "Thời gian",
+                        value: `${timekeeping?.shiftInfo?.shiftStartTime} - ${timekeeping?.shiftInfo?.shiftEndTime}`,
+                      },
+                      {
+                        label: "Số giờ",
+                        value: timekeeping?.shiftInfo?.shiftWorkHour ?? "--",
+                      },
+                      {
+                        label: "Số công",
+                        value:
+                          timekeeping?.shiftInfo?.shiftTimekeepingNumber ??
+                          "--",
+                      },
+                    ]}
+                  />
+                )}
 
                 {timekeeping?.otInfo && (
                   <TimeDetailBox

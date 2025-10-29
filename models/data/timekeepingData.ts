@@ -473,6 +473,7 @@ export const fakeTimekeepingDetails: TimekeepingDetail[] = [
     checkoutTime: "17:00",
     totalWorkHour: 0.33,
     totalTimekeepingNumber: 0.96,
+    isFromOT: true,
     shiftInfo: {
       shiftStartTime: "08:00",
       shiftEndTime: "17:00",
@@ -776,6 +777,7 @@ export const fakeTimekeepingDetails: TimekeepingDetail[] = [
     checkoutTime: "19:00",
     totalWorkHour: 10,
     totalTimekeepingNumber: 1.5,
+    isFromOT: true,
     shiftInfo: {
       shiftStartTime: "08:00",
       shiftEndTime: "17:00",

@@ -12,7 +12,7 @@ interface TabProps {
   tabs: {
     id: number;
     title: string;
-    icon: string;
+    icon?: string;
   }[];
   activeTab: number;
   setActiveTab: (tab: number) => void;
