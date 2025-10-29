@@ -1,6 +1,7 @@
+import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
 import { AntDesign } from "@expo/vector-icons";
-import dayjs from "dayjs";
-import React from "react";
+import { router } from "expo-router";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -8,32 +9,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-interface WorkingSchedule {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  timeKeepingId: string | null;
-  code: string;
-  userCode: string;
-  userContractCode: string;
-  status: string;
-  date: string;
-  fullName: string;
-  shiftCode: string;
-  shiftName: string;
-  branchName: string;
-  branchCode: string;
-  addressLine: string;
-  startShiftTime: string;
-  endShiftTime: string;
-  workingHours: number;
-  checkInTime: string | null;
-  checkOutTime: string | null;
-  statusTimeKeeping: string | null;
-  positionName: string;
-  managerFullName: string;
-}
+import Animated, {
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withTiming,
+} from "react-native-reanimated";
+import CheckTimeBox from "../ui/CheckTimeBox";
+import TimesheetTotalHourBox from "../ui/TimesheetTotalHourBox";
 
 interface TodayWidgetProps {
   todaySchedule: WorkingSchedule | null;
@@ -41,38 +24,32 @@ interface TodayWidgetProps {
 }
 
 const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
+  // Pulse animation for check-in button
+  const pulse = useSharedValue(1);
+
+  useEffect(() => {
+    pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
+  }, []);
+
+  const animatedButtonStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: pulse.value }],
+  }));
+
   // Lấy ngày hiện tại theo định dạng chuẩn
   const getCurrentDateString = () => {
     const today = new Date();
     // Trả về ngày hiện tại theo định dạng YYYY-MM-DD
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}-${String(today.getDate()).padStart(2, "0")}`;
   };
 
   // Format date to Thứ X, DD/MM/YYYY
   const formatDateWithDay = (dateString: string) => {
     const date = new Date(dateString);
-    const dayOfWeek = date.getDay();
 
-    // Trong JavaScript, getDay() trả về 0 cho Chủ nhật, 1 cho Thứ 2, ..., 6 cho Thứ 7
-    const days = [
-      "Chủ nhật",
-      "Thứ 2",
-      "Thứ 3",
-      "Thứ 4",
-      "Thứ 5",
-      "Thứ 6",
-      "Thứ 7",
-    ];
-
-    // Lấy thứ từ mảng days dựa vào dayOfWeek
-    const day = days[dayOfWeek];
-
-    return `${day}, ${date.getDate()}/${
-      date.getMonth() + 1
-    }/${date.getFullYear()}`;
+    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
   if (loadingSchedule) {
@@ -94,154 +71,76 @@ const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
   // Sử dụng phương thức getCurrentDateString để lấy ngày hiện tại
   const currentDateString = getCurrentDateString();
   // Xác định trạng thái check-in
-  let checkInStatus = "Chưa check-in";
-  let checkInButtonText = "Check-in";
+  let checkInButtonText = "Chấm công";
   let checkInButtonDisabled = false;
   let checkInButtonColor = "#3674B5";
-  let checkInStatusColor = "#4CAF50";
   let checkInTime = null;
   let checkOutTime = null;
-  if (todaySchedule.checkInTime) {
-    if (todaySchedule.status === "ACTIVE") {
-      checkInButtonText = "Check-out";
-    } else if (todaySchedule.status === "NOTSTARTED") {
-      checkInButtonText = "Check-in";
-    } else if (todaySchedule.status === "NOTWORK") {
-      checkInButtonText = "Vắng mặt";
-    } else {
-      checkInButtonText = "Hoàn thành";
-    }
-    //nếu statusTimeKeeping = late thì check-in muộn , nếu end hoàn thành , nết nocheckout thì chưa check-out
-    if (todaySchedule.statusTimeKeeping === "LATE") {
-      checkInStatus = "Check-in muộn";
-      checkInButtonDisabled = true;
-      checkInButtonColor = "#F59E0B"; // Màu cam cho check-in muộn
-      checkInStatusColor = "#F59E0B"; // Màu cam cho trạng thái check-in muộn
-    } else if (todaySchedule.statusTimeKeeping === "END") {
-      checkInStatus = "Đã hoàn thành";
-      checkInButtonDisabled = true;
-      checkInButtonColor = "#4CAF50"; // Màu xanh lá cho đã hoàn thành
-      checkInStatusColor = "#4CAF50"; // Màu xanh lá cho trạng
-      // thái đã hoàn thành
-    } else if (todaySchedule.statusTimeKeeping === "NOCHECKOUT") {
-      checkInStatus = "Chưa check-out";
-      checkInButtonDisabled = true;
-      checkInButtonColor = "#F59E0B"; // Màu cam cho chưa check-out
-      checkInStatusColor = "#F59E0B"; // Màu cam cho
-    } else {
-      checkInStatus = todaySchedule.statusTimeKeeping || "Đã check-in";
-      checkInButtonDisabled = true;
-      checkInButtonColor = "#4CAF50";
-      checkInStatusColor = "#4CAF50";
-    }
-    //chuyên đổi định dạng giờ check-in từ isotring sang vd 01:30p không hiện pm hiện 16:30
-    checkInTime = dayjs(todaySchedule.checkInTime).format("HH:mm");
+  if (todaySchedule.checkinTime) {
+    checkInTime = todaySchedule.checkinTime;
   }
 
-  if (todaySchedule.checkOutTime) {
-    checkOutTime = dayjs(todaySchedule.checkOutTime).format("HH:mm");
+  if (todaySchedule.checkoutTime) {
+    checkOutTime = todaySchedule.checkoutTime;
   }
 
   return (
     <View style={styles.todayContainer}>
       <View style={styles.todayHeader}>
-        <AntDesign name="calendar" size={24} color="#3674B5" />
-        <Text style={styles.todayTitle}>Hôm nay</Text>
-      </View>
-      <View style={styles.todayContent}>
-        <View style={styles.timeInfo}>
-          <Text style={styles.currentDate}>
-            {formatDateWithDay(currentDateString)}
-          </Text>
-          <Text style={styles.shiftTime}>
-            Ca làm: {todaySchedule.startShiftTime} -{" "}
-            {todaySchedule.endShiftTime} ({todaySchedule.shiftName})
-          </Text>
-        </View>
-        <View style={styles.attendanceActions}>
-          <TouchableOpacity
-            style={[
-              styles.checkinButton,
-              { backgroundColor: checkInButtonColor },
-            ]}
-            disabled={checkInButtonDisabled}
-          >
-            <Text style={styles.checkinText}>{checkInButtonText}</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      <View style={styles.attendanceDetails}>
-        <View style={[styles.timeDetailCard, styles.checkInCard]}>
-          <View style={styles.timeDetailCardHeader}>
-            <Text style={styles.checkInTitle}>Giờ vào</Text>
-            <View style={styles.checkInIcon}>
-              {checkInTime ? (
-                <AntDesign name="check" size={14} color="#10B981" />
-              ) : (
-                <AntDesign name="alibaba" size={14} color="#EF4444" />
-              )}
-            </View>
-          </View>
-          {checkInTime ? (
-            <Text style={styles.checkInValue}>{checkInTime}</Text>
-          ) : (
-            <Text style={styles.checkInDashes}>--:--</Text>
-          )}
-          <Text style={styles.checkInStatus}>
-            {checkInTime ? "Đã check-in" : "Chưa check-in"}
-          </Text>
-        </View>
-
-        <View style={[styles.timeDetailCard, styles.checkOutCard]}>
-          <View style={styles.timeDetailCardHeader}>
-            <Text style={styles.checkOutTitle}>Giờ về</Text>
-            <View style={styles.checkOutIcon}>
-              {checkOutTime ? (
-                <AntDesign name="check" size={14} color="#F59E0B" />
-              ) : (
-                <AntDesign name="clock-circle" size={14} color="#F59E0B" />
-              )}
-            </View>
-          </View>
-          {checkOutTime ? (
-            <Text style={styles.checkOutValue}>{checkOutTime}</Text>
-          ) : (
-            <Text style={styles.checkOutDashes}>--:--</Text>
-          )}
-          <Text style={styles.checkOutStatus}>
-            {checkOutTime ? "Đã check-out" : "Chưa đến giờ"}
-          </Text>
-        </View>
-
-        <View style={styles.workingHoursCard}>
-          <View style={styles.workingHoursHeader}>
-            <Text style={styles.workingHoursTitle}>Công làm</Text>
-            <View style={styles.workingHoursIcon}>
-              {checkInTime && checkOutTime ? (
-                <AntDesign name="check" size={16} color="#8B5CF6" />
-              ) : checkInTime ? (
-                <AntDesign name="clock-circle" size={16} color="#8B5CF6" />
-              ) : (
-                <AntDesign name="exclamation" size={16} color="#8B5CF6" />
-              )}
-            </View>
-          </View>
-          <View style={styles.workingHoursContent}>
-            <Text style={styles.workingHoursNumber}>
-              {checkInTime && checkOutTime
-                ? todaySchedule.workingHours
-                : "--:--"}
+        <View style={{ flexDirection: "row", gap: "10%" }}>
+          <AntDesign name="calendar" size={24} color="#3674B5" />
+          <View>
+            <Text style={styles.currentDate}>
+              {formatDateWithDay(currentDateString)}
+            </Text>
+            <Text style={styles.shiftTime}>
+              {todaySchedule.shiftInfo.shiftStartTime} -{" "}
+              {todaySchedule.shiftInfo.shiftEndTime}
             </Text>
           </View>
-          <Text style={styles.workingHoursStatus}>
-            {checkInTime && checkOutTime
-              ? "Hoàn thành"
-              : checkInTime
-              ? "Đang làm"
-              : "Chưa bắt đầu"}
-          </Text>
         </View>
+        <View style={styles.attendanceActions}>
+          <Animated.View style={animatedButtonStyle}>
+            <TouchableOpacity
+              style={[
+                styles.checkinButton,
+                { backgroundColor: checkInButtonColor },
+              ]}
+              disabled={checkInButtonDisabled}
+              onPress={() =>
+                router.push({
+                  pathname: "/(drawer)/(face)/camera",
+                  params: {
+                    type: "TIMEKEEP",
+                  },
+                })
+              }
+              activeOpacity={0.8}
+            >
+              <Text style={styles.checkinText}>{checkInButtonText}</Text>
+            </TouchableOpacity>
+          </Animated.View>
+        </View>
+      </View>
+      {/* content */}
+
+      <View style={styles.attendanceDetails}>
+        <CheckTimeBox
+          type="in"
+          time={todaySchedule.checkinTime!}
+          checkinStatus={todaySchedule.checkinStatus!}
+          checkoutStatus={todaySchedule.checkoutStatus!}
+        />
+        <CheckTimeBox
+          type="out"
+          time={todaySchedule.checkoutTime!}
+          checkinStatus={todaySchedule.checkinStatus!}
+          checkoutStatus={todaySchedule.checkoutStatus!}
+        />
+        <TimesheetTotalHourBox
+          totalWorkHour={todaySchedule.totalWorkHour ?? 0}
+          totalTimekeepingNumber={1}
+        />
       </View>
     </View>
   );
@@ -267,22 +166,8 @@ const styles = StyleSheet.create({
   },
   todayHeader: {
     flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  todayTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginLeft: 8,
-    color: "#333",
-  },
-  todayContent: {
-    flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-  },
-  timeInfo: {
-    flex: 1,
   },
   currentDate: {
     fontSize: 16,
