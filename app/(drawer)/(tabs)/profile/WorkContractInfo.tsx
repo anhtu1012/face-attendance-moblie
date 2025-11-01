@@ -1,5 +1,7 @@
 import SignatureModal from "@/components/Contract/SignatureModal";
+import ErrorAlert from "@/components/ui/ErrorAlert";
 import PDFModal from "@/components/ui/PDFModal";
+import SuccessAlert from "@/components/ui/SuccessAlert";
 import { useConfirmOtp } from "@/hooks/useConfirmOtp";
 import { useGetContractByUserId } from "@/hooks/useGetContractByUserId";
 import { ContractDetail } from "@/models/contract/dtoContract";
@@ -61,14 +63,18 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
 }) => {
   const [signatureModalVisible, setSignatureModalVisible] = useState(false);
   const [pdfModalVisible, setPdfModalVisible] = useState(false);
-  const { data: contractList } = useGetContractByUserId(userId ?? "");
+  const [successAlertVisible, setSuccessAlertVisible] = useState(false);
+  const [errorAlertVisible, setErrorAlertVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const { data: contractList, refetch } = useGetContractByUserId(userId ?? "");
   const confirmOtp = useConfirmOtp();
   const contractData = contractList?.find(
     (contract) =>
       contract.status !== "INACTIVE" && contract.status !== "EXPIRED"
   );
   const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Không xác định";
+    if (!dateString) return "--";
     const date = new Date(dateString);
     return date.toLocaleDateString("vi-VN", {
       day: "2-digit",
@@ -119,7 +125,11 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
       case "PENDING":
         return "Chờ xử lý";
       case "INACTIVE":
-        return "Không hoạt động";
+        return "Ngừng hoạt động";
+      case "USER_SIGNED":
+        return "Chờ người dùng ký";
+      case "DIRECTOR_SIGNED":
+        return "Chờ giám đốc ký";
       default:
         return status;
     }
@@ -141,17 +151,22 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
       type: "image/png",
       name: fileName,
     } as any);
-    confirmOtp.mutate(formData);
 
-    // TODO: Call API to submit signature
-    // Example:
-    // await submitContractSignature({
-    //   contractId: contractData.id,
-    //   contractNumber: contractData.contractNumber,
-    //   signatureBase64: signatureBase64,
-    //   fileName: fileName,
-    //   timestamp: timestamp.toISOString()
-    // });
+    confirmOtp.mutate(formData, {
+      onSuccess: () => {
+        refetch();
+        setSignatureModalVisible(false);
+        setSuccessAlertVisible(true);
+      },
+      onError: (error: any) => {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Không thể ký hợp đồng. Vui lòng thử lại!";
+        setErrorMessage(message);
+        setErrorAlertVisible(true);
+      },
+    });
   };
 
   const statusColors = getStatusColor(contractData?.status ?? "");
@@ -203,7 +218,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
         <View style={styles.salaryCard}>
           <View style={styles.salaryHeader}>
             <MaterialIcons name="attach-money" size={24} color="#10B981" />
-            <Text style={styles.salaryLabel}>Tổng lương gộp</Text>
+            <Text style={styles.salaryLabel}>Tổng lương</Text>
           </View>
           <Text style={styles.salaryAmount}>
             {formatCurrency(contractData?.grossSalary ?? "0")}
@@ -237,19 +252,21 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
             value={formatDate(contractData?.startDate ?? "")}
             iconColor="#3B82F6"
           />
-          <InfoRow
-            icon="calendar"
-            label="Ngày kết thúc"
-            value={formatDate(contractData?.endDate ?? "")}
-            iconColor="#EF4444"
-          />
+          {contractData?.endDate && (
+            <InfoRow
+              icon="calendar"
+              label="Ngày kết thúc"
+              value={formatDate(contractData?.endDate ?? "")}
+              iconColor="#EF4444"
+            />
+          )}
           <InfoRow
             icon="clock"
             label="Thời hạn"
             value={
               contractData?.endDate
                 ? `${contractData?.duration} tháng`
-                : "Không xác định"
+                : "Vô thời hạn"
             }
             iconColor="#8B5CF6"
           />
@@ -325,11 +342,39 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
         userContractId={contractData?.id.toString() ?? ""}
         userGmail={gmail ?? ""}
       />
+
+      {/* PDF Modal */}
       <PDFModal
         isVisible={pdfModalVisible}
         onClose={() => setPdfModalVisible(false)}
         pdfUrl={contractData?.fileContract ?? ""}
         title={contractData?.contractNumber ?? ""}
+      />
+
+      {/* Success Alert */}
+      <SuccessAlert
+        visible={successAlertVisible}
+        title="Ký thành công!"
+        message="Hợp đồng của bạn đã được ký thành công. Chúng tôi sẽ xử lý trong thời gian sớm nhất."
+        onClose={() => setSuccessAlertVisible(false)}
+        confirmText="Tiếp tục"
+        autoClose={false}
+        autoCloseDuration={4000}
+      />
+
+      {/* Error Alert */}
+      <ErrorAlert
+        visible={errorAlertVisible}
+        title="Ký thất bại!"
+        message={errorMessage}
+        onClose={() => setErrorAlertVisible(false)}
+        onRetry={() => {
+          setErrorAlertVisible(false);
+          setSignatureModalVisible(true);
+        }}
+        showRetry={true}
+        retryText="Thử lại"
+        closeText="Đóng"
       />
     </View>
   );

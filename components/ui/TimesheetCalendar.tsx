@@ -9,8 +9,8 @@ import { StyleSheet, View } from "react-native";
 import TimekeepingBox from "./TimekeepingBox";
 import TimekeepingModal from "./TimekeepingModal";
 import TimesheetCalendarHeader from "./TimesheetCalendarHeader";
-import TimesheetNotes from "./TimesheetNotes";
 import TimesheetCalendarWeekHeader from "./TimesheetCalendarWeekHeader";
+import TimesheetNotes from "./TimesheetNotes";
 
 dayjs.extend(weekday);
 dayjs.extend(localeData);
@@ -106,7 +106,7 @@ export default function TimesheetCalendar() {
   const handleNextMonth = () => setCurrentMonth(currentMonth.add(1, "month"));
 
   return (
-    <View style={styles.calendarContainer}>
+    <View>
       <TimesheetCalendarHeader
         currentMonth={currentMonth}
         handlePrevMonth={handlePrevMonth}
@@ -145,17 +145,6 @@ export default function TimesheetCalendar() {
 }
 
 const styles = StyleSheet.create({
-  calendarContainer: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 16,
-    margin: 16,
-    paddingBottom: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 4,
-  },
 
   daysGrid: {
     flexDirection: "row",

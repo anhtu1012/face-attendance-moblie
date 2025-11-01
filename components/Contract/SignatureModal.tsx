@@ -64,7 +64,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   // Handle signature result
   const handleSignatureOK = (signature: string) => {
     console.log("Signature received:", signature);
-    
+
     const timestamp = new Date();
 
     console.log("\n");
@@ -272,7 +272,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
 
               <Text style={styles.otpTitle}>Nhập mã OTP</Text>
               <Text style={styles.otpDescription}>
-                Mã OTP đã được gửi đến số điện thoại của bạn
+                Mã OTP đã được gửi đến gmail của bạn
               </Text>
 
               {/* Signature Preview */}
