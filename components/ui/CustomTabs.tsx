@@ -18,6 +18,7 @@ interface TabProps {
   setActiveTab: (tab: number) => void;
   activeColor?: string; // Màu cho tab active
   inactiveColor?: string; // Màu cho tab inactive
+  isBorderedBottom?: boolean;
 }
 const CustomTabs = ({
   tabs,
@@ -25,9 +26,18 @@ const CustomTabs = ({
   setActiveTab,
   activeColor = "#3674B5", // Default màu xanh dương
   inactiveColor = "#666", // Default màu xám
+  isBorderedBottom = true,
 }: TabProps) => {
   return (
-    <View style={styles.tabContainer}>
+    <View
+      style={[
+        styles.tabContainer,
+        isBorderedBottom && {
+          borderBottomWidth: 1,
+          borderBottomColor: "#e0e0e0",
+        },
+      ]}
+    >
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -83,8 +93,6 @@ const CustomTabs = ({
 const styles = StyleSheet.create({
   tabContainer: {
     backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
     paddingVertical: 8,
   },
   tabScrollContent: {

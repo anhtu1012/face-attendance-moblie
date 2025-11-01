@@ -4,13 +4,8 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import React, { useState } from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
+import MonthPickerButton from "./MonthPickerButton";
 import MonthPickerModal from "./MonthPickerModal";
 import StatItem from "./StatItem";
 interface TimesheetStats {
@@ -46,28 +41,6 @@ const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
     currentDate.getMonth() + 1
   );
   const [showMonthPicker, setShowMonthPicker] = useState(false);
-
-  // Generate list of years (current year and 2 years back)
-  const years = Array.from(
-    { length: 3 },
-    (_, i) => currentDate.getFullYear() - i
-  );
-
-  // Month names in Vietnamese
-  const monthNames = [
-    "Tháng 1",
-    "Tháng 2",
-    "Tháng 3",
-    "Tháng 4",
-    "Tháng 5",
-    "Tháng 6",
-    "Tháng 7",
-    "Tháng 8",
-    "Tháng 9",
-    "Tháng 10",
-    "Tháng 11",
-    "Tháng 12",
-  ];
 
   const handleMonthSelect = (year: number, month: number) => {
     setSelectedYear(year);
@@ -106,14 +79,7 @@ const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
       {/* Header with Month Selector */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Thống kê {getMonthYearText()}</Text>
-        <TouchableOpacity
-          style={styles.monthSelector}
-          onPress={() => setShowMonthPicker(true)}
-          activeOpacity={0.7}
-        >
-          <Feather name="calendar" size={18} color="#10B981" />
-          <Feather name="chevron-down" size={18} color="#10B981" />
-        </TouchableOpacity>
+        <MonthPickerButton setShowMonthPicker={setShowMonthPicker} />
       </View>
 
       {/* Summary Cards */}
@@ -490,17 +456,5 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     minWidth: 80,
     textAlign: "right",
-  },
-  monthSelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#ECFDF5",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    borderRadius: 12,
-    gap: 8,
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
-    width: "20%",
   },
 });

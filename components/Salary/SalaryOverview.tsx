@@ -1,45 +1,30 @@
-import SpinnerOverlay from "@/components/SpinnerOverlay";
-import MonthPickerModal from "@/components/ui/MonthPickerModal";
 import { useGetSalarySummary } from "@/hooks/useGetSalarySummary";
-import {
-  Feather,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
-import React, { useState } from "react";
+import React from "react";
 import {
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 
 interface SalaryOverviewProps {
   userId: number;
+  startTime: string;
+  endTime: string;
+  selectedMonth: number;
+  selectedYear: number;
 }
 
-const SalaryOverview: React.FC<SalaryOverviewProps> = ({ userId }) => {
-  const currentDate = new Date();
-  const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(
-    currentDate.getMonth() + 1
-  );
-  const [showMonthPicker, setShowMonthPicker] = useState(false);
-
-  // Format dates for API (YYYY-MM-DD)
-  const getDateRange = (year: number, month: number) => {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
-    return {
-      startTime: startDate.toISOString().split("T")[0],
-      endTime: endDate.toISOString().split("T")[0],
-    };
-  };
-
-  const { startTime, endTime } = getDateRange(selectedYear, selectedMonth);
+const SalaryOverview: React.FC<SalaryOverviewProps> = ({
+  userId,
+  startTime,
+  endTime,
+  selectedMonth,
+  selectedYear,
+}) => {
   const { data, isLoading, refetch } = useGetSalarySummary(
     userId,
     startTime,
@@ -51,11 +36,6 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({ userId }) => {
       style: "currency",
       currency: "VND",
     }).format(amount);
-  };
-
-  const handleMonthSelect = (year: number, month: number) => {
-    setSelectedYear(year);
-    setSelectedMonth(month);
   };
 
   const salaryItems = [
@@ -93,6 +73,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({ userId }) => {
     <>
       <ScrollView
         style={styles.container}
+        contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -105,23 +86,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({ userId }) => {
       >
         {/* Header */}
         <LinearGradient colors={["#10B981", "#059669"]} style={styles.header}>
-          <View style={styles.headerTop}>
-            <View>
-              <Text style={styles.headerTitle}>Bảng lương</Text>
-              <Text style={styles.headerSubtitle}>Tổng quan thu nhập</Text>
-            </View>
-            <TouchableOpacity
-              style={styles.monthSelector}
-              onPress={() => setShowMonthPicker(true)}
-              activeOpacity={0.8}
-            >
-              <Feather name="calendar" size={18} color="#FFFFFF" />
-              <Text style={styles.monthSelectorText}>
-                T{selectedMonth}/{selectedYear}
-              </Text>
-              <Feather name="chevron-down" size={18} color="#FFFFFF" />
-            </TouchableOpacity>
-          </View>
+          <View style={styles.headerTop}></View>
         </LinearGradient>
 
         {/* Total Salary Card */}
@@ -153,7 +118,6 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({ userId }) => {
         {/* Salary Breakdown */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <MaterialIcons name="receipt-long" size={22} color="#1F2937" />
             <Text style={styles.sectionTitle}>Chi tiết lương</Text>
           </View>
 
@@ -190,11 +154,6 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({ userId }) => {
         {/* Calculation Summary */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <MaterialCommunityIcons
-              name="calculator-variant"
-              size={22}
-              color="#1F2937"
-            />
             <Text style={styles.sectionTitle}>Tính toán lương</Text>
           </View>
 
@@ -262,20 +221,6 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({ userId }) => {
           </Text>
         </View>
       </ScrollView>
-
-      {/* Month Picker Modal */}
-      <MonthPickerModal
-        showMonthPicker={showMonthPicker}
-        setShowMonthPicker={setShowMonthPicker}
-        selectedYear={selectedYear}
-        selectedMonth={selectedMonth}
-        handleMonthSelect={handleMonthSelect}
-        currentDate={currentDate}
-      />
-
-      {isLoading && (
-        <SpinnerOverlay visible={isLoading} content="Đang tải..." />
-      )}
     </>
   );
 };
@@ -287,11 +232,14 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#F5F7FA",
   },
+  scrollContent: {
+    paddingBottom: 100,
+  },
 
   // Header
   header: {
     paddingTop: 60,
-    paddingBottom: 100,
+    paddingBottom: 50,
     paddingHorizontal: 20,
   },
   headerTop: {
@@ -309,22 +257,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#FFFFFF",
     opacity: 0.9,
-  },
-  monthSelector: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.2)",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 20,
-    gap: 6,
-    borderWidth: 1,
-    borderColor: "rgba(255, 255, 255, 0.3)",
-  },
-  monthSelectorText: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#FFFFFF",
   },
 
   // Total Card
@@ -391,7 +323,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "700",
     color: "#1F2937",
   },
@@ -407,11 +339,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 0.5,
+    borderColor: "#E5E7EB",
   },
   salaryIconBox: {
     width: 48,
@@ -437,11 +366,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 20,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 0.5,
+    borderColor: "#E5E7EB",
   },
   calculationRow: {
     flexDirection: "row",

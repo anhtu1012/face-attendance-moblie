@@ -274,7 +274,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
 
         {/* Organization Details */}
         <View style={styles.detailsCard}>
-          <Text style={styles.cardTitle}>Thông tin tổ chức</Text>
+          <Text style={styles.cardTitle}>Thông tin chức vụ</Text>
 
           <InfoRow
             icon="briefcase"
@@ -317,10 +317,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
             onPress={handleSignContract}
           >
             <MaterialCommunityIcons name="draw-pen" size={24} color="#FFFFFF" />
-            <Text style={styles.signContractText}>Ký tên ở đây</Text>
-            <View style={styles.signBadge}>
-              <Text style={styles.signBadgeText}>Bắt buộc</Text>
-            </View>
+            <Text style={styles.signContractText}>Ký hợp đồng</Text>
           </TouchableOpacity>
         )}
 
