@@ -127,17 +127,17 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
         }
       >
         {/* Header */}
-        <View style={styles.header}>
+        {/* <View style={styles.header}>
           <View style={styles.headerTop}>
             <View>
               <Text style={styles.headerTitle}>Lịch sử lương</Text>
               <Text style={styles.headerSubtitle}>Chi tiết theo ngày</Text>
             </View>
           </View>
-        </View>
+        </View> */}
 
         {/* Week Summary Stats */}
-        <View style={styles.summaryContainer}>
+        {/* <View style={styles.summaryContainer}>
           <View style={styles.summaryCard}>
             <View style={styles.summaryIconBox}>
               <MaterialCommunityIcons
@@ -173,7 +173,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
             <Text style={styles.summaryValue}>{weekSummary.holidayDays}</Text>
             <Text style={styles.summaryLabel}>Ngày lễ</Text>
           </View>
-        </View>
+        </View> */}
 
         {/* Week Total Summary */}
         <View style={styles.totalSummary}>
@@ -216,11 +216,6 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
         {/* Daily List */}
         <View style={styles.section}>
           <View style={styles.sectionHeader}>
-            <MaterialCommunityIcons
-              name="format-list-bulleted"
-              size={22}
-              color="#1F2937"
-            />
             <Text style={styles.sectionTitle}>Chi tiết theo ngày</Text>
           </View>
 
@@ -374,7 +369,10 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     backgroundColor: "#FFFFFF",
     borderBottomWidth: 1,
+    borderTopWidth: 1,
     borderBottomColor: "#E5E7EB",
+    borderTopColor: "#E5E7EB",
+    marginBottom: 10,
   },
   headerTop: {
     flexDirection: "row",
@@ -454,6 +452,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: "#93C5FD",
+    marginTop: 10,
   },
   totalRow: {
     flexDirection: "row",
@@ -510,11 +509,8 @@ const styles = StyleSheet.create({
     marginHorizontal: 20,
     marginBottom: 16,
     borderRadius: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
   navButton: {
     width: 40,
@@ -538,11 +534,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
     padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
   },
   dailyCardHoliday: {
     borderLeftWidth: 4,
