@@ -1,7 +1,7 @@
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -17,6 +17,9 @@ import Animated, {
 } from "react-native-reanimated";
 import CheckTimeBox from "../ui/CheckTimeBox";
 import TimesheetTotalHourBox from "../ui/TimesheetTotalHourBox";
+import { useIsFocused } from "@react-navigation/native";
+import { getCurrentTimekeepingData } from "@/services/timesheet/api";
+import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 interface TodayWidgetProps {
   todaySchedule: WorkingSchedule | null;
   loadingSchedule: boolean;
@@ -25,10 +28,26 @@ interface TodayWidgetProps {
 const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
   // Pulse animation for check-in button
   const pulse = useSharedValue(1);
+  const { userId } = useGetUserProfile();
+  const isFocused = useIsFocused();
+  const [currentDateTimekeepingData, setCurrentDateTimekeepingData] =
+    useState();
 
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
   }, []);
+
+  useEffect(() => {
+    if (isFocused && userId) {
+      (async () => {
+        const res = await getCurrentTimekeepingData(userId);
+        const data = res.data;
+        console.log(data);
+
+        setCurrentDateTimekeepingData(data);
+      })();
+    }
+  }, [isFocused]);
 
   const animatedButtonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
