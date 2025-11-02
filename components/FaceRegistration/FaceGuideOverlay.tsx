@@ -1,6 +1,6 @@
 import { useIsFocused } from "@react-navigation/native";
 import { useEffect, useState } from "react";
-import { View } from "react-native";
+import { Dimensions, View } from "react-native";
 import Animated, {
   interpolate,
   runOnJS,
@@ -13,6 +13,8 @@ import Animated, {
 } from "react-native-reanimated";
 import { FaceGuide, styles } from "./FaceGuideoverlay.styles";
 import SegmentedCircle from "./SegmentedCircle";
+
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 interface FaceGuideOverlayType {
   isDetectedFace: boolean;
@@ -186,7 +188,7 @@ export const FaceGuideOverlay = ({
 
   // Calculate border radius: from FaceGuide.radius (15) to 50% of width/height (20)
 
-  const maxRadius = 100;
+  const maxRadius = SCREEN_WIDTH * 0.7;
   const animBorderRadiusTL = useAnimatedStyle(() => {
     const borderTopLeftRadiusValue = interpolate(
       circle.value,
@@ -232,13 +234,13 @@ export const FaceGuideOverlay = ({
   });
 
   const animSizeCorner = useAnimatedStyle(() => ({
-    width: interpolate(circle.value, [0, 1], [FaceGuide.width, 110]),
+    width: interpolate(circle.value, [0, 1], [FaceGuide.width, 113]),
     height: interpolate(circle.value, [0, 1], [FaceGuide.height, 113]),
   }));
   const animBorderStyle = useAnimatedStyle(() => ({
     borderColor: isDetectedFace ? "#918784" : FaceGuide.color,
     borderStyle: isDetectedFace ? "dashed" : "solid",
-    opacity: animationsFinished ? 0 : 1,
+    opacity: 1,
   }));
 
   return (

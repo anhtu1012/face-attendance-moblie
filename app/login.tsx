@@ -118,16 +118,16 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
   const handleLogin = async () => {
     try {
-      // console.log("Logging in with:", { userName, password });
-      // const response = await loginUser({ username: userName, password });
-      // const loginResponse: LoginResponse = response.data;
-      // setToken(loginResponse.accessToken);
-      // await AsyncStorage.setItem("token", loginResponse.accessToken);
-      // await AsyncStorage.setItem(
-      //   "userProfile",
-      //   JSON.stringify(loginResponse.userProfile),
-      // );
-      // dispatch(setAuthData(loginResponse));
+      console.log("Logging in with:", { userName, password });
+      const response = await loginUser({ username: userName, password });
+      const loginResponse: LoginResponse = response.data;
+      setToken(loginResponse.accessToken);
+      await AsyncStorage.setItem("token", loginResponse.accessToken);
+      await AsyncStorage.setItem(
+        "userProfile",
+        JSON.stringify(loginResponse.userProfile),
+      );
+      dispatch(setAuthData(loginResponse));
       router.replace("/(drawer)" as any);
     } catch (error: any) {
       Toast.show({

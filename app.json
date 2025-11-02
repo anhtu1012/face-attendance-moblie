@@ -17,10 +17,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#3674B5",
+        "foregroundImage": "./assets/images/app-logo.png",
+        "backgroundImage": "./assets/images/app-logo.png",
+        "monochromeImage": "./assets/images/app-logo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
