@@ -6,8 +6,8 @@ import {
 } from "@/models/timesheet/timekeeping";
 import React from "react";
 import { Modal, ScrollView, StyleSheet, View } from "react-native";
-import CheckTimeBox from "./CheckTimeBox";
-import NotWorkNotification from "./NotWorkNotification";
+import CheckTimeBox from "../ui/CheckTimeBox";
+import NotWorkNotification from "../ui/NotWorkNotification";
 import TimeDetailBox from "./TimeDetailBox";
 import TimesheetModalHeader from "./TimesheetModalHeader";
 import TimesheetTotalHourBox from "./TimesheetTotalHourBox";
@@ -74,25 +74,27 @@ export default function TimekeepingModal({
                     }
                   />
                 </View>
-
-                <TimeDetailBox
-                  title="Ca làm việc"
-                  data={[
-                    {
-                      label: "Thời gian",
-                      value: `${timekeeping?.shiftInfo?.shiftStartTime} - ${timekeeping?.shiftInfo?.shiftEndTime}`,
-                    },
-                    {
-                      label: "Số giờ",
-                      value: timekeeping?.shiftInfo?.shiftWorkHour ?? "--",
-                    },
-                    {
-                      label: "Số công",
-                      value:
-                        timekeeping?.shiftInfo?.shiftTimekeepingNumber ?? "--",
-                    },
-                  ]}
-                />
+                {!timekeeping?.isFromOT && (
+                  <TimeDetailBox
+                    title="Ca làm việc"
+                    data={[
+                      {
+                        label: "Thời gian",
+                        value: `${timekeeping?.shiftInfo?.shiftStartTime} - ${timekeeping?.shiftInfo?.shiftEndTime}`,
+                      },
+                      {
+                        label: "Số giờ",
+                        value: timekeeping?.shiftInfo?.shiftWorkHour ?? "--",
+                      },
+                      {
+                        label: "Số công",
+                        value:
+                          timekeeping?.shiftInfo?.shiftTimekeepingNumber ??
+                          "--",
+                      },
+                    ]}
+                  />
+                )}
 
                 {timekeeping?.otInfo && (
                   <TimeDetailBox

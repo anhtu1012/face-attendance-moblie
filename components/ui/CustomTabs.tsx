@@ -12,14 +12,32 @@ interface TabProps {
   tabs: {
     id: number;
     title: string;
-    icon: string;
+    icon?: string;
   }[];
   activeTab: number;
   setActiveTab: (tab: number) => void;
+  activeColor?: string; // Màu cho tab active
+  inactiveColor?: string; // Màu cho tab inactive
+  isBorderedBottom?: boolean;
 }
-const CustomTabs = ({ tabs, activeTab, setActiveTab }: TabProps) => {
+const CustomTabs = ({
+  tabs,
+  activeTab,
+  setActiveTab,
+  activeColor = "#3674B5", // Default màu xanh dương
+  inactiveColor = "#666", // Default màu xám
+  isBorderedBottom = true,
+}: TabProps) => {
   return (
-    <View style={styles.tabContainer}>
+    <View
+      style={[
+        styles.tabContainer,
+        isBorderedBottom && {
+          borderBottomWidth: 1,
+          borderBottomColor: "#e0e0e0",
+        },
+      ]}
+    >
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -42,19 +60,30 @@ const CustomTabs = ({ tabs, activeTab, setActiveTab }: TabProps) => {
               <Feather
                 name={tab.icon as any}
                 size={16}
-                color={activeTab === tab.id ? "#3674B5" : "#666"}
+                color={activeTab === tab.id ? activeColor : inactiveColor}
                 style={{ marginRight: 4 }}
               />
             )}
             <Text
               style={[
                 styles.tabButtonText,
-                activeTab === tab.id && styles.activeTabButtonText,
+                activeTab === tab.id && {
+                  color: activeColor,
+                  fontWeight: "600",
+                },
+                activeTab !== tab.id && { color: inactiveColor },
               ]}
             >
               {tab.title}
             </Text>
-            {activeTab === tab.id && <View style={styles.activeTabIndicator} />}
+            {activeTab === tab.id && (
+              <View
+                style={[
+                  styles.activeTabIndicator,
+                  { backgroundColor: activeColor },
+                ]}
+              />
+            )}
           </TouchableOpacity>
         ))}
       </ScrollView>
@@ -64,9 +93,7 @@ const CustomTabs = ({ tabs, activeTab, setActiveTab }: TabProps) => {
 const styles = StyleSheet.create({
   tabContainer: {
     backgroundColor: "#fff",
-    borderBottomWidth: 1,
-    borderBottomColor: "#e0e0e0",
-    paddingBottom: 2,
+    paddingVertical: 8,
   },
   tabScrollContent: {
     paddingHorizontal: 16,
@@ -91,17 +118,12 @@ const styles = StyleSheet.create({
     color: "#666",
     textAlign: "center",
   },
-  activeTabButtonText: {
-    color: "#3674B5",
-    fontWeight: "600",
-  },
   activeTabIndicator: {
     position: "absolute",
     bottom: 0,
     left: 12,
     right: 12,
     height: 2,
-    backgroundColor: "#3674B5",
     borderRadius: 1,
   },
 });

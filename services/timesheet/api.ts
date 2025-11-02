@@ -1,15 +1,26 @@
 import api from "@/config/axios";
+import { dtoPutTimekeep } from "@/models/timesheet/dtoTimekeep";
 
-export const getTimeSchedule = (
-  fromDate: Date,
-  toDate: Date,
-  userCode: string,
-) => {
-  return api.get("/business/lich-lam", {
+export const timkeep = async (data: dtoPutTimekeep, timekeepingId: string) => {
+  return api.put(`time-keeping/cham-cong/${timekeepingId}`, data);
+};
+
+export const getCurrentTimekeepingData = async (userId: string) => {
+  const today = new Date();
+  const yesterday = new Date(today);
+
+  // set yesterday
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setUTCHours(0, 0, 0, 0);
+
+  // set Today
+  today.setUTCHours(0, 0, 0, 0);
+
+  return api.get("time-keeping/danh-sach-cham-cong", {
     params: {
-      fromDate,
-      toDate,
-      userCode,
+      startTime: yesterday.toISOString(),
+      endTime: today.toISOString(),
+      userId: userId,
     },
   });
 };

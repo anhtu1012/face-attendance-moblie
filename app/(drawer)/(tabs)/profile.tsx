@@ -84,7 +84,7 @@ export default function ProfilePage() {
       case 2:
         return <DependentInfo userId={userId || ""} />;
       case 3:
-        return <WorkContractInfo userData={userProfile} />;
+        return <WorkContractInfo userId={userId} gmail={userProfile?.email || ""} />;
       default:
         return (
           <GeneralInfo

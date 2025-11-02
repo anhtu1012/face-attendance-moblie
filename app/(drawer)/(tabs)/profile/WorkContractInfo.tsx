@@ -1,6 +1,16 @@
+import SignatureModal from "@/components/Contract/SignatureModal";
+import ContractHistoryModal from "@/components/ui/ContractHistoryModal";
+import ErrorAlert from "@/components/ui/ErrorAlert";
 import PDFModal from "@/components/ui/PDFModal";
-import { dtoUpdateUser } from "@/models/auth/dtoUser";
-import React, { useMemo, useState } from "react";
+import SuccessAlert from "@/components/ui/SuccessAlert";
+import { useConfirmOtp } from "@/hooks/useConfirmOtp";
+import { useGetContractByUserId } from "@/hooks/useGetContractByUserId";
+import {
+  Feather,
+  MaterialCommunityIcons,
+  MaterialIcons,
+} from "@expo/vector-icons";
+import React, { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -10,314 +20,626 @@ import {
 } from "react-native";
 
 interface WorkContractInfoProps {
-  userData: dtoUpdateUser | undefined;
+  userId?: string;
+  gmail?: string;
 }
 
-type ContractPreview = {
-  id: string;
-  contractType: string;
-  laborType: string; 
-  position: string; 
-  startDate: Date;
-  endDate: Date;
-  pdfUrl: string;
-};
-
-const WorkContractInfo: React.FC<WorkContractInfoProps> = ({ userData }) => {
-  const [isEditing, setIsEditing] = useState(false);
-  const [editData, setEditData] = useState<dtoUpdateUser>(
-    userData as dtoUpdateUser
+const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
+  userId,
+  gmail,
+}) => {
+  const [signatureModalVisible, setSignatureModalVisible] = useState(false);
+  const [pdfModalVisible, setPdfModalVisible] = useState(false);
+  const [successAlertVisible, setSuccessAlertVisible] = useState(false);
+  const [errorAlertVisible, setErrorAlertVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [contractHistoryModalVisible, setContractHistoryModalVisible] =
+    useState(false);
+  const { data: contractList, refetch } = useGetContractByUserId(userId ?? "");
+  const confirmOtp = useConfirmOtp();
+  const contractData = contractList?.find(
+    (contract) =>
+      contract.status !== "INACTIVE" && contract.status !== "EXPIRED"
   );
-  const [isVisible, setIsVisible] = useState(false);
-  const [selectedPdfUrl, setSelectedPdfUrl] = useState<string | null>(null);
-  const [title, setTitle] = useState<string>("");
-  // Mock data: 2 hợp đồng, sắp xếp theo thời gian gần nhất (startDate desc)
-  const mockContracts: ContractPreview[] = useMemo(
-    () =>
-      [
-        {
-          id: "hd-002",
-          contractType: "HĐLĐ xác định thời hạn",
-          laborType: "Toàn thời gian",
-          position: "Front-end Developer",
-          startDate: new Date("2024-05-15"),
-          endDate: new Date("2025-05-14"),
-          pdfUrl: "https://nhanchinh.vn/storage/files/5/Hop-dong-lao-dong.pdf",
-        },
-        {
-          id: "hd-001",
-          contractType: "HĐLĐ thử việc",
-          laborType: "Toàn thời gian",
-          position: "Back-end Developer",
-          startDate: new Date("2024-03-01"),
-          endDate: new Date("2024-05-01"),
-          pdfUrl: "https://nhanchinh.vn/storage/files/5/Hop-dong-lao-dong.pdf",
-        },
-      ].sort((a, b) => b.startDate.getTime() - a.startDate.getTime()),
-    []
-  );
-
-  const formatDate = (d: Date) =>
-    new Intl.DateTimeFormat("vi-VN", {
+  const formatDate = (dateString: string | null) => {
+    if (!dateString) return "--";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("vi-VN", {
       day: "2-digit",
       month: "2-digit",
       year: "numeric",
-    }).format(d);
-
-  const getDuration = (start: Date, end: Date) => {
-    const ms = end.getTime() - start.getTime();
-    if (ms <= 0) return "0 ngày";
-    const days = Math.floor(ms / (1000 * 60 * 60 * 24));
-    const months = Math.floor(days / 30);
-    if (months >= 1) return `${months} tháng`;
-    return `${days} ngày`;
+    });
   };
 
-  const handleSave = () => {
-    setIsEditing(false);
+  const formatCurrency = (value: string) => {
+    return `${value} ₫`;
   };
 
-  const handleCancel = () => {
-    setIsEditing(false);
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "ACTIVE":
+        return "Đang có hiệu lực";
+      case "EXPIRED":
+        return "Hết hạn";
+      case "PENDING":
+        return "Đang xử lý";
+      case "INACTIVE":
+        return "Ngừng có hiệu lực";
+      case "USER_SIGNED":
+        return "Chờ ký hợp đồng";
+      case "DIRECTOR_SIGNED":
+        return "Chờ giám đốc ký";
+      default:
+        return status;
+    }
+  };
+
+  const handleSignContract = () => {
+    setSignatureModalVisible(true);
+  };
+
+  const handleSignComplete = (signatureBase64: string, otpCode: string) => {
+    const formData = new FormData();
+    formData.append("otpCode", otpCode);
+    formData.append("userContractId", contractData?.id ?? "");
+    formData.append("signatureType", "USER");
+    formData.append("fileSignUrl", signatureBase64);
+    const fileName = `contract_${contractData?.id ?? ""}.png`;
+    formData.append("fileSignUrl", {
+      uri: signatureBase64,
+      type: "image/png",
+      name: fileName,
+    } as any);
+
+    confirmOtp.mutate(formData, {
+      onSuccess: () => {
+        refetch();
+        setSignatureModalVisible(false);
+        setSuccessAlertVisible(true);
+      },
+      onError: (error: any) => {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Không thể ký hợp đồng. Vui lòng thử lại!";
+        setErrorMessage(message);
+        setErrorAlertVisible(true);
+      },
+    });
   };
 
   return (
     <View style={styles.container}>
-      {/* Header */}
-      <View style={styles.headerActions}>
-        <Text style={styles.sectionTitle}>Lịch sử hợp đồng</Text>
-      </View>
-
-      {/* Contract List */}
       <ScrollView
-        style={styles.list}
-        contentContainerStyle={styles.listContent}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
       >
-        {mockContracts.map((c) => (
-          <TouchableOpacity
-            key={c.id}
-            style={styles.card}
-            activeOpacity={0.85}
-            onPress={() => {
-              setSelectedPdfUrl(c.pdfUrl);
-              setIsVisible(true);
-              setTitle(c.contractType);
-            }}
-          >
-            <View style={styles.cardHeaderRow}>
-              <Text style={styles.cardTitle}>{c.contractType}</Text>
-              <Text style={styles.cardBadge}>{c.laborType}</Text>
+        {!contractData ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Không có hợp đồng</Text>
+          </View>
+        ) : (
+          <>
+            <View style={styles.detailsCard}>
+              <Text style={styles.cardTitle}>Thông tin hợp đồng</Text>
+              <InfoRow
+                icon="hash"
+                value={contractData?.contractNumber ?? ""}
+                iconColor="#3B82F6"
+                label="Số hợp đồng"
+              />
+              <InfoRow
+                icon="file-text"
+                label="Loại hợp đồng"
+                value={contractData?.contractTypeName ?? ""}
+                iconColor="#3B82F6"
+              />
+              <InfoRow
+                icon="activity"
+                label="Tình trạng"
+                value={getStatusLabel(contractData?.status ?? "")}
+                iconColor="#3B82F6"
+              />
+
+              <InfoRow
+                icon="calendar"
+                label="Ngày bắt đầu"
+                value={formatDate(contractData?.startDate ?? "")}
+                iconColor="#3B82F6"
+              />
+              {contractData?.endDate && (
+                <InfoRow
+                  icon="calendar"
+                  label="Ngày kết thúc"
+                  value={formatDate(contractData?.endDate ?? "")}
+                  iconColor="#EF4444"
+                />
+              )}
+              <InfoRow
+                icon="clock"
+                label="Thời hạn"
+                value={
+                  contractData?.endDate
+                    ? `${contractData?.duration} tháng`
+                    : "Vô thời hạn"
+                }
+                iconColor="#8B5CF6"
+              />
             </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Vị trí</Text>
-              <Text style={styles.metaValue}>{c.position}</Text>
+
+            {/* Salary Card */}
+            <View style={styles.salaryCard}>
+              <View style={styles.salaryHeader}>
+                <MaterialIcons name="attach-money" size={24} color="#10B981" />
+                <Text style={styles.salaryLabel}>Tổng lương</Text>
+              </View>
+              <Text style={styles.salaryAmount}>
+                {formatCurrency(contractData?.grossSalary ?? "0")}
+              </Text>
+              <View style={styles.salaryDivider} />
+              {contractData?.allowanceInfors.length > 0 && (
+                <View style={styles.allowanceSection}>
+                  <Text style={styles.allowanceTitle}>Phụ cấp</Text>
+                  {contractData?.allowanceInfors.map((allowance) => (
+                    <View
+                      key={allowance.allowanceId}
+                      style={styles.allowanceItem}
+                    >
+                      <View style={styles.allowanceLeft}>
+                        <View style={styles.allowanceDot} />
+                        <Text style={styles.allowanceName}>
+                          {allowance.allowanceName}
+                        </Text>
+                      </View>
+                      <Text style={styles.allowanceValue}>
+                        {formatCurrency(allowance.value)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
             </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Bắt đầu</Text>
-              <Text style={styles.metaValue}>{formatDate(c.startDate)}</Text>
+
+            {/* Organization Details */}
+            <View style={styles.detailsCard}>
+              <Text style={styles.cardTitle}>Thông tin chức vụ</Text>
+
+              <InfoRow
+                icon="briefcase"
+                label="Chức vụ"
+                value={contractData?.positionName ?? ""}
+                iconColor="#F59E0B"
+              />
+              <InfoRow
+                icon="users"
+                label="Phòng ban"
+                value={contractData?.departmentName ?? ""}
+                iconColor="#EC4899"
+              />
+              <InfoRow
+                icon="user-check"
+                label="Quản lý trực tiếp bởi"
+                value={contractData?.fullNameManager ?? ""}
+                iconColor="#10B981"
+              />
             </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Kết thúc</Text>
-              <Text style={styles.metaValue}>{formatDate(c.endDate)}</Text>
+
+            {/* View Contract Button */}
+            <View style={styles.contractButtonsContainer}>
+              <TouchableOpacity
+                style={styles.viewContractButton}
+                onPress={() => setContractHistoryModalVisible(true)}
+              >
+                <MaterialCommunityIcons
+                  name="history"
+                  size={20}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.viewContractText}>Lịch sử hợp đồng</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.viewContractButton}
+                onPress={() => setPdfModalVisible(true)}
+              >
+                <MaterialCommunityIcons
+                  name="file-pdf-box"
+                  size={20}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.viewContractText}>Chi tiết hợp đồng</Text>
+              </TouchableOpacity>
             </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Thời hạn</Text>
-              <Text style={styles.metaHighlight}>
-                {getDuration(c.startDate, c.endDate)}
+            {/* Sign Contract Button - Only show if status is USER_SIGNED */}
+            {contractData?.status === "USER_SIGNED" && (
+              <TouchableOpacity
+                style={styles.signContractButton}
+                onPress={handleSignContract}
+              >
+                <MaterialCommunityIcons
+                  name="draw-pen"
+                  size={24}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.signContractText}>Ký hợp đồng</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Footer Info */}
+            <View style={styles.footerInfo}>
+              <Text style={styles.footerText}>
+                Cập nhật lần cuối:{" "}
+                {new Date(contractData?.updatedAt ?? "").toLocaleString(
+                  "vi-VN"
+                )}
               </Text>
             </View>
-            <View style={styles.linkRow}>
-              <Text style={styles.linkText}>Xem hợp đồng</Text>
-            </View>
-          </TouchableOpacity>
-        ))}
+          </>
+        )}
       </ScrollView>
+
+      {/* Signature Modal */}
+      <SignatureModal
+        visible={signatureModalVisible}
+        onClose={() => setSignatureModalVisible(false)}
+        onSignComplete={handleSignComplete}
+        contractNumber={contractData?.contractNumber ?? ""}
+        userContractId={contractData?.id.toString() ?? ""}
+        userGmail={gmail ?? ""}
+      />
 
       {/* PDF Modal */}
       <PDFModal
-        isVisible={isVisible}
-        title={title}
-        pdfUrl={"https://nhanchinh.vn/storage/files/5/Hop-dong-lao-dong.pdf"}
-        onClose={() => setIsVisible(false)}
+        isVisible={pdfModalVisible}
+        onClose={() => setPdfModalVisible(false)}
+        pdfUrl={contractData?.fileContract ?? ""}
+        title={contractData?.contractNumber ?? ""}
+      />
+
+      {/* Success Alert */}
+      <SuccessAlert
+        visible={successAlertVisible}
+        title="Ký thành công!"
+        message="Hợp đồng của bạn đã được ký thành công. Chúng tôi sẽ xử lý trong thời gian sớm nhất."
+        onClose={() => setSuccessAlertVisible(false)}
+        confirmText="Tiếp tục"
+        autoClose={false}
+        autoCloseDuration={4000}
+      />
+
+      {/* Error Alert */}
+      <ErrorAlert
+        visible={errorAlertVisible}
+        title="Ký thất bại!"
+        message={errorMessage}
+        onClose={() => setErrorAlertVisible(false)}
+        onRetry={() => {
+          setErrorAlertVisible(false);
+          setSignatureModalVisible(true);
+        }}
+        showRetry={true}
+        retryText="Thử lại"
+        closeText="Đóng"
+      />
+
+      {/* Contract History Modal */}
+      <ContractHistoryModal
+        contractList={contractList ?? []}
+        visible={contractHistoryModalVisible}
+        onClose={() => setContractHistoryModalVisible(false)}
       />
     </View>
   );
 };
 
+interface InfoRowProps {
+  icon: string;
+  label: string;
+  value: string;
+  iconColor: string;
+}
+
+const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value, iconColor }) => (
+  <View style={styles.infoRow}>
+    <View style={styles.infoLeft}>
+      <View style={[styles.infoIconBox, { backgroundColor: `${iconColor}15` }]}>
+        <Feather name={icon as any} size={18} color={iconColor} />
+      </View>
+      <Text style={styles.infoLabel}>{label}</Text>
+    </View>
+    <Text style={styles.infoValue}>{value}</Text>
+  </View>
+);
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#F5F7FA",
   },
-  list: {
+  scrollView: {
     flex: 1,
   },
-  listContent: {
+  scrollContent: {
     padding: 16,
     paddingBottom: 24,
-    gap: 12,
   },
-  headerActions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#333",
-  },
-  card: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
+  headerCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
     padding: 16,
+    marginBottom: 12,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
-  cardHeaderRow: {
+  headerTop: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  headerLeft: {
+    flexDirection: "row",
+    flex: 1,
+    alignItems: "center",
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  headerInfo: {
+    flex: 1,
+  },
+  contractNumber: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1F2937",
+    marginBottom: 4,
+  },
+  contractType: {
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "500",
+  },
+  contractButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    borderWidth: 1.5,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
+  },
+
+  // Salary Card
+  salaryCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+  },
+  salaryHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  salaryLabel: {
+    fontSize: 14,
+    color: "#6B7280",
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+  salaryAmount: {
+    fontSize: 32,
+    fontWeight: "800",
+    color: "#10B981",
+    marginBottom: 16,
+  },
+  salaryDivider: {
+    height: 1,
+    backgroundColor: "#E5E7EB",
+    marginBottom: 16,
+  },
+  allowanceSection: {
+    gap: 12,
+  },
+  allowanceTitle: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#374151",
+    marginBottom: 4,
+  },
+  allowanceItem: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    paddingVertical: 8,
+  },
+  allowanceLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  allowanceDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: "#10B981",
+    marginRight: 10,
+  },
+  allowanceName: {
+    fontSize: 14,
+    color: "#4B5563",
+    fontWeight: "500",
+  },
+  allowanceValue: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#10B981",
+  },
+
+  // Details Card
+  detailsCard: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
   },
   cardTitle: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1f2937",
-    flexShrink: 1,
-    paddingRight: 8,
+    color: "#1F2937",
+    marginBottom: 16,
   },
-  cardBadge: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#2563eb",
-    backgroundColor: "#e0edff",
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 999,
-  },
-  metaRow: {
+  infoRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingVertical: 6,
-  },
-  metaLabel: {
-    fontSize: 14,
-    color: "#6b7280",
-  },
-  metaValue: {
-    fontSize: 14,
-    color: "#111827",
-    fontWeight: "500",
-  },
-  metaHighlight: {
-    fontSize: 14,
-    color: "#0f766e",
-    fontWeight: "700",
-  },
-  linkRow: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  linkText: {
-    fontSize: 13,
-    color: "#2563eb",
-    fontWeight: "600",
-  },
-  actionButtons: {
-    flexDirection: "row",
-    gap: 12,
-  },
-  headerActionButtonEdit: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f8f9fa",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#3674B5",
-  },
-  headerActionButtonEditText: {
-    color: "#3674B5",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  headerActionButtonSave: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#D69E2E",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  headerActionButtonSaveText: {
-    color: "#fff",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  headerActionButtonCancel: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#FEF2F2",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: "#E53E3E",
-  },
-  headerActionButtonCancelText: {
-    color: "#E53E3E",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  infoCard: {
-    backgroundColor: "#fff",
-    margin: 16,
-    borderRadius: 12,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  infoItem: {
-    flexDirection: "row",
-    alignItems: "center",
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: "#F3F4F6",
   },
-  infoIconContainer: {
-    marginRight: 16,
-    width: 24,
+  infoLeft: {
+    flexDirection: "row",
     alignItems: "center",
-  },
-  infoTextContainer: {
     flex: 1,
+    marginRight: 12,
+  },
+  infoIconBox: {
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
   },
   infoLabel: {
     fontSize: 14,
+    color: "#6B7280",
     fontWeight: "500",
-    color: "#666",
-    marginBottom: 4,
   },
   infoValue: {
+    fontSize: 14,
+    color: "#1F2937",
+    fontWeight: "600",
+    textAlign: "right",
+  },
+
+  // View Contract Button
+  viewContractButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#3674B5",
+    borderRadius: 12,
+    padding: 16,
+    shadowColor: "#3674B5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+    gap: 8,
+    width: "45%",
+  },
+  viewContractText: {
+    fontSize: 13,
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginLeft: 2,
+  },
+
+  // Sign Contract Button
+  signContractButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#10B981",
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#10B981",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+    gap: 8,
+    position: "relative",
+  },
+  signContractText: {
     fontSize: 16,
-    color: "#333",
+    fontWeight: "700",
+    color: "#FFFFFF",
+    marginLeft: 4,
+  },
+  signBadge: {
+    position: "absolute",
+    top: -8,
+    right: -8,
+    backgroundColor: "#EF4444",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: "#FFFFFF",
+  },
+  signBadgeText: {
+    fontSize: 10,
+    fontWeight: "700",
+    color: "#FFFFFF",
+  },
+
+  // Footer
+  footerInfo: {
+    alignItems: "center",
+    paddingVertical: 8,
+  },
+  footerText: {
+    fontSize: 12,
+    color: "#9CA3AF",
+    fontStyle: "italic",
+  },
+  emptyContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    alignItems: "center",
+    paddingVertical: 8,
+    justifyContent: "center",
+    height: "100%",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#9CA3AF",
+    fontWeight: "500",
+    textAlign: "center",
   },
 });
-
 export default WorkContractInfo;

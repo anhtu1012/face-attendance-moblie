@@ -236,6 +236,12 @@ export default function TabLayout() {
           }}
         />
 
+        <Tabs.Screen
+          name="timesheet-camera"
+          options={{
+            href: null,
+          }}
+        />
         {/* Hide pages */}
         <Tabs.Screen
           name="(form)/create-form"

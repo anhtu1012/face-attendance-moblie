@@ -4,7 +4,7 @@
     "slug": "face-attendance-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/app-logo.png",
     "scheme": "faceattendancemobile",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -17,18 +17,16 @@
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-icon-foreground.png",
-        "backgroundImage": "./assets/images/android-icon-background.png",
-        "monochromeImage": "./assets/images/android-icon-monochrome.png"
+        "backgroundColor": "#3674B5",
+        "foregroundImage": "./assets/images/app-logo.png",
+        "backgroundImage": "./assets/images/app-logo.png",
+        "monochromeImage": "./assets/images/app-logo.png"
       },
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.huangphucc.faceattendancemobile",
       "googleServicesFile": "./google-services.json",
-      "permissions": [
-        "android.permission.CAMERA"
-      ]
+      "permissions": ["android.permission.CAMERA", "android.permission.CAMERA"]
     },
     "web": {
       "output": "static",
@@ -45,12 +43,12 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/app-logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff",
+          "backgroundColor": "#3674B5",
           "dark": {
-            "backgroundColor": "#000000"
+            "backgroundColor": "#3674B5"
           }
         }
       ],
@@ -79,6 +77,12 @@
         "projectId": "3e0e0287-1ca0-45b1-b4cc-40be5f9b31e8"
       }
     },
-    "owner": "huangphucc"
+    "owner": "huangphucc",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3e0e0287-1ca0-45b1-b4cc-40be5f9b31e8"
+    }
   }
 }

@@ -1,14 +1,30 @@
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
 
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+// Calculate responsive values based on screen dimensions
 export const FaceGuide = {
-  width: 40,
-  height: 40,
-  top: 180,
-  bottom: -25,
-  horizontal: 40,
+  // Corner dimensions - 5% of screen width
+  width: SCREEN_WIDTH * 0.11, // ~11% of screen width (about 40-50px on most devices)
+  height: SCREEN_WIDTH * 0.11,
+
+  // Position from top - 23% of screen height
+  top: SCREEN_HEIGHT * 0.255,
+
+  // Position from bottom - negative value to adjust
+  bottom: -SCREEN_HEIGHT * 0.06,
+
+  // Horizontal margin - 10% of screen width
+  horizontal: SCREEN_WIDTH * 0.1,
+
+  // Border widths
   borderVerticalWidth: 4,
   borderHorizontalWidth: 4,
-  radius: 40,
+
+  // Border radius
+  radius: SCREEN_WIDTH * 0.1,
+
+  // Color
   color: "#fefcfb",
 };
 
@@ -24,8 +40,9 @@ export const styles = StyleSheet.create({
     justifyContent: "flex-start",
   },
   faceGuide: {
-    width: 300,
-    height: 380,
+    // Responsive: 80% of screen width, with max aspect ratio
+    width: SCREEN_WIDTH * 0.79,
+    height: SCREEN_HEIGHT * 0.503, // 50% of screen height
     position: "relative",
   },
   cornerTopLeft: {

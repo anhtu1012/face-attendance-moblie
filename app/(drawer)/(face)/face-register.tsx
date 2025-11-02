@@ -52,14 +52,18 @@ export default function FaceRegisterPage() {
           {
             text: "Đăng ký lại",
             onPress: () => {
-              router.replace("/(drawer)/(face)/camera");
+              router.replace({
+                pathname: "/(drawer)/(face)/camera",
+              });
               // handleBiometricAuth();
             },
           },
         ],
       );
     } else {
-      router.replace("/(drawer)/(face)/camera");
+      router.replace({
+        pathname: "/(drawer)/(face)/camera",
+      });
       // handleBiometricAuth();
     }
   };

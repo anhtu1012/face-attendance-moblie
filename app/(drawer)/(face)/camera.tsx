@@ -1,7 +1,6 @@
 import { CameraView } from "@/components/FaceRegistration/CameraView";
 import { FaceGuideOverlay } from "@/components/FaceRegistration/FaceGuideOverlay";
 import { InstructionText } from "@/components/FaceRegistration/InstructionText";
-import { ProgressBar } from "@/components/FaceRegistration/ProgressBar";
 import SpinnerOverlay from "@/components/SpinnerOverlay";
 import AlertModal from "@/components/ui/AlertModal";
 import { useFaceRegistration } from "@/hooks/useFaceRegistration";
@@ -19,7 +18,6 @@ const CameraPage = () => {
     missingPose,
     isPending,
     modal,
-    setModal,
     frameProcessor,
     handleCameraLayout,
     userFace,
@@ -27,9 +25,13 @@ const CameraPage = () => {
   } = useFaceRegistration();
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
+      {/* Loading overlay */}
       <SpinnerOverlay visible={isPending} content="Đang upload ảnh..." />
+      {/* Modal */}
       <AlertModal {...modal} />
+      {/* Title */}
       <Text style={styles.title}>Đăng ký khuôn mặt</Text>
+      {/* Camera */}
       {ready && device && (
         <CameraView
           cameraRef={cameraRef}
@@ -47,21 +49,8 @@ const CameraPage = () => {
         currentPose={currentPose}
         currentMissingPose={missingPose[0]}
       />
+      {/* Instruction Text */}
       <InstructionText missingPose={missingPose} isDetectedFace={userFace} />
-
-      {/* Progress bar */}
-      {/*
-<ProgressBar missingPose={missingPose} />
-      */}
-
-      {/* Camera Controls */}
-      <View style={styles.controlsContainer}>
-        {/* Top Controls */}
-        <View style={styles.topControls}></View>
-
-        {/* Bottom Controls */}
-        <View style={styles.shutterContainer}></View>
-      </View>
     </View>
   );
 };

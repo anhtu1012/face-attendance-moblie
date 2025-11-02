@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
 interface SegmentConfig {
@@ -19,9 +19,16 @@ interface SegmentedCircleProps {
   currentMissingPose: number | undefined;
 }
 
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+
+const SegmentedCircleProps = {
+  top: SCREEN_HEIGHT * 0.18,
+  left: SCREEN_WIDTH * 0.042,
+};
+
 const SegmentedCircle: React.FC<SegmentedCircleProps> = ({
   segments,
-  radius = 112,
+  radius = SCREEN_WIDTH * 0.31,
   defaultColor = "#709ED4",
   currentPose,
   currentMissingPose,
@@ -200,8 +207,8 @@ export default SegmentedCircle;
 const styles = StyleSheet.create({
   container: {
     position: "absolute",
-    top: "17%",
-    left: "2.4%",
+    top: SegmentedCircleProps.top,
+    left: SegmentedCircleProps.left,
     zIndex: 99,
     overflow: "visible", // Allow content to overflow without clipping
   },

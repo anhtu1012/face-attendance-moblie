@@ -99,6 +99,7 @@ export default function CreateFormPage() {
       "endTime",
       new Date(date.endDate + "T" + date.endTime).toISOString(),
     );
+    formData.append("date", new Date().toISOString());
 
     try {
       // Set loading state
