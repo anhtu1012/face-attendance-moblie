@@ -33,7 +33,6 @@ export default function TimesheetTabPlaceholder() {
         tabs={tabs}
         activeTab={activeTab}
         setActiveTab={setActiveTab}
-        activeColor="#10B981"
         inactiveColor="#6B7280"
       />
       <ScrollView style={styles.scrollViewContainer}>

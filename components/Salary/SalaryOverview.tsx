@@ -79,13 +79,13 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
           <RefreshControl
             refreshing={isLoading}
             onRefresh={refetch}
-            colors={["#10B981"]}
-            tintColor="#10B981"
+            colors={["#3674B5"]}
+            tintColor="#3674B5"
           />
         }
       >
         {/* Header */}
-        <LinearGradient colors={["#10B981", "#059669"]} style={styles.header}>
+        <LinearGradient colors={["#3674B5", "#3674B5"]} style={styles.header}>
           <View style={styles.headerTop}></View>
         </LinearGradient>
 
@@ -99,7 +99,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
               <MaterialCommunityIcons
                 name="cash-multiple"
                 size={40}
-                color="#10B981"
+                color="#3674B5"
               />
             </View>
             <Text style={styles.totalLabel}>Tổng lương thực nhận</Text>
@@ -107,7 +107,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
               {formatCurrency(data?.totalSalary || 0)}
             </Text>
             <View style={styles.totalBadge}>
-              <Feather name="check-circle" size={14} color="#10B981" />
+              <Feather name="check-circle" size={14} color="#3674B5" />
               <Text style={styles.totalBadgeText}>
                 Tháng {selectedMonth}/{selectedYear}
               </Text>
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: "#ECFDF5",
+    backgroundColor: "#EFF6FF",
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 16,
@@ -293,13 +293,13 @@ const styles = StyleSheet.create({
   totalAmount: {
     fontSize: 32,
     fontWeight: "800",
-    color: "#10B981",
+    color: "#3674B5",
     marginBottom: 12,
   },
   totalBadge: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ECFDF5",
+    backgroundColor: "#EFF6FF",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 16,
@@ -308,7 +308,7 @@ const styles = StyleSheet.create({
   totalBadgeText: {
     fontSize: 12,
     fontWeight: "600",
-    color: "#10B981",
+    color: "#3674B5",
   },
 
   // Section

@@ -1,4 +1,5 @@
 import SignatureModal from "@/components/Contract/SignatureModal";
+import ContractHistoryModal from "@/components/ui/ContractHistoryModal";
 import ErrorAlert from "@/components/ui/ErrorAlert";
 import PDFModal from "@/components/ui/PDFModal";
 import SuccessAlert from "@/components/ui/SuccessAlert";
@@ -32,7 +33,8 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
   const [successAlertVisible, setSuccessAlertVisible] = useState(false);
   const [errorAlertVisible, setErrorAlertVisible] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-
+  const [contractHistoryModalVisible, setContractHistoryModalVisible] =
+    useState(false);
   const { data: contractList, refetch } = useGetContractByUserId(userId ?? "");
   const confirmOtp = useConfirmOtp();
   const contractData = contractList?.find(
@@ -51,35 +53,6 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
 
   const formatCurrency = (value: string) => {
     return `${value} ₫`;
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "ACTIVE":
-        return {
-          bg: "#ECFDF5",
-          text: "#065F46",
-          border: "#A7F3D0",
-        };
-      case "EXPIRED":
-        return {
-          bg: "#FEE2E2",
-          text: "#991B1B",
-          border: "#FECACA",
-        };
-      case "PENDING":
-        return {
-          bg: "#FFFBEB",
-          text: "#92400E",
-          border: "#FCD34D",
-        };
-      default:
-        return {
-          bg: "#F3F4F6",
-          text: "#4B5563",
-          border: "#D1D5DB",
-        };
-    }
   };
 
   const getStatusLabel = (status: string) => {
@@ -135,8 +108,6 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
     });
   };
 
-  const statusColors = getStatusColor(contractData?.status ?? "");
-
   return (
     <View style={styles.container}>
       <ScrollView
@@ -150,35 +121,51 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
           </View>
         ) : (
           <>
-            {/* Header Card */}
-            <View style={styles.headerCard}>
-              <View style={styles.headerTop}>
-                <View style={styles.headerLeft}>
-                  <View style={styles.headerInfo}>
-                    <Text style={styles.contractNumber}>
-                      Số hợp đồng: {contractData?.contractNumber}
-                    </Text>
-                    <Text style={styles.contractType}>
-                      Loại hợp đồng: {contractData?.contractTypeName}
-                    </Text>
-                  </View>
-                </View>
-                <View
-                  style={[
-                    styles.statusBadge,
-                    {
-                      backgroundColor: statusColors.bg,
-                      borderColor: statusColors.border,
-                    },
-                  ]}
-                >
-                  <Text
-                    style={[styles.statusText, { color: statusColors.text }]}
-                  >
-                    {getStatusLabel(contractData?.status ?? "")}
-                  </Text>
-                </View>
-              </View>
+            <View style={styles.detailsCard}>
+              <Text style={styles.cardTitle}>Thông tin hợp đồng</Text>
+              <InfoRow
+                icon="hash"
+                value={contractData?.contractNumber ?? ""}
+                iconColor="#3B82F6"
+                label="Số hợp đồng"
+              />
+              <InfoRow
+                icon="file-text"
+                label="Loại hợp đồng"
+                value={contractData?.contractTypeName ?? ""}
+                iconColor="#3B82F6"
+              />
+              <InfoRow
+                icon="activity"
+                label="Tình trạng"
+                value={getStatusLabel(contractData?.status ?? "")}
+                iconColor="#3B82F6"
+              />
+
+              <InfoRow
+                icon="calendar"
+                label="Ngày bắt đầu"
+                value={formatDate(contractData?.startDate ?? "")}
+                iconColor="#3B82F6"
+              />
+              {contractData?.endDate && (
+                <InfoRow
+                  icon="calendar"
+                  label="Ngày kết thúc"
+                  value={formatDate(contractData?.endDate ?? "")}
+                  iconColor="#EF4444"
+                />
+              )}
+              <InfoRow
+                icon="clock"
+                label="Thời hạn"
+                value={
+                  contractData?.endDate
+                    ? `${contractData?.duration} tháng`
+                    : "Vô thời hạn"
+                }
+                iconColor="#8B5CF6"
+              />
             </View>
 
             {/* Salary Card */}
@@ -214,36 +201,6 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
               )}
             </View>
 
-            {/* Contract Details */}
-            <View style={styles.detailsCard}>
-              <Text style={styles.cardTitle}>Thông tin hợp đồng</Text>
-
-              <InfoRow
-                icon="calendar"
-                label="Ngày bắt đầu"
-                value={formatDate(contractData?.startDate ?? "")}
-                iconColor="#3B82F6"
-              />
-              {contractData?.endDate && (
-                <InfoRow
-                  icon="calendar"
-                  label="Ngày kết thúc"
-                  value={formatDate(contractData?.endDate ?? "")}
-                  iconColor="#EF4444"
-                />
-              )}
-              <InfoRow
-                icon="clock"
-                label="Thời hạn"
-                value={
-                  contractData?.endDate
-                    ? `${contractData?.duration} tháng`
-                    : "Vô thời hạn"
-                }
-                iconColor="#8B5CF6"
-              />
-            </View>
-
             {/* Organization Details */}
             <View style={styles.detailsCard}>
               <Text style={styles.cardTitle}>Thông tin chức vụ</Text>
@@ -269,18 +226,30 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
             </View>
 
             {/* View Contract Button */}
-            <TouchableOpacity
-              style={styles.viewContractButton}
-              onPress={() => setPdfModalVisible(true)}
-            >
-              <MaterialCommunityIcons
-                name="file-pdf-box"
-                size={24}
-                color="#FFFFFF"
-              />
-              <Text style={styles.viewContractText}>Chi tiết hợp đồng</Text>
-            </TouchableOpacity>
-
+            <View style={styles.contractButtonsContainer}>
+              <TouchableOpacity
+                style={styles.viewContractButton}
+                onPress={() => setContractHistoryModalVisible(true)}
+              >
+                <MaterialCommunityIcons
+                  name="history"
+                  size={20}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.viewContractText}>Lịch sử hợp đồng</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.viewContractButton}
+                onPress={() => setPdfModalVisible(true)}
+              >
+                <MaterialCommunityIcons
+                  name="file-pdf-box"
+                  size={20}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.viewContractText}>Chi tiết hợp đồng</Text>
+              </TouchableOpacity>
+            </View>
             {/* Sign Contract Button - Only show if status is USER_SIGNED */}
             {contractData?.status === "USER_SIGNED" && (
               <TouchableOpacity
@@ -351,6 +320,13 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
         showRetry={true}
         retryText="Thử lại"
         closeText="Đóng"
+      />
+
+      {/* Contract History Modal */}
+      <ContractHistoryModal
+        contractList={contractList ?? []}
+        visible={contractHistoryModalVisible}
+        onClose={() => setContractHistoryModalVisible(false)}
       />
     </View>
   );
@@ -430,6 +406,10 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: "#6B7280",
     fontWeight: "500",
+  },
+  contractButtonsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-around",
   },
   statusBadge: {
     paddingHorizontal: 12,
@@ -574,23 +554,24 @@ const styles = StyleSheet.create({
     backgroundColor: "#3674B5",
     borderRadius: 12,
     padding: 16,
-    marginBottom: 12,
     shadowColor: "#3674B5",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 5,
     gap: 8,
+    width: "45%",
   },
   viewContractText: {
-    fontSize: 16,
+    fontSize: 13,
     fontWeight: "700",
     color: "#FFFFFF",
-    marginLeft: 4,
+    marginLeft: 2,
   },
 
   // Sign Contract Button
   signContractButton: {
+    flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",

@@ -1,5 +1,8 @@
 import AlertModal from "@/components/ui/AlertModal";
+import CustomProfileInput from "@/components/ui/CustomProfileInput";
+import { DatePickerInput } from "@/components/ui/DatePickerInput";
 import { DependentCard } from "@/components/ui/DependentCard";
+import { useAddDependent } from "@/hooks/useAddDependent";
 import { useDeleteDependent } from "@/hooks/useDeleteDependent";
 import { useGetDependentByUser } from "@/hooks/useGetDependentByUser";
 import { useUpdateDependent } from "@/hooks/useUpdateDependent";
@@ -9,6 +12,7 @@ import { useFormik } from "formik";
 import React, { useState } from "react";
 import {
   Alert,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -25,6 +29,7 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editingIndex, setEditingIndex] = useState<number | null>(null);
   const updateDependent = useUpdateDependent();
+  const addDependent = useAddDependent();
   const deleteDependent = useDeleteDependent();
   const {
     data: dependentsData,
@@ -42,6 +47,17 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
   const [editingDependent, setEditingDependent] = useState<dtoDependent>({
     dpId: "",
     dpUserId: "",
+    dpFullName: "",
+    dpPhone: "",
+    dpTaxCode: "",
+    dpCitizenIdentityCard: "",
+    dpIssueDate: new Date(),
+    dpIssueAt: "",
+    dpDependentDate: new Date(),
+  });
+
+  const [newDependent, setNewDependent] = useState({
+    dpUserId: userId,
     dpFullName: "",
     dpPhone: "",
     dpTaxCode: "",
@@ -77,7 +93,9 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
       .required("Nơi cấp là bắt buộc"),
     dpDependentDate: Yup.date().required("Ngày phụ thuộc là bắt buộc"),
   });
-  const validate = (values: typeof editingDependent) => {
+  type DependentFormValues = Omit<dtoDependent, "dpId"> & { dpId?: string };
+
+  const validate = (values: DependentFormValues) => {
     const errors: any = {};
     try {
       validateSchema.validateSync(values, { abortEarly: false });
@@ -166,6 +184,66 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
   const handleCancel = () => {
     formik.resetForm();
   };
+
+  const handleAddSubmit = (values: typeof newDependent) => {
+    const trimmedValues = {
+      ...values,
+      dpFullName: values.dpFullName.trim(),
+      dpPhone: values.dpPhone.trim(),
+      dpTaxCode: values.dpTaxCode.trim(),
+      dpCitizenIdentityCard: values.dpCitizenIdentityCard.trim(),
+      dpIssueAt: values.dpIssueAt.trim(),
+    };
+    console.log("Adding dependent data:", trimmedValues);
+    addDependent.mutate(
+      {
+        dpId: "",
+        ...trimmedValues,
+      } as dtoDependent,
+      {
+        onSuccess: (data) => {
+          console.log("Add successful:", data);
+          setShowAlertModal({
+            visible: true,
+            message: "Thêm người phụ thuộc thành công",
+            type: "success",
+            title: "Thành công",
+          });
+          setShowAddModal(false);
+          addFormik.resetForm();
+          setNewDependent({
+            dpUserId: userId,
+            dpFullName: "",
+            dpPhone: "",
+            dpTaxCode: "",
+            dpCitizenIdentityCard: "",
+            dpIssueDate: new Date(),
+            dpIssueAt: "",
+            dpDependentDate: new Date(),
+          });
+          refetch();
+        },
+        onError: (error: any) => {
+          console.error("Add failed:", error);
+          setShowAlertModal({
+            visible: true,
+            message: `Thêm thất bại: ${error.message || "Unknown error"}`,
+            type: "error",
+            title: "Lỗi",
+          });
+        },
+      }
+    );
+  };
+
+  const addFormik = useFormik({
+    initialValues: newDependent,
+    enableReinitialize: true,
+    validate,
+    onSubmit: handleAddSubmit,
+    validateOnChange: true,
+    validateOnBlur: true,
+  });
   const handleEdit = (dep: dtoDependent, index: number) => {
     setEditingIndex(index);
     setEditingDependent({
@@ -255,6 +333,156 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
         confirmText="OK"
         cancelText="Hủy"
       />
+      <Modal visible={showAddModal} animationType="slide" transparent={true}>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Thêm người phụ thuộc</Text>
+              <TouchableOpacity
+                onPress={() => {
+                  setShowAddModal(false);
+                  addFormik.resetForm();
+                  setNewDependent({
+                    dpUserId: userId,
+                    dpFullName: "",
+                    dpPhone: "",
+                    dpTaxCode: "",
+                    dpCitizenIdentityCard: "",
+                    dpIssueDate: new Date(),
+                    dpIssueAt: "",
+                    dpDependentDate: new Date(),
+                  });
+                }}
+                style={styles.closeButton}
+              >
+                <Feather name="x" size={24} color="#666" />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView
+              style={styles.modalContent}
+              contentContainerStyle={styles.modalScrollContent}
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={true}
+              nestedScrollEnabled={true}
+            >
+              <View style={styles.formContainer}>
+                <CustomProfileInput
+                  label="Họ và tên"
+                  value={addFormik.values.dpFullName}
+                  onChangeText={(text: string) =>
+                    addFormik.setFieldValue("dpFullName", text)
+                  }
+                  icon="user"
+                  iconColor="#3674B5"
+                  error={addFormik.errors.dpFullName as string}
+                  isEditing
+                />
+                <CustomProfileInput
+                  label="Số điện thoại"
+                  value={addFormik.values.dpPhone}
+                  onChangeText={(text: string) =>
+                    addFormik.setFieldValue("dpPhone", text)
+                  }
+                  icon="phone"
+                  iconColor="#3674B5"
+                  error={addFormik.errors.dpPhone as string}
+                  isEditing
+                  keyboardType="phone-pad"
+                />
+                <CustomProfileInput
+                  label="Mã số thuế"
+                  value={addFormik.values.dpTaxCode}
+                  onChangeText={(text: string) =>
+                    addFormik.setFieldValue("dpTaxCode", text)
+                  }
+                  icon="credit-card"
+                  iconColor="#3674B5"
+                  error={addFormik.errors.dpTaxCode as string}
+                  isEditing
+                  keyboardType="numeric"
+                />
+                <CustomProfileInput
+                  label="Số CMND/CCCD"
+                  value={addFormik.values.dpCitizenIdentityCard}
+                  onChangeText={(text: string) =>
+                    addFormik.setFieldValue("dpCitizenIdentityCard", text)
+                  }
+                  icon="credit-card"
+                  iconColor="#3674B5"
+                  error={addFormik.errors.dpCitizenIdentityCard as string}
+                  isEditing
+                  keyboardType="numeric"
+                />
+                <CustomProfileInput
+                  label="Nơi cấp"
+                  value={addFormik.values.dpIssueAt}
+                  onChangeText={(text: string) =>
+                    addFormik.setFieldValue("dpIssueAt", text)
+                  }
+                  icon="map-pin"
+                  iconColor="#3674B5"
+                  error={addFormik.errors.dpIssueAt as string}
+                  isEditing
+                />
+                <DatePickerInput
+                  label="Ngày cấp"
+                  value={addFormik.values.dpIssueDate}
+                  onChange={(date: Date) =>
+                    addFormik.setFieldValue("dpIssueDate", date)
+                  }
+                  icon="event"
+                  iconColor="#3674B5"
+                  error={addFormik.errors.dpIssueDate as string}
+                  isEditing
+                />
+                <DatePickerInput
+                  label="Ngày phụ thuộc"
+                  value={addFormik.values.dpDependentDate}
+                  onChange={(date: Date) =>
+                    addFormik.setFieldValue("dpDependentDate", date)
+                  }
+                  icon="schedule"
+                  iconColor="#3674B5"
+                  error={addFormik.errors.dpDependentDate as string}
+                  isEditing
+                />
+              </View>
+            </ScrollView>
+
+            <View style={styles.modalFooter}>
+              <TouchableOpacity
+                style={styles.cancelButton}
+                onPress={() => {
+                  setShowAddModal(false);
+                  addFormik.resetForm();
+                  setNewDependent({
+                    dpUserId: userId,
+                    dpFullName: "",
+                    dpPhone: "",
+                    dpTaxCode: "",
+                    dpCitizenIdentityCard: "",
+                    dpIssueDate: new Date(),
+                    dpIssueAt: "",
+                    dpDependentDate: new Date(),
+                  });
+                }}
+              >
+                <Text style={styles.cancelButtonText}>Hủy</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.submitButton}
+                onPress={() => addFormik.handleSubmit()}
+                disabled={addDependent.isPending}
+              >
+                <Text style={styles.submitButtonText}>
+                  {addDependent.isPending ? "Đang thêm..." : "Thêm"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
@@ -408,6 +636,80 @@ const styles = StyleSheet.create({
     color: "#333",
     flex: 2,
     textAlign: "right",
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "flex-end",
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    height: "80%",
+    flexDirection: "column",
+  },
+  modalHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: "#E5E7EB",
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#333",
+  },
+  closeButton: {
+    padding: 4,
+  },
+  modalContent: {
+    flex: 1,
+  },
+  modalScrollContent: {
+    paddingBottom: 20,
+    paddingTop: 10,
+  },
+  formContainer: {
+    padding: 16,
+  },
+  modalFooter: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#E5E7EB",
+    gap: 12,
+    marginBottom: 20,
+  },
+  cancelButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: "#F3F4F6",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: "#D1D5DB",
+  },
+  cancelButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#374151",
+  },
+  submitButton: {
+    flex: 1,
+    paddingVertical: 12,
+    borderRadius: 8,
+    backgroundColor: "#3674B5",
+    alignItems: "center",
+  },
+  submitButtonText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: "#fff",
   },
 });
 

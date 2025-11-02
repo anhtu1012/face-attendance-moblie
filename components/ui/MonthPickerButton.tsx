@@ -13,8 +13,8 @@ const MonthPickerButton = ({
       onPress={() => setShowMonthPicker(true)}
       activeOpacity={0.7}
     >
-      <Feather name="calendar" size={18} color="#10B981" />
-      <Feather name="chevron-down" size={18} color="#10B981" />
+      <Feather name="calendar" size={18} color="#3674B5" />
+      <Feather name="chevron-down" size={18} color="#3674B5" />
     </TouchableOpacity>
   );
 };
@@ -25,13 +25,13 @@ const styles = StyleSheet.create({
   monthSelector: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#ECFDF5",
+    backgroundColor: "#EFF6FF",
     paddingHorizontal: 16,
     paddingVertical: 10,
     borderRadius: 12,
     gap: 8,
     borderWidth: 1,
-    borderColor: "#A7F3D0",
+    borderColor: "#3674B5",
     width: "20%",
   },
 });

@@ -101,7 +101,7 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
             <MaterialCommunityIcons
               name="calendar-month"
               size={26}
-              color="#10B981"
+              color="#3674B5"
             />
             <Text style={styles.headerTitle}>Chọn tháng & năm</Text>
             <TouchableOpacity onPress={handleCancel}>
@@ -292,8 +292,8 @@ const styles = StyleSheet.create({
     marginTop: -25, // Center it
     borderTopWidth: 2,
     borderBottomWidth: 2,
-    borderColor: "#10B981",
-    backgroundColor: "rgba(16, 185, 129, 0.05)",
+    borderColor: "#3674B5",
+    backgroundColor: "rgba(54, 116, 181, 0.05)",
     zIndex: 1,
     pointerEvents: "none",
   },
@@ -334,7 +334,7 @@ const styles = StyleSheet.create({
   },
   wheelTextActive: {
     fontSize: 22,
-    color: "#10B981",
+    color: "#3674B5",
     fontWeight: "700",
   },
   footer: {
@@ -347,7 +347,9 @@ const styles = StyleSheet.create({
   cancelBtn: {
     flex: 1,
     marginRight: 8,
-    backgroundColor: "#F3F4F6",
+    backgroundColor: "#EFF6FF",
+    borderWidth: 1,
+    borderColor: "#3674B5",
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
@@ -355,7 +357,7 @@ const styles = StyleSheet.create({
   confirmBtn: {
     flex: 1,
     marginLeft: 8,
-    backgroundColor: "#10B981",
+    backgroundColor: "#3674B5",
     paddingVertical: 14,
     borderRadius: 10,
     alignItems: "center",
