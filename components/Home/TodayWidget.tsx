@@ -17,7 +17,6 @@ import Animated, {
 } from "react-native-reanimated";
 import CheckTimeBox from "../ui/CheckTimeBox";
 import TimesheetTotalHourBox from "../ui/TimesheetTotalHourBox";
-
 interface TodayWidgetProps {
   todaySchedule: WorkingSchedule | null;
   loadingSchedule: boolean;
@@ -109,10 +108,7 @@ const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
               disabled={checkInButtonDisabled}
               onPress={() =>
                 router.push({
-                  pathname: "/(drawer)/(face)/camera",
-                  params: {
-                    type: "TIMEKEEP",
-                  },
+                  pathname: "/(drawer)/(tabs)/timekeep-camera",
                 })
               }
               activeOpacity={0.8}
