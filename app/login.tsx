@@ -22,13 +22,10 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
-import { loginUser } from "../api/auth";
-import { setAuthData } from "../lib/features/loginSlice";
 
+import { setToken } from "@/api/axios";
 import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
-import { LoginResponse } from "../models/auth/login";
-import { setToken } from "@/api/axios";
 const { width, height } = Dimensions.get("window");
 
 export interface ILoginScreenProps {
@@ -98,11 +95,11 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      onKeyboardShow,
+      onKeyboardShow
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      onKeyboardHide,
+      onKeyboardHide
     );
 
     return () => {

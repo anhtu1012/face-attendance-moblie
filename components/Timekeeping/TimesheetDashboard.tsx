@@ -5,9 +5,9 @@ import {
 } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import MonthPickerButton from "./MonthPickerButton";
-import MonthPickerModal from "./MonthPickerModal";
-import StatItem from "./StatItem";
+import MonthPickerButton from "../ui/MonthPickerButton";
+import MonthPickerModal from "../ui/MonthPickerModal";
+import StatItem from "../ui/StatItem";
 interface TimesheetStats {
   actualTimekeeping: number;
   monthStandardTimekeeping: number;

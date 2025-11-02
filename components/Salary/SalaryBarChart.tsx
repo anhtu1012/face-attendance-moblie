@@ -32,7 +32,7 @@ const SalaryBarChart: React.FC<SalaryBarChartProps> = ({ data }) => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={styles.title}>Biểu đồ lương 10 ngày đầu</Text>
+        <Text style={styles.title}>Biểu đồ lương</Text>
         <Text style={styles.subtitle}>Đơn vị: Triệu đồng</Text>
       </View>
 

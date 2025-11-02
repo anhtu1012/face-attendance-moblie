@@ -98,18 +98,18 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
   const handleNextWeek = () => setCurrentWeek(currentWeek.add(1, "week"));
 
   // Calculate week summary
-  const weekSummary = useMemo(() => {
-    return {
-      totalDays: currentWeekData.length,
-      totalSalary: currentWeekData.reduce(
-        (sum, day) => sum + day.totalSalary,
-        0
-      ),
-      otDays: currentWeekData.filter((day) => day.hasOT).length,
-      holidayDays: currentWeekData.filter((day) => day.isHoliday).length,
-      totalFines: currentWeekData.reduce((sum, day) => sum + day.totalFine, 0),
-    };
-  }, [currentWeekData]);
+  // const weekSummary = useMemo(() => {
+  //   return {
+  //     totalDays: currentWeekData.length,
+  //     totalSalary: currentWeekData.reduce(
+  //       (sum, day) => sum + day.totalSalary,
+  //       0
+  //     ),
+  //     otDays: currentWeekData.filter((day) => day.hasOT).length,
+  //     holidayDays: currentWeekData.filter((day) => day.isHoliday).length,
+  //     totalFines: currentWeekData.reduce((sum, day) => sum + day.totalFine, 0),
+  //   };
+  // }, [currentWeekData]);
 
   return (
     <>
@@ -176,7 +176,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
         </View> */}
 
         {/* Week Total Summary */}
-        <View style={styles.totalSummary}>
+        {/* <View style={styles.totalSummary}>
           <View style={styles.totalRow}>
             <Text style={styles.totalLabel}>Tổng lương tuần</Text>
             <Text style={styles.totalValue}>
@@ -191,18 +191,18 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
               </Text>
             </View>
           )}
-        </View>
+        </View> */}
 
         {/* Week Navigation */}
         <View style={styles.weekNavigation}>
           <TouchableOpacity onPress={handlePrevWeek} style={styles.navButton}>
-            <ChevronLeft color="#3B82F6" size={24} />
+            <ChevronLeft color="black" size={24} />
           </TouchableOpacity>
 
           <Text style={styles.weekNavigationText}>{weekRange}</Text>
 
           <TouchableOpacity onPress={handleNextWeek} style={styles.navButton}>
-            <ChevronRight color="#3B82F6" size={24} />
+            <ChevronRight color="black" size={24} />
           </TouchableOpacity>
         </View>
 
@@ -511,19 +511,19 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    marginTop: 10,
   },
   navButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#EFF6FF",
     justifyContent: "center",
     alignItems: "center",
   },
   weekNavigationText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "#1E40AF",
+    color: "black",
   },
 
   // Daily List

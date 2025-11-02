@@ -6,8 +6,8 @@ import {
 } from "@/models/timesheet/timekeeping";
 import React from "react";
 import { Modal, ScrollView, StyleSheet, View } from "react-native";
-import CheckTimeBox from "./CheckTimeBox";
-import NotWorkNotification from "./NotWorkNotification";
+import CheckTimeBox from "../ui/CheckTimeBox";
+import NotWorkNotification from "../ui/NotWorkNotification";
 import TimeDetailBox from "./TimeDetailBox";
 import TimesheetModalHeader from "./TimesheetModalHeader";
 import TimesheetTotalHourBox from "./TimesheetTotalHourBox";

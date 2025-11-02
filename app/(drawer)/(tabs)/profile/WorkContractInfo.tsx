@@ -4,7 +4,6 @@ import PDFModal from "@/components/ui/PDFModal";
 import SuccessAlert from "@/components/ui/SuccessAlert";
 import { useConfirmOtp } from "@/hooks/useConfirmOtp";
 import { useGetContractByUserId } from "@/hooks/useGetContractByUserId";
-import { ContractDetail } from "@/models/contract/dtoContract";
 import {
   Feather,
   MaterialCommunityIcons,
@@ -23,39 +22,6 @@ interface WorkContractInfoProps {
   userId?: string;
   gmail?: string;
 }
-
-const mockContractData: ContractDetail = {
-  id: "15",
-  createdAt: "2025-10-28T15:34:24.699Z",
-  updatedAt: "2025-10-28T15:34:24.699Z",
-  userId: "13",
-  fullNameUser: "Phạm Hoàng Phúc",
-  manageByUserId: "14",
-  fullNameManager: "Lê Minh",
-  departmentId: "1",
-  departmentName: "Phòng Phát triển phần mềm",
-  positionId: "7",
-  positionName: "Frontend Developer",
-  contractTypeId: "1",
-  contractTypeName: "Hợp đồng dịch vụ",
-  companyId: "10",
-  grossSalary: "25.000.000",
-  contractNumber: "002/2025-FAAS",
-  fileContract:
-    "http://minio-api.faceattendance.dev/faas/contract/15/1761738179174-contract (2).pdf",
-  startDate: "2025-11-02T17:00:00.000Z",
-  endDate: null,
-  duration: "0",
-  status: "USER_SIGNED",
-  allowanceInfors: [
-    {
-      allowanceId: "4",
-      allowanceName: "Ăn trưa",
-      allowanceCode: "ALLOWANCE-001",
-      value: "50000",
-    },
-  ],
-};
 
 const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
   userId,
@@ -119,15 +85,15 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "ACTIVE":
-        return "Đang hoạt động";
+        return "Đang có hiệu lực";
       case "EXPIRED":
         return "Hết hạn";
       case "PENDING":
-        return "Chờ xử lý";
+        return "Đang xử lý";
       case "INACTIVE":
-        return "Ngừng hoạt động";
+        return "Ngừng có hiệu lực";
       case "USER_SIGNED":
-        return "Chờ người dùng ký";
+        return "Chờ ký hợp đồng";
       case "DIRECTOR_SIGNED":
         return "Chờ giám đốc ký";
       default:
@@ -178,156 +144,169 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {/* Header Card */}
-        <View style={styles.headerCard}>
-          <View style={styles.headerTop}>
-            <View style={styles.headerLeft}>
-              <View style={styles.iconContainer}>
-                <MaterialCommunityIcons
-                  name="file-document-outline"
-                  size={28}
-                  color="#3674B5"
-                />
-              </View>
-              <View style={styles.headerInfo}>
-                <Text style={styles.contractNumber}>
-                  {contractData?.contractNumber}
-                </Text>
-                <Text style={styles.contractType}>
-                  {contractData?.contractTypeName}
-                </Text>
-              </View>
-            </View>
-            <View
-              style={[
-                styles.statusBadge,
-                {
-                  backgroundColor: statusColors.bg,
-                  borderColor: statusColors.border,
-                },
-              ]}
-            >
-              <Text style={[styles.statusText, { color: statusColors.text }]}>
-                {getStatusLabel(contractData?.status ?? "")}
-              </Text>
-            </View>
+        {!contractData ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>Không có hợp đồng</Text>
           </View>
-        </View>
-
-        {/* Salary Card */}
-        <View style={styles.salaryCard}>
-          <View style={styles.salaryHeader}>
-            <MaterialIcons name="attach-money" size={24} color="#10B981" />
-            <Text style={styles.salaryLabel}>Tổng lương</Text>
-          </View>
-          <Text style={styles.salaryAmount}>
-            {formatCurrency(contractData?.grossSalary ?? "0")}
-          </Text>
-          <View style={styles.salaryDivider} />
-          <View style={styles.allowanceSection}>
-            <Text style={styles.allowanceTitle}>Phụ cấp</Text>
-            {contractData?.allowanceInfors.map((allowance) => (
-              <View key={allowance.allowanceId} style={styles.allowanceItem}>
-                <View style={styles.allowanceLeft}>
-                  <View style={styles.allowanceDot} />
-                  <Text style={styles.allowanceName}>
-                    {allowance.allowanceName}
+        ) : (
+          <>
+            {/* Header Card */}
+            <View style={styles.headerCard}>
+              <View style={styles.headerTop}>
+                <View style={styles.headerLeft}>
+                  <View style={styles.headerInfo}>
+                    <Text style={styles.contractNumber}>
+                      Số hợp đồng: {contractData?.contractNumber}
+                    </Text>
+                    <Text style={styles.contractType}>
+                      Loại hợp đồng: {contractData?.contractTypeName}
+                    </Text>
+                  </View>
+                </View>
+                <View
+                  style={[
+                    styles.statusBadge,
+                    {
+                      backgroundColor: statusColors.bg,
+                      borderColor: statusColors.border,
+                    },
+                  ]}
+                >
+                  <Text
+                    style={[styles.statusText, { color: statusColors.text }]}
+                  >
+                    {getStatusLabel(contractData?.status ?? "")}
                   </Text>
                 </View>
-                <Text style={styles.allowanceValue}>
-                  {formatCurrency(allowance.value)}
-                </Text>
               </View>
-            ))}
-          </View>
-        </View>
+            </View>
 
-        {/* Contract Details */}
-        <View style={styles.detailsCard}>
-          <Text style={styles.cardTitle}>Thông tin hợp đồng</Text>
+            {/* Salary Card */}
+            <View style={styles.salaryCard}>
+              <View style={styles.salaryHeader}>
+                <MaterialIcons name="attach-money" size={24} color="#10B981" />
+                <Text style={styles.salaryLabel}>Tổng lương</Text>
+              </View>
+              <Text style={styles.salaryAmount}>
+                {formatCurrency(contractData?.grossSalary ?? "0")}
+              </Text>
+              <View style={styles.salaryDivider} />
+              {contractData?.allowanceInfors.length > 0 && (
+                <View style={styles.allowanceSection}>
+                  <Text style={styles.allowanceTitle}>Phụ cấp</Text>
+                  {contractData?.allowanceInfors.map((allowance) => (
+                    <View
+                      key={allowance.allowanceId}
+                      style={styles.allowanceItem}
+                    >
+                      <View style={styles.allowanceLeft}>
+                        <View style={styles.allowanceDot} />
+                        <Text style={styles.allowanceName}>
+                          {allowance.allowanceName}
+                        </Text>
+                      </View>
+                      <Text style={styles.allowanceValue}>
+                        {formatCurrency(allowance.value)}
+                      </Text>
+                    </View>
+                  ))}
+                </View>
+              )}
+            </View>
 
-          <InfoRow
-            icon="calendar"
-            label="Ngày bắt đầu"
-            value={formatDate(contractData?.startDate ?? "")}
-            iconColor="#3B82F6"
-          />
-          {contractData?.endDate && (
-            <InfoRow
-              icon="calendar"
-              label="Ngày kết thúc"
-              value={formatDate(contractData?.endDate ?? "")}
-              iconColor="#EF4444"
-            />
-          )}
-          <InfoRow
-            icon="clock"
-            label="Thời hạn"
-            value={
-              contractData?.endDate
-                ? `${contractData?.duration} tháng`
-                : "Vô thời hạn"
-            }
-            iconColor="#8B5CF6"
-          />
-        </View>
+            {/* Contract Details */}
+            <View style={styles.detailsCard}>
+              <Text style={styles.cardTitle}>Thông tin hợp đồng</Text>
 
-        {/* Organization Details */}
-        <View style={styles.detailsCard}>
-          <Text style={styles.cardTitle}>Thông tin chức vụ</Text>
+              <InfoRow
+                icon="calendar"
+                label="Ngày bắt đầu"
+                value={formatDate(contractData?.startDate ?? "")}
+                iconColor="#3B82F6"
+              />
+              {contractData?.endDate && (
+                <InfoRow
+                  icon="calendar"
+                  label="Ngày kết thúc"
+                  value={formatDate(contractData?.endDate ?? "")}
+                  iconColor="#EF4444"
+                />
+              )}
+              <InfoRow
+                icon="clock"
+                label="Thời hạn"
+                value={
+                  contractData?.endDate
+                    ? `${contractData?.duration} tháng`
+                    : "Vô thời hạn"
+                }
+                iconColor="#8B5CF6"
+              />
+            </View>
 
-          <InfoRow
-            icon="briefcase"
-            label="Chức vụ"
-            value={contractData?.positionName ?? ""}
-            iconColor="#F59E0B"
-          />
-          <InfoRow
-            icon="users"
-            label="Phòng ban"
-            value={contractData?.departmentName ?? ""}
-            iconColor="#EC4899"
-          />
-          <InfoRow
-            icon="user-check"
-            label="Quản lý trực tiếp"
-            value={contractData?.fullNameManager ?? ""}
-            iconColor="#10B981"
-          />
-        </View>
+            {/* Organization Details */}
+            <View style={styles.detailsCard}>
+              <Text style={styles.cardTitle}>Thông tin chức vụ</Text>
 
-        {/* View Contract Button */}
-        <TouchableOpacity
-          style={styles.viewContractButton}
-          onPress={() => setPdfModalVisible(true)}
-        >
-          <MaterialCommunityIcons
-            name="file-pdf-box"
-            size={24}
-            color="#FFFFFF"
-          />
-          <Text style={styles.viewContractText}>Xem hợp đồng PDF</Text>
-          <Feather name="external-link" size={20} color="#FFFFFF" />
-        </TouchableOpacity>
+              <InfoRow
+                icon="briefcase"
+                label="Chức vụ"
+                value={contractData?.positionName ?? ""}
+                iconColor="#F59E0B"
+              />
+              <InfoRow
+                icon="users"
+                label="Phòng ban"
+                value={contractData?.departmentName ?? ""}
+                iconColor="#EC4899"
+              />
+              <InfoRow
+                icon="user-check"
+                label="Quản lý trực tiếp bởi"
+                value={contractData?.fullNameManager ?? ""}
+                iconColor="#10B981"
+              />
+            </View>
 
-        {/* Sign Contract Button - Only show if status is USER_SIGNED */}
-        {contractData?.status === "USER_SIGNED" && (
-          <TouchableOpacity
-            style={styles.signContractButton}
-            onPress={handleSignContract}
-          >
-            <MaterialCommunityIcons name="draw-pen" size={24} color="#FFFFFF" />
-            <Text style={styles.signContractText}>Ký hợp đồng</Text>
-          </TouchableOpacity>
+            {/* View Contract Button */}
+            <TouchableOpacity
+              style={styles.viewContractButton}
+              onPress={() => setPdfModalVisible(true)}
+            >
+              <MaterialCommunityIcons
+                name="file-pdf-box"
+                size={24}
+                color="#FFFFFF"
+              />
+              <Text style={styles.viewContractText}>Chi tiết hợp đồng</Text>
+            </TouchableOpacity>
+
+            {/* Sign Contract Button - Only show if status is USER_SIGNED */}
+            {contractData?.status === "USER_SIGNED" && (
+              <TouchableOpacity
+                style={styles.signContractButton}
+                onPress={handleSignContract}
+              >
+                <MaterialCommunityIcons
+                  name="draw-pen"
+                  size={24}
+                  color="#FFFFFF"
+                />
+                <Text style={styles.signContractText}>Ký hợp đồng</Text>
+              </TouchableOpacity>
+            )}
+
+            {/* Footer Info */}
+            <View style={styles.footerInfo}>
+              <Text style={styles.footerText}>
+                Cập nhật lần cuối:{" "}
+                {new Date(contractData?.updatedAt ?? "").toLocaleString(
+                  "vi-VN"
+                )}
+              </Text>
+            </View>
+          </>
         )}
-
-        {/* Footer Info */}
-        <View style={styles.footerInfo}>
-          <Text style={styles.footerText}>
-            Cập nhật lần cuối:{" "}
-            {new Date(contractData?.updatedAt ?? "").toLocaleString("vi-VN")}
-          </Text>
-        </View>
       </ScrollView>
 
       {/* Signature Modal */}
@@ -408,8 +387,6 @@ const styles = StyleSheet.create({
     padding: 16,
     paddingBottom: 24,
   },
-
-  // Header Card
   headerCard: {
     backgroundColor: "#FFFFFF",
     borderRadius: 16,
@@ -662,6 +639,26 @@ const styles = StyleSheet.create({
     color: "#9CA3AF",
     fontStyle: "italic",
   },
+  emptyContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 3,
+    alignItems: "center",
+    paddingVertical: 8,
+    justifyContent: "center",
+    height: "100%",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#9CA3AF",
+    fontWeight: "500",
+    textAlign: "center",
+  },
 });
-
 export default WorkContractInfo;
