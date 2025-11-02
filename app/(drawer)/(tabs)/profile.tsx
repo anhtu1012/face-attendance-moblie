@@ -15,6 +15,7 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { dtoUpdateUser } from "../../../models/auth/dtoUser";
+import AppendixTab from "./profile/AppendixTab";
 import DependentInfo from "./profile/DependentInfo";
 import GeneralInfo from "./profile/GeneralInfo";
 import ResumeInfo from "./profile/ResumeInfo";
@@ -37,6 +38,7 @@ export default function ProfilePage() {
     { id: 1, title: "Sơ yếu lý lịch" },
     { id: 2, title: "Người phụ thuộc" },
     { id: 3, title: "Hợp đồng" },
+    { id: 4, title: "Phụ lục hợp đồng" },
   ];
   const handleUpdateUserData = (updatedData: dtoUpdateUser) => {
     updateUserMutation.mutate(
@@ -84,7 +86,11 @@ export default function ProfilePage() {
       case 2:
         return <DependentInfo userId={userId || ""} />;
       case 3:
-        return <WorkContractInfo userId={userId} gmail={userProfile?.email || ""} />;
+        return (
+          <WorkContractInfo userId={userId} gmail={userProfile?.email || ""} />
+        );
+      case 4:
+        return <AppendixTab userId={userId} />;
       default:
         return (
           <GeneralInfo

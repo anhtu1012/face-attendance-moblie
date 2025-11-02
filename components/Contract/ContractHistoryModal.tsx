@@ -116,89 +116,89 @@ const ContractHistoryModal: React.FC<ContractHistoryModalProps> = ({
           </View>
         </TouchableOpacity>
 
-        {isExpanded && (
-          <View style={styles.cardDetails}>
-            {/* Thông tin cơ bản */}
-            <View style={styles.detailSection}>
-              <Text style={styles.detailSectionTitle}>Thông tin hợp đồng</Text>
+        <View style={styles.cardDetails}>
+          {/* Thông tin cơ bản */}
+          <View style={styles.detailSection}>
+            <Text style={styles.detailSectionTitle}>Thông tin hợp đồng</Text>
+            <DetailRow
+              label="Ngày bắt đầu"
+              value={formatDate(contract.startDate)}
+              icon="calendar"
+              iconColor="#3B82F6"
+            />
+            {contract.endDate && (
               <DetailRow
-                label="Ngày bắt đầu"
-                value={formatDate(contract.startDate)}
+                label="Ngày kết thúc"
+                value={formatDate(contract.endDate)}
                 icon="calendar"
-                iconColor="#3B82F6"
+                iconColor="#EF4444"
               />
-              {contract.endDate && (
-                <DetailRow
-                  label="Ngày kết thúc"
-                  value={formatDate(contract.endDate)}
-                  icon="calendar"
-                  iconColor="#EF4444"
-                />
-              )}
-              <DetailRow
-                label="Thời hạn"
-                value={
-                  contract.endDate
-                    ? `${contract.duration} tháng`
-                    : "Vô thời hạn"
-                }
-                icon="clock"
-                iconColor="#8B5CF6"
-              />
-            </View>
+            )}
+            <DetailRow
+              label="Thời hạn"
+              value={
+                contract.endDate ? `${contract.duration} tháng` : "Vô thời hạn"
+              }
+              icon="clock"
+              iconColor="#8B5CF6"
+            />
+          </View>
 
-            {/* Lương */}
-            <View style={styles.detailSection}>
-              <Text style={styles.detailSectionTitle}>Tổng lương</Text>
-              <Text style={styles.salaryAmount}>{contract.grossSalary}</Text>
-              {contract.allowanceInfors.length > 0 && (
-                <>
-                  <View style={styles.divider} />
-                  <Text style={styles.allowanceTitle}>Phụ cấp</Text>
-                  {contract.allowanceInfors.map((allowance) => (
-                    <View
-                      key={allowance.allowanceId}
-                      style={styles.allowanceRow}
-                    >
-                      <View style={styles.allowanceLeft}>
-                        <View style={styles.allowanceDot} />
-                        <Text style={styles.allowanceName}>
-                          {allowance.allowanceName}
+          {isExpanded && (
+            <>
+              {/* Lương */}
+              <View style={styles.detailSection}>
+                <Text style={styles.detailSectionTitle}>Lương cơ bản</Text>
+                <Text style={styles.salaryAmount}>{contract.grossSalary}</Text>
+                {contract.allowanceInfors.length > 0 && (
+                  <>
+                    <View style={styles.divider} />
+                    <Text style={styles.allowanceTitle}>Phụ cấp</Text>
+                    {contract.allowanceInfors.map((allowance) => (
+                      <View
+                        key={allowance.allowanceId}
+                        style={styles.allowanceRow}
+                      >
+                        <View style={styles.allowanceLeft}>
+                          <View style={styles.allowanceDot} />
+                          <Text style={styles.allowanceName}>
+                            {allowance.allowanceName}
+                          </Text>
+                        </View>
+                        <Text style={styles.allowanceValue}>
+                          {allowance.value}
                         </Text>
                       </View>
-                      <Text style={styles.allowanceValue}>
-                        {allowance.value}
-                      </Text>
-                    </View>
-                  ))}
-                </>
-              )}
-            </View>
+                    ))}
+                  </>
+                )}
+              </View>
 
-            {/* Thông tin chức vụ */}
-            <View style={styles.detailSection}>
-              <Text style={styles.detailSectionTitle}>Thông tin chức vụ</Text>
-              <DetailRow
-                label="Chức vụ"
-                value={contract.positionName}
-                icon="briefcase"
-                iconColor="#F59E0B"
-              />
-              <DetailRow
-                label="Phòng ban"
-                value={contract.departmentName}
-                icon="users"
-                iconColor="#EC4899"
-              />
-              <DetailRow
-                label="Quản lý trực tiếp"
-                value={contract.fullNameManager}
-                icon="user-check"
-                iconColor="#10B981"
-              />
-            </View>
-          </View>
-        )}
+              {/* Thông tin chức vụ */}
+              <View style={styles.detailSection}>
+                <Text style={styles.detailSectionTitle}>Thông tin chức vụ</Text>
+                <DetailRow
+                  label="Chức vụ"
+                  value={contract.positionName}
+                  icon="briefcase"
+                  iconColor="#F59E0B"
+                />
+                <DetailRow
+                  label="Phòng ban"
+                  value={contract.departmentName}
+                  icon="users"
+                  iconColor="#EC4899"
+                />
+                <DetailRow
+                  label="Quản lý trực tiếp"
+                  value={contract.fullNameManager}
+                  icon="user-check"
+                  iconColor="#10B981"
+                />
+              </View>
+            </>
+          )}
+        </View>
       </View>
     );
   };
@@ -313,6 +313,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     padding: 16,
+    backgroundColor: "#F5F7FA",
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
   cardHeaderLeft: {
     flexDirection: "row",

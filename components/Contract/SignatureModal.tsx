@@ -63,36 +63,7 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
 
   // Handle signature result
   const handleSignatureOK = (signature: string) => {
-    console.log("Signature received:", signature);
-
-    const timestamp = new Date();
-
-    console.log("\n");
-    console.log(
-      "╔════════════════════════════════════════════════════════════╗"
-    );
-    console.log(
-      "║           ✍️  CHỮ KÝ ĐÃ ĐƯỢC TẠO                          ║"
-    );
-    console.log(
-      "╚════════════════════════════════════════════════════════════╝"
-    );
-    console.log("");
-    console.log("⏰ Thời gian tạo:", timestamp.toLocaleString("vi-VN"));
-    console.log("📊 Kích thước:", signature.length, "ký tự");
-    console.log(
-      "📝 Preview (100 ký tự đầu):",
-      signature.substring(0, 100) + "..."
-    );
-    console.log("✅ Trạng thái: Đã lưu tạm, chờ xác thực OTP");
-    console.log("");
-    console.log("➡️  BƯỚC TIẾP THEO: Nhập OTP để xác nhận chữ ký");
-    console.log("\n");
-
     setSignatureBase64(signature);
-    console.log("userContractId:", userContractId);
-    console.log("userGmail:", userGmail);
-
     sendOTP.mutate({
       userContractId: userContractId,
       userGmail: userGmail,

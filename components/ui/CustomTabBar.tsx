@@ -20,6 +20,7 @@ export const EXCLUDE_ROUTE = [
   "profile/ResumeInfo",
   "profile/WorkContractInfo",
   "profile/GeneralInfo",
+  "profile/AppendixTab",
   "timekeep-camera",
 ];
 
@@ -85,7 +86,7 @@ const CustomTabBar = ({
 
   const handleSetIsFocused = (
     route: NavigationRoute<ParamListBase, string>,
-    index: number,
+    index: number
   ) => {
     if (!EXCLUDE_ROUTE.includes(state.routeNames[state.index]))
       return state.index === index;

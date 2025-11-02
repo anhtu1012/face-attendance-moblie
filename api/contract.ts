@@ -1,4 +1,5 @@
 import api from "@/config/axios";
+import { Appendix, AppendixListResponse } from "@/models/contract/dtoAppendix";
 import { ContractListResponse } from "@/models/contract/dtoContract";
 export const getContractByUserId = async (userId: string) => {
   const response = await api.get<ContractListResponse>(
@@ -23,5 +24,11 @@ export const confirmOtpForContractSigning = async (values: FormData) => {
       "Content-Type": "multipart/form-data",
     },
   });
+  return response.data;
+};
+export const getAppendixByUserContractId = async (userContractId: string) => {
+  const response = await api.get<AppendixListResponse>(
+    `/contract/phu-luc-hop-dong?userContractId=${userContractId}`
+  );
   return response.data;
 };

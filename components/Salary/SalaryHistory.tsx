@@ -41,21 +41,21 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
     endTime
   );
 
-  // State for current week pagination
-  const [currentWeek, setCurrentWeek] = useState(() =>
+  // State for current period pagination (7 days starting from day 1 of month)
+  const [currentStartDate, setCurrentStartDate] = useState(() =>
     dayjs()
       .year(selectedYear)
       .month(selectedMonth - 1)
-      .startOf("month")
+      .date(1)
   );
 
-  // Reset to first week of month when month/year changes
+  // Reset to first day of month when month/year changes
   useEffect(() => {
-    setCurrentWeek(
+    setCurrentStartDate(
       dayjs()
         .year(selectedYear)
         .month(selectedMonth - 1)
-        .startOf("month")
+        .date(1)
     );
   }, [selectedMonth, selectedYear]);
 
@@ -73,43 +73,81 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
     return { dayOfWeek, day };
   };
 
-  // Calculate week range display
+  // Calculate period range display (7 days)
   const weekRange = useMemo(() => {
-    const startOfWeek = currentWeek.startOf("isoWeek");
-    const endOfWeek = currentWeek.endOf("isoWeek");
-    return `Tuần ${startOfWeek.format("DD/MM")} - ${endOfWeek.format("DD/MM")}`;
-  }, [currentWeek]);
+    const startDate = currentStartDate.clone();
+    const endDate = currentStartDate.clone().add(6, "day");
+    const monthEnd = dayjs()
+      .year(selectedYear)
+      .month(selectedMonth - 1)
+      .endOf("month");
 
-  // Get current week's data
+    // Ensure end date doesn't exceed month end
+    const actualEndDate = endDate.isAfter(monthEnd) ? monthEnd : endDate;
+
+    return `${startDate.format("DD/MM")} - ${actualEndDate.format("DD/MM")}`;
+  }, [currentStartDate, selectedMonth, selectedYear]);
+
+  // Get current period's data (7 days, only within selected month)
   const currentWeekData = useMemo(() => {
     if (!data) return [];
 
-    const startOfWeek = currentWeek.startOf("isoWeek");
-    const endOfWeek = currentWeek.endOf("isoWeek");
+    const monthStart = dayjs()
+      .year(selectedYear)
+      .month(selectedMonth - 1)
+      .date(1);
+    const monthEnd = dayjs()
+      .year(selectedYear)
+      .month(selectedMonth - 1)
+      .endOf("month");
+
+    const periodStart = currentStartDate.clone();
+    const periodEnd = currentStartDate.clone().add(6, "day");
+
+    // Ensure period doesn't exceed month boundaries
+    const actualStart = periodStart.isBefore(monthStart)
+      ? monthStart
+      : periodStart;
+    const actualEnd = periodEnd.isAfter(monthEnd) ? monthEnd : periodEnd;
 
     return data.filter((day) => {
       const dayDate = dayjs(day.date);
-      return dayDate.isBetween(startOfWeek, endOfWeek, "day", "[]");
+      // Only include days within the selected month
+      if (
+        dayDate.month() !== selectedMonth - 1 ||
+        dayDate.year() !== selectedYear
+      ) {
+        return false;
+      }
+      return dayDate.isBetween(actualStart, actualEnd, "day", "[]");
     });
-  }, [data, currentWeek]);
+  }, [data, currentStartDate, selectedMonth, selectedYear]);
 
-  // Week navigation handlers
-  const handlePrevWeek = () => setCurrentWeek(currentWeek.subtract(1, "week"));
-  const handleNextWeek = () => setCurrentWeek(currentWeek.add(1, "week"));
+  // Period navigation handlers
+  const handlePrevWeek = () => {
+    const prevStart = currentStartDate.clone().subtract(7, "day");
+    const monthStart = dayjs()
+      .year(selectedYear)
+      .month(selectedMonth - 1)
+      .date(1);
 
-  // Calculate week summary
-  // const weekSummary = useMemo(() => {
-  //   return {
-  //     totalDays: currentWeekData.length,
-  //     totalSalary: currentWeekData.reduce(
-  //       (sum, day) => sum + day.totalSalary,
-  //       0
-  //     ),
-  //     otDays: currentWeekData.filter((day) => day.hasOT).length,
-  //     holidayDays: currentWeekData.filter((day) => day.isHoliday).length,
-  //     totalFines: currentWeekData.reduce((sum, day) => sum + day.totalFine, 0),
-  //   };
-  // }, [currentWeekData]);
+    // Don't go before month start
+    setCurrentStartDate(
+      prevStart.isBefore(monthStart) ? monthStart : prevStart
+    );
+  };
+
+  const handleNextWeek = () => {
+    const nextStart = currentStartDate.clone().add(7, "day");
+    const monthEnd = dayjs()
+      .year(selectedYear)
+      .month(selectedMonth - 1)
+      .endOf("month");
+
+    // Don't go after month end
+    const maxStart = monthEnd.clone().subtract(6, "day");
+    setCurrentStartDate(nextStart.isAfter(maxStart) ? maxStart : nextStart);
+  };
 
   return (
     <>
@@ -126,74 +164,6 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
           />
         }
       >
-        {/* Header */}
-        {/* <View style={styles.header}>
-          <View style={styles.headerTop}>
-            <View>
-              <Text style={styles.headerTitle}>Lịch sử lương</Text>
-              <Text style={styles.headerSubtitle}>Chi tiết theo ngày</Text>
-            </View>
-          </View>
-        </View> */}
-
-        {/* Week Summary Stats */}
-        {/* <View style={styles.summaryContainer}>
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryIconBox}>
-              <MaterialCommunityIcons
-                name="calendar-check"
-                size={24}
-                color="#10B981"
-              />
-            </View>
-            <Text style={styles.summaryValue}>{weekSummary.totalDays}</Text>
-            <Text style={styles.summaryLabel}>Ngày làm việc</Text>
-          </View>
-
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryIconBox}>
-              <MaterialCommunityIcons
-                name="clock-time-eight"
-                size={24}
-                color="#F59E0B"
-              />
-            </View>
-            <Text style={styles.summaryValue}>{weekSummary.otDays}</Text>
-            <Text style={styles.summaryLabel}>Ngày có OT</Text>
-          </View>
-
-          <View style={styles.summaryCard}>
-            <View style={styles.summaryIconBox}>
-              <MaterialCommunityIcons
-                name="party-popper"
-                size={24}
-                color="#EC4899"
-              />
-            </View>
-            <Text style={styles.summaryValue}>{weekSummary.holidayDays}</Text>
-            <Text style={styles.summaryLabel}>Ngày lễ</Text>
-          </View>
-        </View> */}
-
-        {/* Week Total Summary */}
-        {/* <View style={styles.totalSummary}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Tổng lương tuần</Text>
-            <Text style={styles.totalValue}>
-              {formatCurrency(weekSummary.totalSalary)}
-            </Text>
-          </View>
-          {weekSummary.totalFines > 0 && (
-            <View style={styles.fineRow}>
-              <Feather name="alert-circle" size={14} color="#EF4444" />
-              <Text style={styles.fineText}>
-                Tổng tiền phạt: {formatCurrency(weekSummary.totalFines)}
-              </Text>
-            </View>
-          )}
-        </View> */}
-
-        {/* Week Navigation */}
         <View style={styles.weekNavigation}>
           <TouchableOpacity onPress={handlePrevWeek} style={styles.navButton}>
             <ChevronLeft color="black" size={24} />
@@ -250,7 +220,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
 
                       {/* Right: Total */}
                       <View style={styles.dailyTotalBox}>
-                        <Text style={styles.dailyTotalLabel}>Tổng lương</Text>
+                        <Text style={styles.dailyTotalLabel}>Lương cơ bản</Text>
                         <Text style={styles.dailyTotalValue}>
                           {formatCurrency(day.totalSalary)}
                         </Text>

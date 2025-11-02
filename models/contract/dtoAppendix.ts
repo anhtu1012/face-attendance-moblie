@@ -5,24 +5,18 @@ export interface AllowanceInfo {
   value: string;
 }
 
-export interface ContractDetail {
+export interface Appendix {
   id: string;
   createdAt: string;
   updatedAt: string;
-  userId: string;
-  fullNameUser: string;
-  manageByUserId: string;
-  fullNameManager: string;
-  departmentId: string;
-  departmentName: string;
+  userContractId: string;
   positionId: string;
-  positionName: string;
   contractTypeId: string;
-  contractTypeName: string;
   companyId: string;
   grossSalary: string;
   contractNumber: string;
-  fileContract: string;
+  content: string;
+  fileContract: string | null;
   startDate: string;
   endDate: string | null;
   duration: string;
@@ -32,13 +26,13 @@ export interface ContractDetail {
     | "EXPIRED"
     | "DIRECTOR_SIGNED"
     | "USER_SIGNED"
-    | "ACTIVE_EXTENDED";
+    | "PENDING";
   allowanceInfors: AllowanceInfo[];
 }
 
-export interface ContractListResponse {
-  count: number;
-  limit: number;
-  page: number;
-  data: ContractDetail[];
+export interface AppendixListResponse {
+  count?: number;
+  limit?: number;
+  page?: number;
+  data: Appendix[];
 }

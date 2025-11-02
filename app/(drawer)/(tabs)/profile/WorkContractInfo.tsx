@@ -1,15 +1,13 @@
+import ContractHistoryModal from "@/components/Contract/ContractHistoryModal";
+import InfoRow from "@/components/Contract/InfoRow";
+import NoContractFound from "@/components/Contract/NoContractFound";
 import SignatureModal from "@/components/Contract/SignatureModal";
-import ContractHistoryModal from "@/components/ui/ContractHistoryModal";
 import ErrorAlert from "@/components/ui/ErrorAlert";
 import PDFModal from "@/components/ui/PDFModal";
 import SuccessAlert from "@/components/ui/SuccessAlert";
 import { useConfirmOtp } from "@/hooks/useConfirmOtp";
 import { useGetContractByUserId } from "@/hooks/useGetContractByUserId";
-import {
-  Feather,
-  MaterialCommunityIcons,
-  MaterialIcons,
-} from "@expo/vector-icons";
+import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   ScrollView,
@@ -18,7 +16,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
 interface WorkContractInfoProps {
   userId?: string;
   gmail?: string;
@@ -61,8 +58,8 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
         return "Đang có hiệu lực";
       case "EXPIRED":
         return "Hết hạn";
-      case "PENDING":
-        return "Đang xử lý";
+      case "ACTIVE_EXTENDED":
+        return "Hợp đồng có đính kèm";
       case "INACTIVE":
         return "Ngừng có hiệu lực";
       case "USER_SIGNED":
@@ -116,9 +113,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
         showsVerticalScrollIndicator={false}
       >
         {!contractData ? (
-          <View style={styles.emptyContainer}>
-            <Text style={styles.emptyText}>Không có hợp đồng</Text>
-          </View>
+          <NoContractFound text="Không có hợp đồng" />
         ) : (
           <>
             <View style={styles.detailsCard}>
@@ -172,7 +167,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
             <View style={styles.salaryCard}>
               <View style={styles.salaryHeader}>
                 <MaterialIcons name="attach-money" size={24} color="#10B981" />
-                <Text style={styles.salaryLabel}>Tổng lương</Text>
+                <Text style={styles.salaryLabel}>Lương cơ bản</Text>
               </View>
               <Text style={styles.salaryAmount}>
                 {formatCurrency(contractData?.grossSalary ?? "0")}
@@ -331,25 +326,6 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
     </View>
   );
 };
-
-interface InfoRowProps {
-  icon: string;
-  label: string;
-  value: string;
-  iconColor: string;
-}
-
-const InfoRow: React.FC<InfoRowProps> = ({ icon, label, value, iconColor }) => (
-  <View style={styles.infoRow}>
-    <View style={styles.infoLeft}>
-      <View style={[styles.infoIconBox, { backgroundColor: `${iconColor}15` }]}>
-        <Feather name={icon as any} size={18} color={iconColor} />
-      </View>
-      <Text style={styles.infoLabel}>{label}</Text>
-    </View>
-    <Text style={styles.infoValue}>{value}</Text>
-  </View>
-);
 
 const styles = StyleSheet.create({
   container: {
@@ -560,7 +536,7 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
     gap: 8,
-    width: "45%",
+    width: "48%",
   },
   viewContractText: {
     fontSize: 13,

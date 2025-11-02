@@ -15,11 +15,12 @@ const SalaryBarChart: React.FC<SalaryBarChartProps> = ({ data }) => {
   }
 
   // Prepare chart data - take only first 10 days for readability
-  const chartData = data.slice(0, 10);
+  const chartData = data;
 
   const labels = chartData.map((item) => {
     const date = new Date(item.date);
-    return `${date.getDate()}`;
+    const dayOfWeek = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][date.getDay()];
+    return `${date.getDate()}/${dayOfWeek}`;
   });
 
   const salaryData = chartData.map((item) => item.totalSalary / 1000000); // Convert to millions
