@@ -27,6 +27,7 @@
       "package": "com.huangphucc.faceattendancemobile",
       "googleServicesFile": "./google-services.json",
       "permissions": [
+        "android.permission.CAMERA",
         "android.permission.CAMERA"
       ]
     },
@@ -79,6 +80,12 @@
         "projectId": "3e0e0287-1ca0-45b1-b4cc-40be5f9b31e8"
       }
     },
-    "owner": "huangphucc"
+    "owner": "huangphucc",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/3e0e0287-1ca0-45b1-b4cc-40be5f9b31e8"
+    }
   }
 }

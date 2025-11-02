@@ -16,10 +16,10 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import CheckTimeBox from "../ui/CheckTimeBox";
-import TimesheetTotalHourBox from "../ui/TimesheetTotalHourBox";
 import { useIsFocused } from "@react-navigation/native";
-import { getCurrentTimekeepingData } from "@/services/timesheet/api";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
+import { getCurrentTimekeepingData } from "@/services/timesheet/api";
+import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
 interface TodayWidgetProps {
   todaySchedule: WorkingSchedule | null;
   loadingSchedule: boolean;
