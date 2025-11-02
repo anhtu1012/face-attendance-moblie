@@ -41,7 +41,7 @@ export const styles = StyleSheet.create({
   },
   faceGuide: {
     // Responsive: 80% of screen width, with max aspect ratio
-    width: SCREEN_WIDTH * 0.79,
+    width: SCREEN_WIDTH * 0.81,
     height: SCREEN_HEIGHT * 0.503, // 50% of screen height
     position: "relative",
   },

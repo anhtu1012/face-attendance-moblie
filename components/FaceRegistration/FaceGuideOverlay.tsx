@@ -188,7 +188,7 @@ export const FaceGuideOverlay = ({
 
   // Calculate border radius: from FaceGuide.radius (15) to 50% of width/height (20)
 
-  const maxRadius = SCREEN_WIDTH * 0.7;
+  const maxRadius = SCREEN_WIDTH;
   const animBorderRadiusTL = useAnimatedStyle(() => {
     const borderTopLeftRadiusValue = interpolate(
       circle.value,
@@ -240,7 +240,7 @@ export const FaceGuideOverlay = ({
   const animBorderStyle = useAnimatedStyle(() => ({
     borderColor: isDetectedFace ? "#918784" : FaceGuide.color,
     borderStyle: isDetectedFace ? "dashed" : "solid",
-    opacity: 1,
+    opacity: animationsFinished ? 0 : 1,
   }));
 
   return (

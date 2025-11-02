@@ -36,25 +36,25 @@ const TimekeepCameraPage = () => {
         }
 
         // Call timekeep API
-        // const response = await timkeep(timekeepData, timekeepingId);
-        //
-        // if (response.status === 200 || response.status === 201) {
-        //   setModal({
-        //     visible: true,
-        //     type: "success",
-        //     title: "Thành công",
-        //     message:
-        //       mode === "check-in"
-        //         ? "Chấm công vào thành công!"
-        //         : "Chấm công ra thành công!",
-        //     onClose: () => {
-        //       setModal((prev) => ({ ...prev, visible: false }));
-        //       router.back();
-        //     },
-        //   });
-        // } else {
-        //   throw new Error("Chấm công thất bại");
-        // }
+        const response = await timkeep(timekeepData, timekeepingId);
+
+        if (response.status === 200 || response.status === 201) {
+          setModal({
+            visible: true,
+            type: "success",
+            title: "Thành công",
+            message:
+              mode === "check-in"
+                ? "Chấm công vào thành công!"
+                : "Chấm công ra thành công!",
+            onClose: () => {
+              setModal((prev) => ({ ...prev, visible: false }));
+              router.back();
+            },
+          });
+        } else {
+          throw new Error("Chấm công thất bại");
+        }
       } catch (error: any) {
         console.error("Timekeep error:", error);
         setModal({
