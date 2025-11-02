@@ -26,6 +26,9 @@ import {
 import { setToken } from "@/api/axios";
 import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
+import { loginUser } from "@/api/auth";
+import { LoginResponse } from "@/models/auth/login";
+import { setAuthData } from "@/lib/features/loginSlice";
 const { width, height } = Dimensions.get("window");
 
 export interface ILoginScreenProps {
@@ -95,11 +98,11 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      onKeyboardShow
+      onKeyboardShow,
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      onKeyboardHide
+      onKeyboardHide,
     );
 
     return () => {

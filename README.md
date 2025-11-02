@@ -1,8 +1,10 @@
-# Welcome to your Expo app 👋
+# Face Attendance Mobile 📱
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Ứng dụng chấm công bằng nhận diện khuôn mặt, được xây dựng với Expo và React Native.
 
-## Get started
+## 🚀 Quick Start
+
+### Development
 
 1. Install dependencies
 
@@ -13,17 +15,91 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 2. Start the app
 
    ```bash
-   npx expo start
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+### Building
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
+#### Preview Build (Internal Testing)
+```bash
+# Kiểm tra environment trước
+npm run check-build
+
+# Build cho Android
+npm run build:preview:android
+
+# Build cho iOS
+npm run build:preview:ios
+```
+
+#### Production Build
+```bash
+# Android
+npm run build:production:android
+
+# iOS
+npm run build:production:ios
+```
+
+## 📚 Documentation
+
+- 🔧 **[BUILD_CONFIGURATION_CHANGES.md](./BUILD_CONFIGURATION_CHANGES.md)** - Tổng quan về cấu hình build
+- 📖 **[BUILD_GUIDE.md](./BUILD_GUIDE.md)** - Hướng dẫn build chi tiết
+- ✅ **[PRE_BUILD_CHECKLIST.md](./PRE_BUILD_CHECKLIST.md)** - Checklist trước khi build
+
+## 🛠️ Tech Stack
+
+### Core
+- **Expo SDK 54** - React Native framework
+- **React Native 0.81** - Mobile framework
+- **TypeScript** - Type safety
+- **Expo Router** - File-based routing
+
+### Native Features
+- **react-native-vision-camera** - Camera access & capture
+- **react-native-vision-camera-face-detector** - Face detection with ML Kit
+- **react-native-worklets-core** - High-performance worklets
+- **react-native-reanimated** - Smooth animations
+- **expo-local-authentication** - Biometric authentication
+
+### State & Data
+- **Redux Toolkit** - State management
+- **TanStack Query** - Server state management
+- **Axios** - HTTP client
+
+## 🔑 Key Features
+
+- ✅ Nhận diện khuôn mặt real-time
+- ✅ Chấm công check-in/check-out
+- ✅ Quản lý lịch làm việc
+- ✅ Xem timesheet theo ngày/tuần/tháng
+- ✅ Quản lý hợp đồng
+- ✅ Tính lương
+- ✅ Notifications
+- ✅ Dark mode
+
+## 📱 Development Options
+
+You can develop using:
+
+- [Development build](https://docs.expo.dev/develop/development-builds/introduction/) - Recommended for native modules
 - [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
 - [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+**Note:** Expo Go không hỗ trợ do app sử dụng native modules custom.
+
+## 📂 Project Structure
+
+```
+app/              # File-based routing (Expo Router)
+components/       # React components
+hooks/            # Custom hooks
+api/              # API client functions
+models/           # TypeScript types/interfaces
+services/         # Business logic services
+utils/            # Utility functions
+constants/        # App constants
+```
 
 ## Get a fresh project
 

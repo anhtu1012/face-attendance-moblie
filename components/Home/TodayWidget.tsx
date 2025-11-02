@@ -25,13 +25,23 @@ interface TodayWidgetProps {
   loadingSchedule: boolean;
 }
 
+interface timekeepingType {
+  timekeepingId: string;
+  date: string; // e.g. "2025-11-02"
+  checkinTime: string | null;
+  checkoutTime: string | null;
+  totalWorkHour: number;
+  hasOT: boolean;
+  status: string;
+}
+
 const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
   // Pulse animation for check-in button
   const pulse = useSharedValue(1);
   const { userId } = useGetUserProfile();
   const isFocused = useIsFocused();
   const [currentDateTimekeepingData, setCurrentDateTimekeepingData] =
-    useState();
+    useState<timekeepingType>();
 
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
@@ -41,7 +51,7 @@ const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
     if (isFocused && userId) {
       (async () => {
         const res = await getCurrentTimekeepingData(userId);
-        const data = res.data;
+        const data = res.data.data[0];
         console.log(data);
 
         setCurrentDateTimekeepingData(data);
@@ -128,6 +138,13 @@ const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
               onPress={() =>
                 router.push({
                   pathname: "/(drawer)/(tabs)/timekeep-camera",
+                  params: {
+                    mode:
+                      currentDateTimekeepingData?.checkinTime === null
+                        ? "check-in"
+                        : "check-out",
+                    timekeepingId: currentDateTimekeepingData?.timekeepingId,
+                  },
                 })
               }
               activeOpacity={0.8}

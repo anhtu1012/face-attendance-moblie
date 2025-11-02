@@ -8,7 +8,15 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "lint": "expo lint"
+    "lint": "expo lint",
+    "build:preview:android": "eas build --profile preview --platform android",
+    "build:preview:ios": "eas build --profile preview --platform ios",
+    "build:preview:all": "eas build --profile preview --platform all",
+    "build:production:android": "eas build --profile production --platform android",
+    "build:production:ios": "eas build --profile production --platform ios",
+    "check-build": "bash ./scripts/check-build-env.sh",
+    "prebuild": "npx expo prebuild",
+    "prebuild:clean": "npx expo prebuild --clean"
   },
   "dependencies": {
     "@expo/config-plugins": "~54.0.1",
