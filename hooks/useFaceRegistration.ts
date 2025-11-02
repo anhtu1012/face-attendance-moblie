@@ -99,14 +99,14 @@ export const useFaceRegistration = () => {
   // flag variable to only allow one request at a time
   const handleDetectedFaces = Worklets.createRunOnJS(async (faces: Face[]) => {
     if (isRegisteringRef.current) return;
-    
+
     // Update userFace state based on face detection
     if (faces.length !== 1) {
       setUserFace(null); // Clear face when no face or multiple faces detected
       setCurrentPose(null);
       return;
     }
-    
+
     const face = faces[0];
     setUserFace(face);
 
@@ -164,7 +164,7 @@ export const useFaceRegistration = () => {
         } as any);
 
         // Register face in python
-        await registerFace(faceFormData);
+        // await registerFace(faceFormData);
 
         // Create face register form's form data
         const formData = new FormData();

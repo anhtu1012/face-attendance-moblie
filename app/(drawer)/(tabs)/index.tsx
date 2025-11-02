@@ -1,6 +1,8 @@
+import TodayWidget from "@/components/Home/TodayWidget";
 import { motivationalQuotes } from "@/constants/homepage";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
+import { CheckinStatus, CheckoutStatus } from "@/models/timesheet/timekeeping";
 import { getSubmittedForm } from "@/services/form/api";
 import {
   AntDesign,
@@ -42,31 +44,35 @@ export interface FormDetail {
   status: "PENDING" | "APPROVED" | "REJECTED";
 }
 
-const fakeSchedule: WorkingSchedule = {
-  id: "1",
-  createdAt: "2025-09-14T08:00:00Z",
-  updatedAt: "2025-09-14T08:00:00Z",
-  timeKeepingId: "TK123",
-  code: "WS001",
-  userCode: "U001",
-  userContractCode: "UC001",
-  status: "active",
-  date: "2025-09-14",
-  fullName: "Nguyen Van A",
-  shiftCode: "S1",
-  shiftName: "Ca sáng",
-  branchName: "Văn phòng Hà Nội",
-  branchCode: "HN01",
-  addressLine: "123 Đường ABC, Hà Nội",
-  startShiftTime: "08:00",
-  endShiftTime: "17:00",
-  workingHours: 8,
-  checkInTime: "08:05",
-  checkOutTime: "17:00",
-  statusTimeKeeping: "Đã chấm công",
-  positionName: "Nhân viên",
-  managerFullName: "Tran Thi B",
+export const fakeSchedule: WorkingSchedule = {
+  timeKeepingId: 101,
+  userId: 42,
+  date: "2025-10-26",
+  checkinTime: "08:03",
+  checkoutTime: "17:30",
+  status: "START_LATE",
+  totalTimekeepingNumber: 1.0625, // 1 day + 0.0625 OT
+  totalWorkHour: 9.5, // 8 hours + 1.5 OT
+
+  shiftInfo: {
+    shiftStartTime: "08:00",
+    shiftEndTime: "17:00",
+    shiftWorkHour: 8,
+    shiftTimekeepingNumber: 1.0,
+  },
+
+  otInfo: {
+    otStartTime: "17:30",
+    otEndTime: "19:00",
+    otWorkHour: 1.5,
+    otTimekeepingNumber: 0.1875, // 1.5 / 8
+  },
+
+  checkinStatus: CheckinStatus.START_LATE,
+  checkoutStatus: CheckoutStatus.END_ONTIME,
+  isFromOt: true,
 };
+
 function HomePage() {
   const { userProfile, isLoading, error, refetch, userId } =
     useGetUserProfile();
@@ -223,7 +229,6 @@ function HomePage() {
         }
       >
         {/* Register face widget */}
-
         <View style={styles.widgetContainer}>
           <View style={styles.faceRegisterHeader}>
             <View style={styles.faceIconContainer}>
@@ -297,8 +302,8 @@ function HomePage() {
           </View>
         </View>*/}
 
-        {/* Today Widget 
-        <TodayWidget todaySchedule={fakeSchedule} loadingSchedule={false} />*/}
+        {/* Today Widget */}
+        <TodayWidget todaySchedule={fakeSchedule} loadingSchedule={false} />
 
         {/* Forms Status */}
         {/* <FormsStatusWidget
