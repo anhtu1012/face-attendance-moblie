@@ -90,7 +90,7 @@ export default function ProfilePage() {
           <WorkContractInfo userId={userId} gmail={userProfile?.email || ""} />
         );
       case 4:
-        return <AppendixTab userId={userId} />;
+        return <AppendixTab userId={userId} gmail={userProfile?.email || ""} />;
       default:
         return (
           <GeneralInfo

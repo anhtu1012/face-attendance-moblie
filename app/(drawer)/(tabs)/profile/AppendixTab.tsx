@@ -1,6 +1,10 @@
 import InfoRow from "@/components/Contract/InfoRow";
 import NoContractFound from "@/components/Contract/NoContractFound";
+import SignatureModal from "@/components/Contract/SignatureModal";
+import ErrorAlert from "@/components/ui/ErrorAlert";
 import PDFModal from "@/components/ui/PDFModal";
+import SuccessAlert from "@/components/ui/SuccessAlert";
+import { useConfirmOtpAppendix } from "@/hooks/useConfirmOtpAppendix";
 import { useGetAppendixByUserContractId } from "@/hooks/useGetAppendixByUserContractId";
 import { useGetContractByUserId } from "@/hooks/useGetContractByUserId";
 import { Appendix } from "@/models/contract/dtoAppendix";
@@ -14,19 +18,32 @@ import {
   View,
 } from "react-native";
 
-const AppendixTab = ({ userId }: { userId: string | undefined }) => {
+interface AppendixTabProps {
+  userId: string | undefined;
+  gmail?: string;
+}
+
+const AppendixTab = ({ userId, gmail }: AppendixTabProps) => {
   const { data: contractList } = useGetContractByUserId(userId ?? "");
   const contractData = contractList?.find(
     (contract) =>
       contract.status !== "INACTIVE" && contract.status !== "EXPIRED"
   );
-  const { data: appendixList } = useGetAppendixByUserContractId(
+  const { data: appendixList, refetch } = useGetAppendixByUserContractId(
     contractData?.id ?? ""
   );
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pdfModalVisible, setPdfModalVisible] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string>("");
   const [selectedPdfTitle, setSelectedPdfTitle] = useState<string>("");
+  const [signatureModalVisible, setSignatureModalVisible] = useState(false);
+  const [selectedAppendix, setSelectedAppendix] = useState<Appendix | null>(
+    null
+  );
+  const [successAlertVisible, setSuccessAlertVisible] = useState(false);
+  const [errorAlertVisible, setErrorAlertVisible] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const confirmOtpAppendix = useConfirmOtpAppendix();
 
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "--";
@@ -124,6 +141,44 @@ const AppendixTab = ({ userId }: { userId: string | undefined }) => {
       setSelectedPdfTitle(contractNumber);
       setPdfModalVisible(true);
     }
+  };
+
+  const handleSignAppendix = (appendix: Appendix) => {
+    setSelectedAppendix(appendix);
+    setSignatureModalVisible(true);
+  };
+
+  const handleSignComplete = (signatureBase64: string, otpCode: string) => {
+    if (!selectedAppendix) return;
+
+    const formData = new FormData();
+    formData.append("otpCode", otpCode);
+    formData.append("userContractExtendedId", selectedAppendix.id);
+    formData.append("signatureType", "USER");
+    formData.append("fileSignUrl", signatureBase64);
+    const fileName = `appendix_${selectedAppendix.id}.png`;
+    formData.append("fileSignUrl", {
+      uri: signatureBase64,
+      type: "image/png",
+      name: fileName,
+    } as any);
+
+    confirmOtpAppendix.mutate(formData, {
+      onSuccess: () => {
+        refetch();
+        setSignatureModalVisible(false);
+        setSelectedAppendix(null);
+        setSuccessAlertVisible(true);
+      },
+      onError: (error: any) => {
+        const message =
+          error?.response?.data?.message ||
+          error?.message ||
+          "Không thể ký phụ lục hợp đồng. Vui lòng thử lại!";
+        setErrorMessage(message);
+        setErrorAlertVisible(true);
+      },
+    });
   };
 
   const renderAppendixCard = (appendix: Appendix) => {
@@ -240,6 +295,25 @@ const AppendixTab = ({ userId }: { userId: string | undefined }) => {
                 </TouchableOpacity>
               </View>
             )}
+
+            {/* Sign Appendix Button - Only show if status is USER_SIGNED */}
+            {appendix.status === "USER_SIGNED" && (
+              <View style={styles.detailSection}>
+                <TouchableOpacity
+                  style={styles.signAppendixButton}
+                  onPress={() => handleSignAppendix(appendix)}
+                >
+                  <MaterialCommunityIcons
+                    name="draw-pen"
+                    size={24}
+                    color="#FFFFFF"
+                  />
+                  <Text style={styles.signAppendixText}>
+                    Ký phụ lục hợp đồng
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </>
         </View>
       </View>
@@ -270,6 +344,38 @@ const AppendixTab = ({ userId }: { userId: string | undefined }) => {
         onClose={() => setPdfModalVisible(false)}
         pdfUrl={selectedPdfUrl}
         title={selectedPdfTitle}
+      />
+
+      {/* Signature Modal */}
+      {selectedAppendix && (
+        <SignatureModal
+          visible={signatureModalVisible}
+          onClose={() => {
+            setSignatureModalVisible(false);
+            setSelectedAppendix(null);
+          }}
+          onSignComplete={handleSignComplete}
+          contractNumber={selectedAppendix.contractNumber}
+          userContractExtendedId={selectedAppendix.id}
+          userGmail={gmail || ""}
+          type="appendix"
+        />
+      )}
+
+      {/* Success Alert */}
+      <SuccessAlert
+        visible={successAlertVisible}
+        title="Ký thành công!"
+        message="Phụ lục hợp đồng của bạn đã được ký thành công. Chúng tôi sẽ xử lý trong thời gian sớm nhất."
+        onClose={() => setSuccessAlertVisible(false)}
+      />
+
+      {/* Error Alert */}
+      <ErrorAlert
+        visible={errorAlertVisible}
+        title="Lỗi"
+        message={errorMessage}
+        onClose={() => setErrorAlertVisible(false)}
       />
     </View>
   );
@@ -442,6 +548,25 @@ const styles = StyleSheet.create({
   pdfButtonText: {
     fontSize: 14,
     fontWeight: "600",
+    color: "#FFFFFF",
+  },
+  signAppendixButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#3674B5",
+    borderRadius: 8,
+    padding: 14,
+    gap: 8,
+    shadowColor: "#3674B5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  signAppendixText: {
+    fontSize: 16,
+    fontWeight: "700",
     color: "#FFFFFF",
   },
   emptyContainer: {

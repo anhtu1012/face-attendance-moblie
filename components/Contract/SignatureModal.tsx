@@ -1,3 +1,4 @@
+import { useSendOTPAppendix } from "@/hooks/useSendOTPAppendix";
 import { useSendOTPContract } from "@/hooks/useSendOTPContract";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useRef, useState } from "react";
@@ -13,13 +14,17 @@ import {
 } from "react-native";
 import SignatureScreen from "react-native-signature-canvas";
 
+type SignatureType = "contract" | "appendix";
+
 interface SignatureModalProps {
   visible: boolean;
   onClose: () => void;
   onSignComplete: (signatureFile: string, otpCode: string) => void;
   contractNumber: string;
-  userContractId: string;
+  userContractId?: string;
+  userContractExtendedId?: string;
   userGmail: string;
+  type?: SignatureType;
 }
 
 const { height } = Dimensions.get("window");
@@ -30,14 +35,17 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   onSignComplete,
   contractNumber,
   userContractId,
+  userContractExtendedId,
   userGmail,
+  type = "contract",
 }) => {
   const [step, setStep] = useState<"signature" | "otp">("signature");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [signatureBase64, setSignatureBase64] = useState<string>("");
   const [isVerifying, setIsVerifying] = useState(false);
   const signatureRef = useRef<any>(null);
-  const sendOTP = useSendOTPContract();
+  const sendOTPContract = useSendOTPContract();
+  const sendOTPAppendix = useSendOTPAppendix();
   const otpInputs = useRef<(TextInput | null)[]>([]);
 
   // Signature style configuration
@@ -64,10 +72,19 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   // Handle signature result
   const handleSignatureOK = (signature: string) => {
     setSignatureBase64(signature);
-    sendOTP.mutate({
-      userContractId: userContractId,
-      userGmail: userGmail,
-    });
+
+    if (type === "appendix" && userContractExtendedId) {
+      sendOTPAppendix.mutate({
+        userContractExtendedId: userContractExtendedId,
+        userGmail: userGmail,
+      });
+    } else if (type === "contract" && userContractId) {
+      sendOTPContract.mutate({
+        userContractId: userContractId,
+        userGmail: userGmail,
+      });
+    }
+
     setStep("otp");
   };
 
@@ -167,7 +184,11 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
                 color="#3674B5"
               />
               <Text style={styles.headerTitle}>
-                {step === "signature" ? "Ký hợp đồng" : "Xác thực OTP"}
+                {step === "signature"
+                  ? type === "appendix"
+                    ? "Ký phụ lục hợp đồng"
+                    : "Ký hợp đồng"
+                  : "Xác thực OTP"}
               </Text>
             </View>
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
@@ -175,9 +196,11 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
             </TouchableOpacity>
           </View>
 
-          {/* Contract Info */}
+          {/* Contract/Appendix Info */}
           <View style={styles.contractInfo}>
-            <Text style={styles.contractLabel}>Hợp đồng</Text>
+            <Text style={styles.contractLabel}>
+              {type === "appendix" ? "Phụ lục hợp đồng" : "Hợp đồng"}
+            </Text>
             <Text style={styles.contractNumberText}>{contractNumber}</Text>
           </View>
 
