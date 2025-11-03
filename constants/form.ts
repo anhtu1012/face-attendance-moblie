@@ -1,6 +1,6 @@
 export const formTypes = [
   {
-    id: "6",
+    id: "2",
     title: "Đơn vắng mặt",
     description:
       "Đơn vắng mặt phát sinh sinh khi bạn muốn vắng một hoặc nhiều ngày làm việc",
@@ -9,7 +9,7 @@ export const formTypes = [
     iconColor: "#9C27B0",
   },
   {
-    id: "7",
+    id: "3",
     title: "Đơn tăng ca",
     description:
       "Đơn tăng ca phát sinh khi bạn có nhu cầu làm thêm một ca nào đó ngoài ca làm việc đã được phân",
@@ -18,7 +18,7 @@ export const formTypes = [
     iconColor: "#da822f",
   },
   {
-    id: "8",
+    id: "4",
     title: "Đơn quên chấm công",
     description: "Đơn quên chấm công",
     icon: "car",
@@ -26,7 +26,7 @@ export const formTypes = [
     iconColor: "#2cb5d0",
   },
   {
-    id: "5",
+    id: "1",
     title: "Đơn xác thực khuôn mặt",
     description: "Đơn xác thực khuôn mặt",
     icon: "car",
@@ -34,7 +34,7 @@ export const formTypes = [
     iconColor: "#4db47e",
   },
   {
-    id: "9",
+    id: "5",
     title: "Đơn thôi việc",
     description: "Đơn thôi việc",
     icon: "car",
@@ -42,7 +42,15 @@ export const formTypes = [
     iconColor: "#f63331",
   },
   {
-    id: "10",
+    id: "6",
+    title: "Đơn về sớm",
+    description: "Đơn về sớm",
+    icon: "car",
+    color: "#ffe9eb",
+    iconColor: "#f63331",
+  },
+  {
+    id: "7",
     title: "Đơn khác",
     description: "Các loại đơn khác",
     icon: "file-text",

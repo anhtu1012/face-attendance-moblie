@@ -180,6 +180,7 @@ export const useFaceRegistration = () => {
           name: "faces.zip",
         } as any);
         formData.append("startTime", new Date().toISOString());
+        formData.append("date", new Date().toISOString());
 
         // Send face register form
         await submitForm(formData);

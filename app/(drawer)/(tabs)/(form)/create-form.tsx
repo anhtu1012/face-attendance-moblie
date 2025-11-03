@@ -1,25 +1,26 @@
-import { AntDesign } from "@expo/vector-icons";
+import MultiFileInput from "@/components/MultiFileInput";
+import AlertModal, {
+  AlertModalProps,
+  initialModalValue,
+} from "@/components/ui/AlertModal";
+import { submitForm } from "@/services/form/api";
+import { createZip } from "@/utils/zipUtils";
+import { AntDesign, Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import * as DocumentPicker from "expo-document-picker";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { Ionicons } from "@expo/vector-icons";
-import { submitForm } from "@/services/form/api";
-import MultiFileInput from "@/components/MultiFileInput";
-import AsyncStorage from "@react-native-async-storage/async-storage";
-import * as DocumentPicker from "expo-document-picker";
-import { createZip } from "@/utils/zipUtils";
-import AlertModal, {
-  AlertModalProps,
-  initialModalValue,
-} from "@/components/ui/AlertModal";
 
 type DateType = {
   startDate: string;
@@ -138,52 +139,61 @@ export default function CreateFormPage() {
 
   return (
     <View style={styles.container}>
-      {/* header */}
-      <View style={styles.header}>
-        <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-          }}
-        >
+      {/* Modern Gradient Header */}
+      <LinearGradient
+        colors={["#3674B5", "#2196F3"]}
+        style={styles.headerGradient}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 0 }}
+      >
+        <View style={styles.headerContent}>
           <TouchableOpacity
             onPress={() =>
               router.navigate("/(drawer)/(tabs)/(form)/choose-form")
             }
+            style={styles.backButton}
           >
-            <AntDesign
-              name="arrow-left"
-              size={24}
-              color="#919296"
-              style={styles.goBackArrow}
-            />
+            <AntDesign name="arrow-left" size={24} color="#fff" />
           </TouchableOpacity>
-          <Text style={styles.headerTitle}>
-            Tạo mới {(title as String).toLowerCase()}
-          </Text>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>Tạo đơn mới</Text>
+            <Text style={styles.headerSubtitle}>
+              {(title as String)}
+            </Text>
+          </View>
+          <View style={styles.headerRight} />
         </View>
-      </View>
+      </LinearGradient>
 
       {/* Alert modal */}
       <AlertModal {...modal} />
 
       {/* form detail */}
-      <View style={styles.content}>
-        <View style={styles.card}>
+      <ScrollView 
+        style={styles.scrollView}
+        contentContainerStyle={styles.content}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Time Period Card */}
+        <View style={styles.modernCard}>
           <View style={styles.cardHeader}>
-            <Text style={styles.labelBold}>Thời gian</Text>
+            <View style={styles.cardIconContainer}>
+              <MaterialCommunityIcons name="clock-outline" size={20} color="#3674B5" />
+            </View>
+            <Text style={styles.cardTitle}>Thời gian</Text>
           </View>
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Từ giờ</Text>
+              <Text style={styles.modernLabel}>Từ giờ</Text>
               <TouchableOpacity
-                style={styles.input}
+                style={styles.modernInput}
                 onPress={() =>
                   setShowPicker((prev) => ({ ...prev, startTime: true }))
                 }
               >
-                <Text>
+                <Feather name="clock" size={18} color="#3674B5" style={styles.inputIcon} />
+                <Text style={styles.inputText}>
                   {new Date(date.startDate + "T" + date.startTime)
                     .toLocaleTimeString("vi-VN")
                     .slice(0, 5)}
@@ -206,14 +216,15 @@ export default function CreateFormPage() {
             </View>
 
             <View style={[styles.inputGroup, { flex: 1, marginLeft: 10 }]}>
-              <Text style={styles.label}>Từ ngày</Text>
+              <Text style={styles.modernLabel}>Từ ngày</Text>
               <TouchableOpacity
-                style={styles.input}
+                style={styles.modernInput}
                 onPress={() =>
                   setShowPicker((prev) => ({ ...prev, startDate: true }))
                 }
               >
-                <Text>
+                <Feather name="calendar" size={18} color="#3674B5" style={styles.inputIcon} />
+                <Text style={styles.inputText}>
                   {new Date(
                     date.startDate + "T" + date.startTime,
                   ).toLocaleDateString("vi-VN")}
@@ -237,14 +248,15 @@ export default function CreateFormPage() {
           </View>
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1 }]}>
-              <Text style={styles.label}>Đến giờ</Text>
+              <Text style={styles.modernLabel}>Đến giờ</Text>
               <TouchableOpacity
-                style={styles.input}
+                style={styles.modernInput}
                 onPress={() =>
                   setShowPicker((prev) => ({ ...prev, endTime: true }))
                 }
               >
-                <Text>
+                <Feather name="clock" size={18} color="#3674B5" style={styles.inputIcon} />
+                <Text style={styles.inputText}>
                   {new Date(date.endDate + "T" + date.endTime)
                     .toLocaleTimeString("vi-VN")
                     .slice(0, 5)}
@@ -269,14 +281,15 @@ export default function CreateFormPage() {
             </View>
 
             <View style={[styles.inputGroup, { flex: 1, marginLeft: 10 }]}>
-              <Text style={styles.label}>Đến ngày</Text>
+              <Text style={styles.modernLabel}>Đến ngày</Text>
               <TouchableOpacity
-                style={styles.input}
+                style={styles.modernInput}
                 onPress={() =>
                   setShowPicker((prev) => ({ ...prev, endDate: true }))
                 }
               >
-                <Text>
+                <Feather name="calendar" size={18} color="#3674B5" style={styles.inputIcon} />
+                <Text style={styles.inputText}>
                   {new Date(
                     date.endDate + "T" + date.endTime,
                   ).toLocaleDateString("vi-VN")}
@@ -300,31 +313,54 @@ export default function CreateFormPage() {
           </View>
         </View>
 
-        {/* Description */}
-        <View style={styles.inputGroup}>
-          <Text style={[styles.labelBold, { marginBottom: 5, marginLeft: 4 }]}>
-            Lý do <Text style={{ color: "red" }}>*</Text>
-          </Text>
+        {/* Description Card */}
+        <View style={styles.modernCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardIconContainer}>
+              <MaterialCommunityIcons name="text-box-outline" size={20} color="#3674B5" />
+            </View>
+            <Text style={styles.cardTitle}>
+              Lý do <Text style={{ color: "#FF5252" }}>*</Text>
+            </Text>
+          </View>
           <TextInput
-            style={[styles.input, styles.textArea]}
+            style={styles.modernTextArea}
             multiline
-            placeholder="Nhập mô tả..."
+            placeholder="Nhập lý do xin nghỉ hoặc đi muộn..."
+            placeholderTextColor="#999"
             value={reason}
             onChangeText={setReason}
+            numberOfLines={4}
+            textAlignVertical="top"
           />
         </View>
 
-        {/* Files */}
-        <View style={styles.inputGroup}>
+        {/* Files Card */}
+        <View style={styles.modernCard}>
+          <View style={styles.cardHeader}>
+            <View style={styles.cardIconContainer}>
+              <MaterialCommunityIcons name="file-document-outline" size={20} color="#3674B5" />
+            </View>
+            <Text style={styles.cardTitle}>Tài liệu đính kèm</Text>
+          </View>
           <MultiFileInput files={files} setFiles={setFiles} />
         </View>
 
         {/* Submit button */}
         <TouchableOpacity
-          style={styles.submitButton}
+          style={styles.modernSubmitButton}
           onPress={handleSubmitForm}
+          activeOpacity={0.8}
         >
-          <Text style={styles.submitText}>Gửi đơn</Text>
+          <LinearGradient
+            colors={["#3674B5", "#2196F3"]}
+            style={styles.submitGradient}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+          >
+            <Ionicons name="send" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Text style={styles.modernSubmitText}>Gửi đơn</Text>
+          </LinearGradient>
         </TouchableOpacity>
 
         {/* Loading spinner */}
@@ -336,7 +372,7 @@ export default function CreateFormPage() {
             </View>
           </View>
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -346,100 +382,157 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f5f5",
   },
+  scrollView: {
+    flex: 1,
+  },
   content: {
     padding: 16,
     paddingBottom: 50,
   },
-  title: {
-    color: "#333333",
+  // Modern Header Styles
+  headerGradient: {
+    paddingTop: 50,
+    paddingBottom: 20,
+    paddingHorizontal: 20,
   },
-  scrollViewContainer: {
-    flex: 1,
-    backgroundColor: "#f5f5f5",
-  },
-  header: {
+  headerContent: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-    backgroundColor: "#fff",
+    justifyContent: "space-between",
   },
-  goBackArrow: {
-    marginRight: 15,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(255,255,255,0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  headerTextContainer: {
+    flex: 1,
+    marginLeft: 15,
   },
   headerTitle: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "bold",
-    color: "#333",
-    marginBottom: 5,
+    color: "#fff",
   },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-  },
-  inputGroup: {
-    marginBottom: 12,
-  },
-  label: {
-    fontSize: 13,
-    color: "#666",
-    marginBottom: 4,
-  },
-  labelBold: {
+  headerSubtitle: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#333",
+    color: "rgba(255,255,255,0.9)",
+    marginTop: 4,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ddd",
-    borderRadius: 6,
-    padding: 10,
-    fontSize: 14,
+  headerRight: {
+    width: 40,
+  },
+  // Modern Card Styles
+  modernCard: {
     backgroundColor: "#fff",
-  },
-  textArea: {
-    height: 100,
-    textAlignVertical: "top",
-  },
-  card: {
-    borderWidth: 1,
-    borderColor: "#e8eaef",
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: "#fff",
-    marginBottom: 12,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 3,
   },
   cardHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 12,
   },
-  addButton: {
+  cardIconContainer: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: "#E3F2FD",
     alignItems: "center",
-    marginVertical: 10,
+    justifyContent: "center",
+    marginRight: 10,
   },
-  submitButton: {
-    backgroundColor: "#3674B5",
-    paddingVertical: 12,
-    borderRadius: 6,
-    alignItems: "center",
-  },
-  submitText: {
-    color: "#fff",
-    fontWeight: "600",
+  cardTitle: {
     fontSize: 16,
+    fontWeight: "600",
+    color: "#333",
   },
+  // Modern Input Styles
+  modernLabel: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#555",
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  modernInput: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#F8F9FA",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    paddingHorizontal: 12,
+    height: 48,
+  },
+  inputIcon: {
+    marginRight: 10,
+  },
+  inputText: {
+    flex: 1,
+    fontSize: 15,
+    color: "#333",
+  },
+  modernTextArea: {
+    backgroundColor: "#F8F9FA",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    padding: 12,
+    fontSize: 15,
+    color: "#333",
+    minHeight: 100,
+    textAlignVertical: "top",
+  },
+  // Row Layout
+  row: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
+  },
+  inputGroup: {
+    flex: 1,
+  },
+  // Modern Submit Button
+  modernSubmitButton: {
+    marginTop: 8,
+    marginBottom: 20,
+    borderRadius: 12,
+    overflow: "hidden",
+    shadowColor: "#3674B5",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  submitGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 16,
+    paddingHorizontal: 32,
+  },
+  modernSubmitText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  // Loading Overlay
   overlay: {
     position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    // backgroundColor: "rgba(0, 0, 0, 0.4)", // dim effect
     alignItems: "center",
     justifyContent: "center",
     zIndex: 10,

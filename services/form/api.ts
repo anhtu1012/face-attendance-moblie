@@ -13,3 +13,10 @@ export const getSubmittedForm = (submitterId: string) => {
     `form/quan-li-don/danh-sach-don-nguoi-gui?submitterId=${submitterId}`,
   );
 };
+
+export const cancelSubmittedForm = (
+  submittedFormId: string,
+  data: { reason: string; modifiedDate: string },
+) => {
+  return api.put(`form/quan-li-don/huy-don/${submittedFormId}`, data);
+};

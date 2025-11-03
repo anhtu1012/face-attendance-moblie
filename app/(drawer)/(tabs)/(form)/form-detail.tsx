@@ -38,6 +38,14 @@ export default function FormDetailScreen() {
         text: "Từ chối",
         dotColor: "#F44336",
       };
+    } else if (formData.status === "INACTIVE") {
+      return {
+        color: "#FFFFFF",
+        backgroundColor: "#c3c3c3",
+        icon: "close-circle",
+        text: "Đã hủy",
+        dotColor: "#c3c3c3",
+      };
     }
     return {
       color: "#4CAF50",

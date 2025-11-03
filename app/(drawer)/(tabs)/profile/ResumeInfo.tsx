@@ -208,7 +208,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
         const date = new Date(
           parseInt(year),
           parseInt(month) - 1,
-          parseInt(day)
+          parseInt(day),
         );
         if (isNaN(date.getTime())) {
           throw new Error("Invalid date");
@@ -271,9 +271,9 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
       const filteredOptions = React.useMemo(
         () =>
           options.filter((option: any) =>
-            option.label.toLowerCase().includes(searchValue.toLowerCase())
+            option.label.toLowerCase().includes(searchValue.toLowerCase()),
           ),
-        [options, searchValue]
+        [options, searchValue],
       );
 
       return (
@@ -345,7 +345,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           </TouchableOpacity>
         </Modal>
       );
-    }
+    },
   );
 
   return (
@@ -492,8 +492,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
                   {formik.values.gender === "M"
                     ? "Nam"
                     : formik.values.gender === "F"
-                    ? "Nữ"
-                    : "Không xác định"}
+                      ? "Nữ"
+                      : "Không xác định"}
                 </Text>
               )}
             </View>

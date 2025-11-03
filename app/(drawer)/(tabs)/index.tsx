@@ -3,7 +3,7 @@ import { motivationalQuotes } from "@/constants/homepage";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
 import { CheckinStatus, CheckoutStatus } from "@/models/timesheet/timekeeping";
-import { getSubmittedForm } from "@/services/form/api";
+import { cancelSubmittedForm, getSubmittedForm } from "@/services/form/api";
 import {
   AntDesign,
   Entypo,
@@ -12,15 +12,19 @@ import {
   Octicons,
 } from "@expo/vector-icons";
 import { DrawerActions, useIsFocused } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
 import { router, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Image,
+  Modal,
   RefreshControl,
   SafeAreaView,
   ScrollView,
   StyleSheet,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
@@ -41,7 +45,7 @@ export interface FormDetail {
   endTime: string;
   approvedTime: string;
   file: string;
-  status: "PENDING" | "APPROVED" | "REJECTED";
+  status: "PENDING" | "APPROVED" | "REJECTED" | "INACTIVE";
 }
 
 export const fakeSchedule: WorkingSchedule = {
@@ -79,6 +83,10 @@ function HomePage() {
   const [submittedForms, setSubmittedForms] = useState<FormDetail[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
+  const [cancelReason, setCancelReason] = useState("");
+  const [isSubmittingCancel, setIsSubmittingCancel] = useState(false);
   const isFocused = useIsFocused();
   const navigation = useNavigation();
 
@@ -96,93 +104,6 @@ function HomePage() {
     }
   };
 
-  const handleRenderFormState = (form: FormDetail) => {
-    if (form.status == "PENDING") {
-      return (
-        <View
-          style={[
-            styles.tickContainer,
-            {
-              backgroundColor: "rgba(255, 180, 10, 0.1)",
-            },
-          ]}
-        >
-          <AntDesign
-            name="clock-circle"
-            size={16}
-            color="#ffb40a"
-            style={{ marginRight: 3 }}
-          />
-          <Text style={{ color: "#ffb40a" }}>Đang chờ</Text>
-        </View>
-      );
-    } else if (form.status == "REJECTED")
-      return (
-        <View
-          style={[
-            styles.tickContainer,
-            {
-              backgroundColor: "rgba(242, 95, 108, 0.1)",
-            },
-          ]}
-        >
-          <Entypo name="circle-with-cross" size={16} color="#f25f6c" />
-          <Text style={{ color: "#f25f6c" }}>Từ chối</Text>
-        </View>
-      );
-
-    return (
-      <View
-        style={[
-          styles.tickContainer,
-          {
-            backgroundColor: "rgba(96, 208, 152, 0.1)",
-          },
-        ]}
-      >
-        <Entypo name="check" size={16} color="#60d098" />
-        <Text style={{ color: "#60d098" }}>Đã duyệt</Text>
-      </View>
-    );
-  };
-
-  const handleRenderFormStateModern = (form: FormDetail) => {
-    if (form.status === "PENDING") {
-      return (
-        <View style={styles.modernStatusBadge}>
-          <View
-            style={[styles.statusDotIndicator, { backgroundColor: "#FF9800" }]}
-          />
-          <Text style={[styles.modernStatusText, { color: "#FF9800" }]}>
-            Chờ duyệt
-          </Text>
-        </View>
-      );
-    } else if (form.status === "REJECTED") {
-      return (
-        <View style={styles.modernStatusBadge}>
-          <View
-            style={[styles.statusDotIndicator, { backgroundColor: "#F44336" }]}
-          />
-          <Text style={[styles.modernStatusText, { color: "#F44336" }]}>
-            Từ chối
-          </Text>
-        </View>
-      );
-    }
-
-    return (
-      <View style={styles.modernStatusBadge}>
-        <View
-          style={[styles.statusDotIndicator, { backgroundColor: "#4CAF50" }]}
-        />
-        <Text style={[styles.modernStatusText, { color: "#4CAF50" }]}>
-          Đã duyệt
-        </Text>
-      </View>
-    );
-  };
-
   // Auto-rotate quotes every 5 seconds
   useEffect(() => {
     const interval = setInterval(() => {
@@ -193,6 +114,51 @@ function HomePage() {
 
     return () => clearInterval(interval);
   }, []);
+
+  const handleOpenCancelModal = (formId: string) => {
+    setSelectedFormId(formId);
+    setCancelReason("");
+    setCancelModalVisible(true);
+  };
+
+  const handleCloseCancelModal = () => {
+    setCancelModalVisible(false);
+    setSelectedFormId(null);
+    setCancelReason("");
+  };
+
+  const handleSubmitCancel = async () => {
+    if (!cancelReason.trim()) {
+      alert("Vui lòng nhập lý do hủy đơn");
+      return;
+    }
+
+    setIsSubmittingCancel(true);
+    try {
+      // TODO: Call API to cancel form
+      // await cancelForm(selectedFormId, cancelReason);
+
+      console.log("Canceling form:", selectedFormId, "Reason:", cancelReason);
+
+      // Simulate API call
+      const reqBody = {
+        reason: cancelReason,
+        modifiedDate: new Date().toISOString(),
+      };
+      await cancelSubmittedForm(selectedFormId!, reqBody);
+
+      // Refresh form list
+      await handleGetSubmittedForm();
+
+      handleCloseCancelModal();
+      alert("Đã hủy đơn thành công");
+    } catch (error) {
+      console.error("Error canceling form:", error);
+      alert("Có lỗi xảy ra khi hủy đơn");
+    } finally {
+      setIsSubmittingCancel(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -349,7 +315,9 @@ function HomePage() {
                             ? "#FF9800"
                             : form.status === "APPROVED"
                               ? "#4CAF50"
-                              : "#F44336",
+                              : form.status === "INACTIVE"
+                                ? "#c3c3c3"
+                                : "#F44336",
                       },
                     ]}
                     onPress={() =>
@@ -374,7 +342,9 @@ function HomePage() {
                                 ? "#FF9800"
                                 : form.status === "APPROVED"
                                   ? "#4CAF50"
-                                  : "#F44336",
+                                  : form.status === "INACTIVE"
+                                    ? "#c3c3c3"
+                                    : "#F44336",
                           },
                         ]}
                       >
@@ -383,7 +353,9 @@ function HomePage() {
                             ? "Chờ duyệt"
                             : form.status === "APPROVED"
                               ? "Đã duyệt"
-                              : "Từ chối"}
+                              : form.status === "INACTIVE"
+                                ? "Đã hủy"
+                                : "Từ chối"}
                         </Text>
                       </View>
                       <TouchableOpacity style={styles.formCardMenu}>
@@ -456,6 +428,7 @@ function HomePage() {
                             styles.formActionButton,
                             styles.formActionButtonDanger,
                           ]}
+                          onPress={() => handleOpenCancelModal(form.id)}
                         >
                           <Text
                             style={[
@@ -532,6 +505,129 @@ function HomePage() {
         {/* Bottom space */}
         <View style={styles.bottomSpace} />
       </ScrollView>
+
+      {/* Cancel Form Modal */}
+      <Modal
+        visible={cancelModalVisible}
+        transparent={true}
+        animationType="fade"
+        onRequestClose={handleCloseCancelModal}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContainer}>
+            {/* Modal Header with Gradient */}
+            <LinearGradient
+              colors={["#FF5252", "#F44336"]}
+              style={styles.modalHeader}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+            >
+              <View style={styles.modalHeaderContent}>
+                <View style={styles.modalIconContainer}>
+                  <MaterialCommunityIcons
+                    name="cancel"
+                    size={28}
+                    color="#fff"
+                  />
+                </View>
+                <View style={styles.modalHeaderTextContainer}>
+                  <Text style={styles.modalTitle}>Hủy đơn</Text>
+                  <Text style={styles.modalSubtitle}>
+                    Vui lòng nhập lý do hủy
+                  </Text>
+                </View>
+              </View>
+              <TouchableOpacity
+                onPress={handleCloseCancelModal}
+                style={styles.modalCloseButton}
+              >
+                <AntDesign name="close" size={24} color="#fff" />
+              </TouchableOpacity>
+            </LinearGradient>
+
+            {/* Modal Body */}
+            <View style={styles.modalBody}>
+              <View style={styles.inputContainer}>
+                <View style={styles.inputLabelContainer}>
+                  <MaterialCommunityIcons
+                    name="text-box-outline"
+                    size={20}
+                    color="#666"
+                  />
+                  <Text style={styles.inputLabel}>
+                    Lý do hủy <Text style={styles.required}>*</Text>
+                  </Text>
+                </View>
+                <TextInput
+                  style={styles.textArea}
+                  placeholder="Nhập lý do hủy đơn của bạn..."
+                  placeholderTextColor="#999"
+                  value={cancelReason}
+                  onChangeText={setCancelReason}
+                  multiline
+                  numberOfLines={4}
+                  textAlignVertical="top"
+                  editable={!isSubmittingCancel}
+                />
+                <Text style={styles.inputHint}>
+                  Lý do hủy sẽ được ghi nhận trong hệ thống
+                </Text>
+              </View>
+
+              {/* Action Buttons */}
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.modalCancelButton}
+                  onPress={handleCloseCancelModal}
+                  disabled={isSubmittingCancel}
+                >
+                  <Text style={styles.modalCancelButtonText}>Đóng</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={[
+                    styles.modalSubmitButton,
+                    isSubmittingCancel && styles.modalSubmitButtonDisabled,
+                  ]}
+                  onPress={handleSubmitCancel}
+                  disabled={isSubmittingCancel}
+                  activeOpacity={0.8}
+                >
+                  <LinearGradient
+                    colors={
+                      isSubmittingCancel
+                        ? ["#ccc", "#999"]
+                        : ["#FF5252", "#F44336"]
+                    }
+                    style={styles.modalSubmitGradient}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 0 }}
+                  >
+                    {isSubmittingCancel ? (
+                      <>
+                        <ActivityIndicator size="small" color="#fff" />
+                        <Text style={styles.modalSubmitButtonText}>
+                          Đang xử lý...
+                        </Text>
+                      </>
+                    ) : (
+                      <>
+                        <MaterialCommunityIcons
+                          name="check-circle"
+                          size={20}
+                          color="#fff"
+                        />
+                        <Text style={styles.modalSubmitButtonText}>
+                          Xác nhận hủy
+                        </Text>
+                      </>
+                    )}
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -1096,6 +1192,150 @@ const styles = StyleSheet.create({
   },
   formActionButtonDangerText: {
     color: "#F44336",
+  },
+  // Cancel Modal Styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  modalContainer: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    width: "100%",
+    maxWidth: 500,
+    overflow: "hidden",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  modalHeader: {
+    paddingVertical: 20,
+    paddingHorizontal: 20,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  modalHeaderContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  modalIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+    marginRight: 12,
+  },
+  modalHeaderTextContainer: {
+    flex: 1,
+  },
+  modalTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#fff",
+    marginBottom: 4,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.9)",
+  },
+  modalCloseButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  modalBody: {
+    padding: 20,
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  inputLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  inputLabel: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#333",
+    marginLeft: 6,
+  },
+  required: {
+    color: "#FF5252",
+  },
+  textArea: {
+    backgroundColor: "#F8F9FA",
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    padding: 12,
+    fontSize: 15,
+    color: "#333",
+    minHeight: 120,
+    textAlignVertical: "top",
+  },
+  inputHint: {
+    fontSize: 12,
+    color: "#999",
+    marginTop: 6,
+    fontStyle: "italic",
+  },
+  modalActions: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  modalCancelButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: "#E0E0E0",
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#F8F9FA",
+  },
+  modalCancelButtonText: {
+    fontSize: 15,
+    fontWeight: "600",
+    color: "#666",
+  },
+  modalSubmitButton: {
+    flex: 1,
+    borderRadius: 10,
+    overflow: "hidden",
+    shadowColor: "#FF5252",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 6,
+  },
+  modalSubmitButtonDisabled: {
+    opacity: 0.6,
+  },
+  modalSubmitGradient: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 14,
+    paddingHorizontal: 20,
+    gap: 8,
+  },
+  modalSubmitButtonText: {
+    fontSize: 15,
+    fontWeight: "bold",
+    color: "#fff",
   },
 });
 
