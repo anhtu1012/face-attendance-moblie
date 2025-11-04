@@ -135,9 +135,6 @@ function HomePage() {
 
     setIsSubmittingCancel(true);
     try {
-      // TODO: Call API to cancel form
-      // await cancelForm(selectedFormId, cancelReason);
-
       console.log("Canceling form:", selectedFormId, "Reason:", cancelReason);
 
       // Simulate API call
