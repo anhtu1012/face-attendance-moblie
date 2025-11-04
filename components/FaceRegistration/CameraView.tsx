@@ -1,11 +1,9 @@
-import { useIsFocused } from "@react-navigation/native";
 import { RefObject, useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   interpolate,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
 import { Camera, CameraDevice } from "react-native-vision-camera";

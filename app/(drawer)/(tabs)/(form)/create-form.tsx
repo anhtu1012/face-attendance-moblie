@@ -3,9 +3,15 @@ import AlertModal, {
   AlertModalProps,
   initialModalValue,
 } from "@/components/ui/AlertModal";
+import CustomHeaders from "@/components/ui/CustomHeaders";
 import { submitForm } from "@/services/form/api";
 import { createZip } from "@/utils/zipUtils";
-import { AntDesign, Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import {
+  AntDesign,
+  Feather,
+  Ionicons,
+  MaterialCommunityIcons,
+} from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
@@ -140,36 +146,17 @@ export default function CreateFormPage() {
   return (
     <View style={styles.container}>
       {/* Modern Gradient Header */}
-      <LinearGradient
-        colors={["#3674B5", "#2196F3"]}
-        style={styles.headerGradient}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 0 }}
-      >
-        <View style={styles.headerContent}>
-          <TouchableOpacity
-            onPress={() =>
-              router.navigate("/(drawer)/(tabs)/(form)/choose-form")
-            }
-            style={styles.backButton}
-          >
-            <AntDesign name="arrow-left" size={24} color="#fff" />
-          </TouchableOpacity>
-          <View style={styles.headerTextContainer}>
-            <Text style={styles.headerTitle}>Tạo đơn mới</Text>
-            <Text style={styles.headerSubtitle}>
-              {(title as String)}
-            </Text>
-          </View>
-          <View style={styles.headerRight} />
-        </View>
-      </LinearGradient>
+
+      <CustomHeaders
+        title="Tạo đơn mới"
+        onBack={() => router.navigate("/(drawer)/(tabs)/(form)/choose-form")}
+      />
 
       {/* Alert modal */}
       <AlertModal {...modal} />
 
       {/* form detail */}
-      <ScrollView 
+      <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
@@ -178,7 +165,11 @@ export default function CreateFormPage() {
         <View style={styles.modernCard}>
           <View style={styles.cardHeader}>
             <View style={styles.cardIconContainer}>
-              <MaterialCommunityIcons name="clock-outline" size={20} color="#3674B5" />
+              <MaterialCommunityIcons
+                name="clock-outline"
+                size={20}
+                color="#3674B5"
+              />
             </View>
             <Text style={styles.cardTitle}>Thời gian</Text>
           </View>
@@ -192,7 +183,12 @@ export default function CreateFormPage() {
                   setShowPicker((prev) => ({ ...prev, startTime: true }))
                 }
               >
-                <Feather name="clock" size={18} color="#3674B5" style={styles.inputIcon} />
+                <Feather
+                  name="clock"
+                  size={18}
+                  color="#3674B5"
+                  style={styles.inputIcon}
+                />
                 <Text style={styles.inputText}>
                   {new Date(date.startDate + "T" + date.startTime)
                     .toLocaleTimeString("vi-VN")
@@ -223,7 +219,12 @@ export default function CreateFormPage() {
                   setShowPicker((prev) => ({ ...prev, startDate: true }))
                 }
               >
-                <Feather name="calendar" size={18} color="#3674B5" style={styles.inputIcon} />
+                <Feather
+                  name="calendar"
+                  size={18}
+                  color="#3674B5"
+                  style={styles.inputIcon}
+                />
                 <Text style={styles.inputText}>
                   {new Date(
                     date.startDate + "T" + date.startTime,
@@ -255,7 +256,12 @@ export default function CreateFormPage() {
                   setShowPicker((prev) => ({ ...prev, endTime: true }))
                 }
               >
-                <Feather name="clock" size={18} color="#3674B5" style={styles.inputIcon} />
+                <Feather
+                  name="clock"
+                  size={18}
+                  color="#3674B5"
+                  style={styles.inputIcon}
+                />
                 <Text style={styles.inputText}>
                   {new Date(date.endDate + "T" + date.endTime)
                     .toLocaleTimeString("vi-VN")
@@ -288,7 +294,12 @@ export default function CreateFormPage() {
                   setShowPicker((prev) => ({ ...prev, endDate: true }))
                 }
               >
-                <Feather name="calendar" size={18} color="#3674B5" style={styles.inputIcon} />
+                <Feather
+                  name="calendar"
+                  size={18}
+                  color="#3674B5"
+                  style={styles.inputIcon}
+                />
                 <Text style={styles.inputText}>
                   {new Date(
                     date.endDate + "T" + date.endTime,
@@ -317,7 +328,11 @@ export default function CreateFormPage() {
         <View style={styles.modernCard}>
           <View style={styles.cardHeader}>
             <View style={styles.cardIconContainer}>
-              <MaterialCommunityIcons name="text-box-outline" size={20} color="#3674B5" />
+              <MaterialCommunityIcons
+                name="text-box-outline"
+                size={20}
+                color="#3674B5"
+              />
             </View>
             <Text style={styles.cardTitle}>
               Lý do <Text style={{ color: "#FF5252" }}>*</Text>
@@ -339,7 +354,11 @@ export default function CreateFormPage() {
         <View style={styles.modernCard}>
           <View style={styles.cardHeader}>
             <View style={styles.cardIconContainer}>
-              <MaterialCommunityIcons name="file-document-outline" size={20} color="#3674B5" />
+              <MaterialCommunityIcons
+                name="file-document-outline"
+                size={20}
+                color="#3674B5"
+              />
             </View>
             <Text style={styles.cardTitle}>Tài liệu đính kèm</Text>
           </View>
@@ -358,7 +377,12 @@ export default function CreateFormPage() {
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 0 }}
           >
-            <Ionicons name="send" size={20} color="#fff" style={{ marginRight: 8 }} />
+            <Ionicons
+              name="send"
+              size={20}
+              color="#fff"
+              style={{ marginRight: 8 }}
+            />
             <Text style={styles.modernSubmitText}>Gửi đơn</Text>
           </LinearGradient>
         </TouchableOpacity>
@@ -392,37 +416,30 @@ const styles = StyleSheet.create({
   // Modern Header Styles
   headerGradient: {
     paddingTop: 50,
-    paddingBottom: 20,
+    paddingBottom: 15,
     paddingHorizontal: 20,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
-  headerContent: {
+  header: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
   },
   backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "rgba(255,255,255,0.2)",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  headerTextContainer: {
-    flex: 1,
-    marginLeft: 15,
+    padding: 8,
   },
   headerTitle: {
-    fontSize: 24,
+    flex: 1,
+    fontSize: 20,
     fontWeight: "bold",
     color: "#fff",
+    textAlign: "center",
   },
-  headerSubtitle: {
-    fontSize: 14,
-    color: "rgba(255,255,255,0.9)",
-    marginTop: 4,
-  },
-  headerRight: {
+  placeholder: {
     width: 40,
   },
   // Modern Card Styles

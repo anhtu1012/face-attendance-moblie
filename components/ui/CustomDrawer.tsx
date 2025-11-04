@@ -12,7 +12,7 @@ import {
 } from "@react-navigation/drawer";
 import { router } from "expo-router";
 import { useCallback, useEffect } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import Animated, {
   interpolate,
   useAnimatedStyle,
@@ -68,7 +68,20 @@ const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>AttendEase</Text>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+          marginBottom: 25,
+        }}
+      >
+        <Image
+          source={require("../../assets/images/app-logo.png")}
+          style={{ width: 50, height: 50 }}
+        />
+        <Text style={styles.title}>AttendEase</Text>
+      </View>
 
       {/* Drawer Items */}
       {[
@@ -128,8 +141,6 @@ export default CustomDrawer;
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: 50, paddingHorizontal: 20 },
   title: {
-    paddingBottom: 16,
-    marginBottom: 30,
     fontSize: 20,
     fontWeight: "bold",
     color: "#fff",

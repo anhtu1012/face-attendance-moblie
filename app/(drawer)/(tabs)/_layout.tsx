@@ -5,12 +5,11 @@ import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { Tabs } from "expo-router";
 import React, { memo, useCallback, useEffect } from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
-import {
+import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import Animated from "react-native-reanimated";
 
 // import { useNotification } from '@/contexts/NotificationContext';
 
@@ -96,48 +95,6 @@ const TabBarIcon = memo(function TabBarIcon({
 });
 
 export default function TabLayout() {
-  // const { notificationCount } = useNotification();
-  const notificationCount = 0; // Temporary placeholder
-  const navigation = useNavigation();
-
-  const renderMenuButton = useCallback(
-    (props: any) => (
-      <TouchableOpacity
-        {...props}
-        onPress={() => {
-          navigation.dispatch(DrawerActions.openDrawer());
-        }}
-        style={{
-          flex: 1,
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <TabBarIcon
-          focused={false}
-          name="menu"
-          color="#888"
-          size={24}
-          iconType="Entypo"
-          badgeCount={notificationCount}
-          index={4}
-          code="to4"
-        />
-        <Text
-          style={{
-            color: "#888",
-            fontSize: 12,
-            fontWeight: "500",
-            marginTop: 3,
-          }}
-        >
-          Menu
-        </Text>
-      </TouchableOpacity>
-    ),
-    [navigation, notificationCount],
-  );
-
   return (
     <DrawerScreenWrapper>
       <Tabs
@@ -193,22 +150,6 @@ export default function TabLayout() {
                 code="to2"
               />
             ),
-            // tabBarButton: (props) => {
-            //   const { onPress, ...touchableProps } = props;
-            //   return (
-            //     <TouchableOpacity
-            //       style={touchableProps.style}
-            //       accessibilityState={touchableProps.accessibilityState}
-            //       accessibilityLabel={touchableProps.accessibilityLabel}
-            //       testID={touchableProps.testID}
-            //       onPress={() => {
-            //         router.push("/timesheet" as any);
-            //       }}
-            //     >
-            //       {props.children}
-            //     </TouchableOpacity>
-            //   );
-            // },
           }}
         />
         <Tabs.Screen
@@ -229,15 +170,7 @@ export default function TabLayout() {
           }}
         />
         <Tabs.Screen
-          name="menu-tab"
-          options={{
-            title: "Menu",
-            tabBarButton: renderMenuButton,
-          }}
-        />
-
-        <Tabs.Screen
-          name="timesheet-camera"
+          name="timekeep-camera"
           options={{
             href: null,
           }}
@@ -264,35 +197,30 @@ export default function TabLayout() {
         <Tabs.Screen
           name="profile"
           options={{
-            title: "Thông tin nhân sự",
             href: null,
           }}
         />
         <Tabs.Screen
           name="profile/DependentInfo"
           options={{
-            title: "Người phụ thuộc",
             href: null,
           }}
         />
         <Tabs.Screen
           name="profile/ResumeInfo"
           options={{
-            title: "Sơ yếu lý lịch",
             href: null,
           }}
         />
         <Tabs.Screen
           name="profile/WorkContractInfo"
           options={{
-            title: "Hợp đồng",
             href: null,
           }}
         />
         <Tabs.Screen
           name="profile/GeneralInfo"
           options={{
-            title: "Thông tin chung",
             href: null,
           }}
         />

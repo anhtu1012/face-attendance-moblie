@@ -1,15 +1,15 @@
-import { StyleSheet, View, Platform, LayoutChangeEvent } from "react-native";
+import { AntDesign, MaterialIcons } from "@expo/vector-icons";
 import { BottomTabBarProps } from "@react-navigation/bottom-tabs";
-import { AntDesign, Entypo, MaterialIcons } from "@expo/vector-icons";
+import { NavigationRoute, ParamListBase } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import CustomTabBarButton from "./CustomTabBarButton";
 import { useEffect, useState } from "react";
+import { LayoutChangeEvent, Platform, StyleSheet } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import { NavigationRoute, ParamListBase } from "@react-navigation/native";
+import CustomTabBarButton from "./CustomTabBarButton";
 
 export const EXCLUDE_ROUTE = [
   "(form)/create-form",
@@ -20,7 +20,6 @@ export const EXCLUDE_ROUTE = [
   "profile/ResumeInfo",
   "profile/WorkContractInfo",
   "profile/GeneralInfo",
-  "menu-tab",
   "timekeep-camera",
 ];
 
@@ -34,8 +33,10 @@ const icons = [
   (color: string) => (
     <MaterialIcons name="attach-money" size={ICON_SIZE} color={color} />
   ),
-  (color: string) => <Entypo name="menu" size={ICON_SIZE} color={color} />,
 ];
+
+// Safety: Use icons.length as the expected visible tab count
+const EXPECTED_VISIBLE_TABS = icons.length;
 
 const CustomTabBar = ({
   state,
@@ -44,17 +45,43 @@ const CustomTabBar = ({
 }: BottomTabBarProps) => {
   const [dimensions, setDimensions] = useState({ height: 25, width: 100 });
 
-  const buttonWidth =
-    dimensions.width / (state.routes.length - EXCLUDE_ROUTE.length);
+  // Calculate the actual number of visible tabs
+  const visibleTabsCount = state.routes.filter(
+    (route) => !EXCLUDE_ROUTE.includes(route.name),
+  ).length;
+
+  // Safety: Use EXPECTED_VISIBLE_TABS if calculation doesn't match icons length
+  const actualVisibleTabs = visibleTabsCount === EXPECTED_VISIBLE_TABS 
+    ? visibleTabsCount 
+    : EXPECTED_VISIBLE_TABS;
+
+  // Debug logging (only in development)
+  if (__DEV__) {
+    console.log("=== CustomTabBar Debug ===");
+    console.log("Total routes:", state.routes.length);
+    console.log("All routes:", state.routes.map((r) => r.name).join(", "));
+    console.log("Calculated visible tabs:", visibleTabsCount);
+    console.log("Expected visible tabs:", EXPECTED_VISIBLE_TABS);
+    console.log("Using:", actualVisibleTabs);
+  }
+
+  const buttonWidth = dimensions.width / actualVisibleTabs;
+
+  const tabPositionX = useSharedValue(0);
 
   useEffect(() => {
     if (!EXCLUDE_ROUTE.includes(state.routeNames[state.index])) {
-      tabPositionX.value = withSpring(buttonWidth * state.index, {
+      // Calculate the actual tab index (excluding hidden routes)
+      const actualTabIndex = state.routes
+        .slice(0, state.index)
+        .filter((r) => !EXCLUDE_ROUTE.includes(r.name)).length;
+
+      tabPositionX.value = withSpring(buttonWidth * actualTabIndex, {
         damping: 80,
         stiffness: 1000,
       });
     }
-  }, [state.index]);
+  }, [state.index, buttonWidth]);
 
   const handleSetIsFocused = (
     route: NavigationRoute<ParamListBase, string>,
@@ -72,8 +99,6 @@ const CustomTabBar = ({
       width: e.nativeEvent.layout.width,
     });
   };
-
-  const tabPositionX = useSharedValue(0);
 
   const animatedStyle = useAnimatedStyle(() => {
     return {
@@ -95,15 +120,25 @@ const CustomTabBar = ({
               position: "absolute",
               backgroundColor: "#3674B5",
               borderRadius: 30,
-              marginHorizontal: 17,
+              left: 17,
               height: dimensions.height - 10,
-              width: buttonWidth - 35,
+              width: buttonWidth - 34,
             },
           ]}
         />
       )}
       {state.routes.map((route, index) => {
         if (EXCLUDE_ROUTE.includes(route.name)) return null;
+
+        // Calculate the actual tab index (excluding hidden routes)
+        const tabIndex = state.routes
+          .slice(0, index)
+          .filter((r) => !EXCLUDE_ROUTE.includes(r.name)).length;
+
+        // Safety check: skip if tabIndex is out of bounds
+        if (tabIndex >= icons.length) {
+          return null;
+        }
 
         const { options } = descriptors[route.key];
         const label = options.title;
@@ -123,7 +158,7 @@ const CustomTabBar = ({
         return (
           <CustomTabBarButton
             key={index}
-            index={index}
+            index={tabIndex}
             icons={icons}
             onPress={onPress}
             label={label}

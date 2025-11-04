@@ -45,7 +45,7 @@ class ErrorBoundary extends Component<Props, State> {
             console.log("User requested app restart");
           },
         },
-      ]
+      ],
     );
   };
 
@@ -72,7 +72,7 @@ Component Stack: ${errorInfo?.componentStack}
             Alert.alert("Thành công", "Báo cáo lỗi đã được gửi!");
           },
         },
-      ]
+      ],
     );
   };
 
