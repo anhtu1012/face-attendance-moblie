@@ -263,17 +263,6 @@ const AppendixTab = ({ userId, gmail }: AppendixTabProps) => {
                 </>
               )}
             </View>
-
-            {/* Nội dung */}
-            {appendix.content && (
-              <View style={styles.detailSection}>
-                <Text style={styles.detailSectionTitle}>Nội dung</Text>
-                <View style={styles.contentBox}>
-                  <Text style={styles.contentText}>{appendix.content}</Text>
-                </View>
-              </View>
-            )}
-
             {/* File PDF */}
             {appendix.fileContract && (
               <View style={styles.detailSection}>
