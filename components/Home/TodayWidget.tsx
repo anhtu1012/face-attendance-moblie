@@ -18,10 +18,9 @@ import Animated, {
 import CheckTimeBox from "../ui/CheckTimeBox";
 import { useIsFocused } from "@react-navigation/native";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
-import { getCurrentTimekeepingData } from "@/services/timesheet/api";
+import { getCurrentTimekeepingData, getDetailTimekeepingData } from "@/services/timesheet/api";
 import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
 interface TodayWidgetProps {
-  todaySchedule: WorkingSchedule | null;
   loadingSchedule: boolean;
 }
 
@@ -35,29 +34,31 @@ interface timekeepingType {
   status: string;
 }
 
-const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
+const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
   // Pulse animation for check-in button
   const pulse = useSharedValue(1);
   const { userId } = useGetUserProfile();
   const isFocused = useIsFocused();
-  const [currentDateTimekeepingData, setCurrentDateTimekeepingData] =
-    useState<timekeepingType>();
+  const [todayTimekeepingData, setTodayTimekeepingData] =
+    useState<WorkingSchedule>();
 
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
   }, []);
 
   useEffect(() => {
-    if (isFocused && userId) {
-      (async () => {
-        const res = await getCurrentTimekeepingData(userId);
-        const data = res.data.data[0];
-        console.log(data);
-
-        setCurrentDateTimekeepingData(data);
-      })();
-    }
+    handleGetCurrentTimekeepingData();
   }, [isFocused]);
+
+  const handleGetCurrentTimekeepingData = async () => {
+    if (!isFocused || !userId) return null;
+    const overallTimekeepingRes = await getCurrentTimekeepingData(userId);
+    const overallTimekeepingData: timekeepingType = overallTimekeepingRes.data.data[0];
+    const detailTimekeepingRes = await getDetailTimekeepingData(overallTimekeepingData.timekeepingId)
+    const detailTimekeepingData = detailTimekeepingRes.data
+
+    setTodayTimekeepingData(detailTimekeepingData);
+  };
 
   const animatedButtonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
@@ -89,7 +90,7 @@ const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
     );
   }
 
-  if (!todaySchedule) {
+  if (!todayTimekeepingData) {
     return (
       <View style={styles.emptyContainer}>
         <Text style={styles.emptyText}>Không có lịch làm việc cho hôm nay</Text>
@@ -104,12 +105,12 @@ const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
   let checkInButtonColor = "#3674B5";
   let checkInTime = null;
   let checkOutTime = null;
-  if (todaySchedule.checkinTime) {
-    checkInTime = todaySchedule.checkinTime;
+  if (todayTimekeepingData.checkinTime) {
+    checkInTime = todayTimekeepingData.checkinTime;
   }
 
-  if (todaySchedule.checkoutTime) {
-    checkOutTime = todaySchedule.checkoutTime;
+  if (todayTimekeepingData.checkoutTime) {
+    checkOutTime = todayTimekeepingData.checkoutTime;
   }
 
   return (
@@ -122,8 +123,13 @@ const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
               {formatDateWithDay(currentDateString)}
             </Text>
             <Text style={styles.shiftTime}>
-              {todaySchedule.shiftInfo.shiftStartTime} -{" "}
-              {todaySchedule.shiftInfo.shiftEndTime}
+              {todayTimekeepingData?.shiftInfo?.shiftStartTime
+                ? todayTimekeepingData.shiftInfo.shiftStartTime
+                : ""}{" "}
+              -{" "}
+              {todayTimekeepingData?.shiftInfo?.shiftEndTime
+                ? todayTimekeepingData.shiftInfo.shiftEndTime
+                : ""}
             </Text>
           </View>
         </View>
@@ -140,10 +146,10 @@ const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
                   pathname: "/(drawer)/(tabs)/timekeep-camera",
                   params: {
                     mode:
-                      currentDateTimekeepingData?.checkinTime === null
+                      todayTimekeepingData?.checkinTime === null
                         ? "check-in"
                         : "check-out",
-                    timekeepingId: currentDateTimekeepingData?.timekeepingId,
+                    timekeepingId: todayTimekeepingData?.timeKeepingId,
                   },
                 })
               }
@@ -159,18 +165,18 @@ const TodayWidget = ({ todaySchedule, loadingSchedule }: TodayWidgetProps) => {
       <View style={styles.attendanceDetails}>
         <CheckTimeBox
           type="in"
-          time={todaySchedule.checkinTime!}
-          checkinStatus={todaySchedule.checkinStatus!}
-          checkoutStatus={todaySchedule.checkoutStatus!}
+          time={todayTimekeepingData.checkinTime!}
+          checkinStatus={todayTimekeepingData.checkinStatus!}
+          checkoutStatus={todayTimekeepingData.checkoutStatus!}
         />
         <CheckTimeBox
           type="out"
-          time={todaySchedule.checkoutTime!}
-          checkinStatus={todaySchedule.checkinStatus!}
-          checkoutStatus={todaySchedule.checkoutStatus!}
+          time={todayTimekeepingData.checkoutTime!}
+          checkinStatus={todayTimekeepingData.checkinStatus!}
+          checkoutStatus={todayTimekeepingData.checkoutStatus!}
         />
         <TimesheetTotalHourBox
-          totalWorkHour={todaySchedule.totalWorkHour ?? 0}
+          totalWorkHour={todayTimekeepingData.totalWorkHour ?? 0}
           totalTimekeepingNumber={1}
         />
       </View>

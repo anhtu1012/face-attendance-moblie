@@ -217,56 +217,8 @@ function HomePage() {
           </TouchableOpacity>
         </View>
 
-        {/* Motivational Quote Widget 
-        <View style={styles.widgetContainer}>
-          <View style={styles.quoteHeader}>
-            <View style={styles.quoteIconContainer}>
-              <MaterialCommunityIcons
-                name="lightbulb"
-                size={24}
-                color="#3674B5"
-              />
-            </View>
-            <Text style={styles.sectionTitle}>Động lực hôm nay</Text>
-          </View>
-
-          <View style={styles.quoteContainer}>
-            <MaterialCommunityIcons
-              name="format-quote-open"
-              size={32}
-              color="#3674B5"
-              style={styles.quoteOpenIcon}
-            />
-            <Text style={styles.quoteText}>
-              {motivationalQuotes[currentQuoteIndex].text}
-            </Text>
-            <Text style={styles.quoteAuthor}>
-              - {motivationalQuotes[currentQuoteIndex].author}
-            </Text>
-            <MaterialCommunityIcons
-              name="format-quote-close"
-              size={32}
-              color="#3674B5"
-              style={styles.quoteCloseIcon}
-            />
-          </View>
-
-          <View style={styles.quoteDots}>
-            {motivationalQuotes.map((_, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.quoteDot,
-                  index === currentQuoteIndex && styles.quoteDotActive,
-                ]}
-                onPress={() => setCurrentQuoteIndex(index)}
-              />
-            ))}
-          </View>
-        </View>*/}
-
         {/* Today Widget */}
-        <TodayWidget todaySchedule={fakeSchedule} loadingSchedule={false} />
+        <TodayWidget loadingSchedule={false} />
 
         {/* Forms Status */}
         {/* <FormsStatusWidget
