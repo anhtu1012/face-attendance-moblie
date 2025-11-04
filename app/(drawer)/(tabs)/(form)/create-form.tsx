@@ -86,18 +86,20 @@ export default function CreateFormPage() {
     const user = JSON.parse(userProfile!);
 
     // Get zip image folder uri
-    const zipUri = await handleZipFiles();
+    const zipUri = files.length ? await handleZipFiles() : "";
     console.log("zipUri: ", zipUri);
 
     const formData = new FormData();
     formData.append("formId", id as string);
     formData.append("submittedById", user.id);
     formData.append("reason", reason);
-    formData.append("fileEvidence", {
-      uri: zipUri,
-      name: "faces.zip",
-      type: "application/zip",
-    } as any);
+    zipUri?.length
+      ? formData.append("fileEvidence", {
+          uri: zipUri,
+          name: "faces.zip",
+          type: "application/zip",
+        } as any)
+      : null;
     formData.append(
       "startTime",
       new Date(date.startDate + "T" + date.startTime).toISOString(),
