@@ -52,9 +52,10 @@ const CustomTabBar = ({
   ).length;
 
   // Safety: Use EXPECTED_VISIBLE_TABS if calculation doesn't match icons length
-  const actualVisibleTabs = visibleTabsCount === EXPECTED_VISIBLE_TABS 
-    ? visibleTabsCount 
-    : EXPECTED_VISIBLE_TABS;
+  const actualVisibleTabs =
+    visibleTabsCount === EXPECTED_VISIBLE_TABS
+      ? visibleTabsCount
+      : EXPECTED_VISIBLE_TABS;
 
   // Debug logging (only in development)
   if (__DEV__) {
@@ -86,7 +87,7 @@ const CustomTabBar = ({
 
   const handleSetIsFocused = (
     route: NavigationRoute<ParamListBase, string>,
-    index: number
+    index: number,
   ) => {
     if (!EXCLUDE_ROUTE.includes(state.routeNames[state.index]))
       return state.index === index;

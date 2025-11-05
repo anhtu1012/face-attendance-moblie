@@ -1,7 +1,7 @@
 import TodayWidget from "@/components/Home/TodayWidget";
 import { motivationalQuotes } from "@/constants/homepage";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
-import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
+import { dtoDetailTimekeeping } from "@/model/schedule/dtoWorkingSchedule";
 import { CheckinStatus, CheckoutStatus } from "@/models/timesheet/timekeeping";
 import { cancelSubmittedForm, getSubmittedForm } from "@/services/form/api";
 import {
@@ -48,7 +48,7 @@ export interface FormDetail {
   status: "PENDING" | "APPROVED" | "REJECTED" | "INACTIVE";
 }
 
-export const fakeSchedule: WorkingSchedule = {
+export const fakeSchedule: dtoDetailTimekeeping = {
   timeKeepingId: 101,
   userId: 42,
   date: "2025-10-26",

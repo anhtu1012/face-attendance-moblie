@@ -1,4 +1,4 @@
-import { WorkingSchedule } from "@/model/schedule/dtoWorkingSchedule";
+import { dtoDetailTimekeeping } from "@/model/schedule/dtoWorkingSchedule";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -18,8 +18,9 @@ import Animated, {
 import CheckTimeBox from "../ui/CheckTimeBox";
 import { useIsFocused } from "@react-navigation/native";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
-import { getCurrentTimekeepingData, getDetailTimekeepingData } from "@/services/timesheet/api";
 import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
+import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
+import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
 interface TodayWidgetProps {
   loadingSchedule: boolean;
 }
@@ -39,26 +40,45 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
   const pulse = useSharedValue(1);
   const { userId } = useGetUserProfile();
   const isFocused = useIsFocused();
-  const [todayTimekeepingData, setTodayTimekeepingData] =
-    useState<WorkingSchedule>();
+
+  const today = new Date();
+  const yesterday = new Date(today);
+
+  // set yesterday
+  yesterday.setDate(yesterday.getDate() - 1);
+  yesterday.setUTCHours(0, 0, 0, 0);
+
+  // set Today
+  today.setUTCHours(0, 0, 0, 0);
+
+  const {
+    timekeepingData,
+    timekeepingError,
+    isLoading: isLoadingTimekeeping,
+  } = useGetTimekeepingData({
+    startTime: yesterday.toISOString(),
+    endTime: today.toISOString(),
+    userId: userId!,
+  });
+  console.log("timekeeping: ", timekeepingData);
+
+  const timekeepingId = timekeepingData?.data[0]?.timekeepingId;
+
+  const {
+    detailTimekeepingData: todayTimekeepingData,
+    detailTimekeepingError,
+    refetch,
+    isLoading,
+    isFetching,
+  } = useGetDetailTimekeepingData({
+    timekeepingId: timekeepingId || "",
+    enabled: !!timekeepingId,
+  });
+  console.log("today timekeeping: ", todayTimekeepingData);
 
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
   }, []);
-
-  useEffect(() => {
-    handleGetCurrentTimekeepingData();
-  }, [isFocused]);
-
-  const handleGetCurrentTimekeepingData = async () => {
-    if (!isFocused || !userId) return null;
-    const overallTimekeepingRes = await getCurrentTimekeepingData(userId);
-    const overallTimekeepingData: timekeepingType = overallTimekeepingRes.data.data[0];
-    const detailTimekeepingRes = await getDetailTimekeepingData(overallTimekeepingData.timekeepingId)
-    const detailTimekeepingData = detailTimekeepingRes.data
-
-    setTodayTimekeepingData(detailTimekeepingData);
-  };
 
   const animatedButtonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
@@ -81,7 +101,7 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
   };
 
-  if (loadingSchedule) {
+  if (loadingSchedule || isLoadingTimekeeping || isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color="#3674B5" />

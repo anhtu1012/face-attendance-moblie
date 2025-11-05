@@ -9,6 +9,20 @@ export const getDetailTimekeepingData = async (timekeepingId: string) => {
   return api.get(`time-keeping/thong-tin-cham-cong/${timekeepingId}`);
 };
 
+export const getTimekeepingData = async (
+  startTime: string,
+  endTime: string,
+  userId: string,
+) => {
+  return api.get("time-keeping/danh-sach-cham-cong", {
+    params: {
+      startTime,
+      endTime,
+      userId,
+    },
+  });
+};
+
 export const getCurrentTimekeepingData = async (userId: string) => {
   const today = new Date();
   const yesterday = new Date(today);
