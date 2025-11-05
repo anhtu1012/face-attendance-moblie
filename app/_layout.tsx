@@ -98,12 +98,7 @@ export default function RootLayout() {
                         headerShown: false,
                       }}
                     />
-                    <Stack.Screen
-                      name="onboard"
-                      options={{
-                        headerShown: false,
-                      }}
-                    />
+              
                     <Stack.Screen
                       name="form-detail-view"
                       options={{
