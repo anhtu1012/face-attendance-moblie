@@ -38,7 +38,7 @@ export interface dtoDetailTimekeeping {
     | "FORGET_LOG";
   totalTimekeepingNumber: number; // e.g. 1.00625
   totalWorkHour: number; // Includes OT
-  shiftInfo: ShiftInfo;
+  shiftInfor: ShiftInfo;
   otInfo?: OTInfo;
   checkinStatus?: CheckinStatus;
   checkoutStatus?: CheckoutStatus;

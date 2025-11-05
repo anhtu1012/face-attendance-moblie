@@ -1,7 +1,14 @@
 import { CheckinStatus, CheckoutStatus } from "@/models/timesheet/timekeeping";
 import { CheckCircle, XCircle } from "lucide-react-native";
 import React from "react";
-import { StyleSheet, Text, View } from "react-native";
+import {
+  StyleProp,
+  StyleSheet,
+  Text,
+  TextStyle,
+  View,
+  ViewStyle,
+} from "react-native";
 
 interface CheckTimeBoxProps {
   type: "out" | "in";
@@ -19,64 +26,66 @@ const CheckTimeBox = ({
   const isCheckinOntime = checkinStatus === CheckinStatus.START_ONTIME;
   const isCheckoutOntime = checkoutStatus === CheckoutStatus.END_ONTIME;
 
+  const handleRenderCardBackground = (
+    type: CheckTimeBoxProps["type"],
+  ): StyleProp<ViewStyle> => {
+    if (type === "in") {
+      if (!checkinStatus) return { backgroundColor: "#C3C3C3" };
+      if (isCheckinOntime) return { backgroundColor: "#E9F7EF" };
+      return { backgroundColor: "#FFE8E8" };
+    }
+    if (!checkoutStatus) return { backgroundColor: "#C3C3C3" };
+    if (isCheckinOntime) return { backgroundColor: "#E9F7EF" };
+    return { backgroundColor: "#FFE8E8" };
+  };
+
+  const handleRenderCardColor = (
+    type: CheckTimeBoxProps["type"],
+  ): StyleProp<TextStyle> => {
+    if (type === "in") {
+      if (!checkinStatus) return { color: "#C3C3C3" };
+      if (isCheckinOntime) return { color: "#2ECC71" };
+      return { color: "#E74C3C" };
+    }
+    if (!checkoutStatus) return { color: "#C3C3C3" };
+    if (isCheckinOntime) return { color: "#2ECC71" };
+    return { color: "#E74C3C" };
+  };
+
+  const handleRenderCardIcon = (type: CheckTimeBoxProps["type"]) => {
+    if (type === "in") {
+      if (!checkinStatus) return <></>;
+      if (isCheckinOntime) return <CheckCircle color="#2ECC71" size={18} />;
+      return <XCircle color="#E74C3C" size={18} />;
+    }
+    if (!checkoutStatus) return <></>;
+    if (isCheckinOntime) return <CheckCircle color="#2ECC71" size={18} />;
+    return <XCircle color="#E74C3C" size={18} />;
+  };
+
+  const handleRenderContent = (type: CheckTimeBoxProps["type"]) => {
+    if (type === "in") {
+      if (!checkinStatus) return "Chưa check-in";
+      if (isCheckinOntime) return "Đến đúng giờ";
+      return "Đến trễ";
+    }
+    if (!checkoutStatus) return "Chưa check-out";
+    if (isCheckinOntime) return "Về đúng giờ";
+    return "Về sớm";
+  };
+
   return (
-    <View
-      style={[
-        styles.card,
-        {
-          backgroundColor:
-            type === "in"
-              ? isCheckinOntime
-                ? "#E9F7EF"
-                : "#FFE8E8"
-              : isCheckoutOntime
-              ? "#E8F6F3"
-              : "#FFE8E8",
-        },
-      ]}
-    >
+    <View style={[styles.card, handleRenderCardBackground(type)]}>
       <Text style={styles.cardLabel}>
         {type === "in" ? "Giờ vào" : "Giờ ra"}
       </Text>
       <View style={styles.cardRow}>
-        <Text
-          style={[
-            styles.cardValue,
-            {
-              color:
-                type === "in"
-                  ? isCheckinOntime
-                    ? "#2ECC71"
-                    : "#E74C3C"
-                  : isCheckoutOntime
-                  ? "#2ECC71"
-                  : "#E74C3C",
-            },
-          ]}
-        >
+        <Text style={[styles.cardValue, handleRenderCardColor(type)]}>
           {time}
         </Text>
-        {type === "in" ? (
-          isCheckinOntime ? (
-            <CheckCircle color="#2ECC71" size={18} />
-          ) : (
-            <XCircle color="#E74C3C" size={18} />
-          )
-        ) : isCheckoutOntime ? (
-          <CheckCircle color="#2ECC71" size={18} />
-        ) : (
-          <XCircle color="#E74C3C" size={18} />
-        )}
+        {handleRenderCardIcon(type)}
       </View>
-      <Text style={[styles.cardNote]}>
-        {type === "in"
-          ? isCheckinOntime
-            ? "Đến đúng giờ"
-            : "Đi muộn"
-          : isCheckoutOntime
-          ? "Về đúng giờ"
-          : "Về sớm"}
-      </Text>
+      <Text style={[styles.cardNote]}>{handleRenderContent(type)}</Text>
     </View>
   );
 };

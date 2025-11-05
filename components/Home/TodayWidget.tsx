@@ -39,8 +39,6 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
   // Pulse animation for check-in button
   const pulse = useSharedValue(1);
   const { userId } = useGetUserProfile();
-  const isFocused = useIsFocused();
-
   const today = new Date();
   const yesterday = new Date(today);
 
@@ -60,7 +58,6 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     endTime: today.toISOString(),
     userId: userId!,
   });
-  console.log("timekeeping: ", timekeepingData);
 
   const timekeepingId = timekeepingData?.data[0]?.timekeepingId;
 
@@ -74,7 +71,6 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     timekeepingId: timekeepingId || "",
     enabled: !!timekeepingId,
   });
-  console.log("today timekeeping: ", todayTimekeepingData);
 
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
@@ -143,12 +139,12 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
               {formatDateWithDay(currentDateString)}
             </Text>
             <Text style={styles.shiftTime}>
-              {todayTimekeepingData?.shiftInfo?.shiftStartTime
-                ? todayTimekeepingData.shiftInfo.shiftStartTime
+              {todayTimekeepingData?.shiftInfor?.shiftStartTime
+                ? todayTimekeepingData.shiftInfor.shiftStartTime
                 : ""}{" "}
               -{" "}
-              {todayTimekeepingData?.shiftInfo?.shiftEndTime
-                ? todayTimekeepingData.shiftInfo.shiftEndTime
+              {todayTimekeepingData?.shiftInfor?.shiftEndTime
+                ? todayTimekeepingData.shiftInfor.shiftEndTime
                 : ""}
             </Text>
           </View>
@@ -196,8 +192,8 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
           checkoutStatus={todayTimekeepingData.checkoutStatus!}
         />
         <TimesheetTotalHourBox
-          totalWorkHour={todayTimekeepingData.totalWorkHour ?? 0}
-          totalTimekeepingNumber={1}
+          totalWorkHour={todayTimekeepingData.totalWorkHour}
+          totalTimekeepingNumber={todayTimekeepingData.totalTimekeepingNumber}
         />
       </View>
     </View>
