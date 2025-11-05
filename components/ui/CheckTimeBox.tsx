@@ -1,5 +1,5 @@
 import { CheckinStatus, CheckoutStatus } from "@/models/timesheet/timekeeping";
-import { CheckCircle, XCircle } from "lucide-react-native";
+import { CheckCircle, CircleAlert, XCircle } from "lucide-react-native";
 import React from "react";
 import {
   StyleProp,
@@ -54,11 +54,11 @@ const CheckTimeBox = ({
 
   const handleRenderCardIcon = (type: CheckTimeBoxProps["type"]) => {
     if (type === "in") {
-      if (!checkinStatus) return <></>;
+      if (!checkinStatus) return <CircleAlert color="#7A7A7A" size={18} />;
       if (isCheckinOntime) return <CheckCircle color="#2ECC71" size={18} />;
       return <XCircle color="#E74C3C" size={18} />;
     }
-    if (!checkoutStatus) return <></>;
+    if (!checkoutStatus) return <CircleAlert color="#7A7A7A" size={18} />;
     if (isCheckinOntime) return <CheckCircle color="#2ECC71" size={18} />;
     return <XCircle color="#E74C3C" size={18} />;
   };
