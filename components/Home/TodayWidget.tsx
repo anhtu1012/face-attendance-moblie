@@ -16,23 +16,12 @@ import Animated, {
   withTiming,
 } from "react-native-reanimated";
 import CheckTimeBox from "../ui/CheckTimeBox";
-import { useIsFocused } from "@react-navigation/native";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
 import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
 import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
 interface TodayWidgetProps {
   loadingSchedule: boolean;
-}
-
-interface timekeepingType {
-  timekeepingId: string;
-  date: string; // e.g. "2025-11-02"
-  checkinTime: string | null;
-  checkoutTime: string | null;
-  totalWorkHour: number;
-  hasOT: boolean;
-  status: string;
 }
 
 const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
