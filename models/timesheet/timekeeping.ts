@@ -69,5 +69,5 @@ export interface TimekeepingDetail {
   checkinStatus: CheckinStatus;
   checkoutStatus: CheckoutStatus;
   status: TimekeepingStatus;
-  isFromOT?: boolean;
+  isFromOt?: boolean;
 }

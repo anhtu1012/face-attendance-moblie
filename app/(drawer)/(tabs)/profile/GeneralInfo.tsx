@@ -53,7 +53,7 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
       .required("Email là bắt buộc")
       .matches(
         /^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-        "Bạn phải cung cấp một địa chỉ email hợp lệ",
+        "Bạn phải cung cấp một địa chỉ email hợp lệ"
       ),
     phone: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
@@ -77,13 +77,13 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
       .required("Mã số thuế là bắt buộc")
       .matches(
         /^[0-9]{10}([0-9]{3})?$/,
-        "Mã số thuế phải gồm 10 hoặc 13 chữ số",
+        "Mã số thuế phải gồm 10 hoặc 13 chữ số"
       ),
     militaryStatus: Yup.string()
       .required("Tình trạng quân dịch là bắt buộc")
       .oneOf(
         MILITARY_STATUS_OPTIONS.map((option) => option.value),
-        "Tình trạng quân dịch không hợp lệ",
+        "Tình trạng quân dịch không hợp lệ"
       ),
   });
   const validate = (values: typeof initialValues) => {

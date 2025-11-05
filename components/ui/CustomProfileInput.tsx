@@ -9,6 +9,7 @@ const CustomProfileInput = ({
   iconColor,
   isEditing,
   keyboardType = "default",
+  disabled = false,
   ...props
 }: any) => (
   <View style={[styles.infoItem]}>
@@ -17,7 +18,7 @@ const CustomProfileInput = ({
     </View>
     <View style={styles.infoTextContainer}>
       <Text style={styles.infoLabel}>{label}</Text>
-      {isEditing ? (
+      {isEditing && !disabled ? (
         <>
           <TextInput
             style={[

@@ -2,6 +2,7 @@ import AlertModal from "@/components/ui/AlertModal";
 import CustomProfileInput from "@/components/ui/CustomProfileInput";
 import { DatePickerInput } from "@/components/ui/DatePickerInput";
 import ScanQRCodeModal from "@/components/ui/ScanQRCodeModal";
+import { DEFAULT_ISSUE_AT } from "@/constants/resume";
 import { Feather, MaterialIcons } from "@expo/vector-icons";
 import { useCameraPermissions } from "expo-camera";
 import { useFormik } from "formik";
@@ -46,7 +47,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
   const initialValues = {
     citizenIdentityCard: userData?.citizenIdentityCard || "--",
     issueDate: userData?.issueDate ? new Date(userData.issueDate) : new Date(),
-    issueAt: userData?.issueAt || "",
+    issueAt: userData?.issueAt || DEFAULT_ISSUE_AT,
     nationality: userData?.nationality || "",
     nation: userData?.nation || "",
     permanentAddress: userData?.permanentAddress || "",
@@ -100,11 +101,9 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
   };
 
   const handleSubmit = (values: typeof initialValues) => {
-    console.log("heheh: ", values);
     const trimmedValues = {
       ...values,
       citizenIdentityCard: values.citizenIdentityCard.trim(),
-      issueAt: values.issueAt.trim(),
       nationality: values.nationality.trim(),
       nation: values.nation.trim(),
       permanentAddress: values.permanentAddress.trim(),
@@ -113,6 +112,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
       fullName: values.fullName.trim(),
       birthday: values.birthday,
       gender: values.gender,
+      issueAt: DEFAULT_ISSUE_AT,
     };
     const onboardData = { ...userData, ...trimmedValues } as dtoUpdateUser;
     onUpdateUserData(onboardData);
@@ -208,7 +208,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
         const date = new Date(
           parseInt(year),
           parseInt(month) - 1,
-          parseInt(day),
+          parseInt(day)
         );
         if (isNaN(date.getTime())) {
           throw new Error("Invalid date");
@@ -251,6 +251,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
       gender: formattedGender,
       permanentAddress: parsedData.permanentAddress,
       issueDate: parsedData.issueDate,
+      issueAt: DEFAULT_ISSUE_AT,
     });
     setShowAlertModal({
       visible: true,
@@ -271,9 +272,9 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
       const filteredOptions = React.useMemo(
         () =>
           options.filter((option: any) =>
-            option.label.toLowerCase().includes(searchValue.toLowerCase()),
+            option.label.toLowerCase().includes(searchValue.toLowerCase())
           ),
-        [options, searchValue],
+        [options, searchValue]
       );
 
       return (
@@ -345,7 +346,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
           </TouchableOpacity>
         </Modal>
       );
-    },
+    }
   );
 
   return (
@@ -492,8 +493,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
                   {formik.values.gender === "M"
                     ? "Nam"
                     : formik.values.gender === "F"
-                      ? "Nữ"
-                      : "Không xác định"}
+                    ? "Nữ"
+                    : "Không xác định"}
                 </Text>
               )}
             </View>
