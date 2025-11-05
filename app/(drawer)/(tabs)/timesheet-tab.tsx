@@ -4,12 +4,14 @@ import TimesheetWeek from "@/components/Timekeeping/TimesheetWeek";
 import CustomHeaders from "@/components/ui/CustomHeaders";
 import CustomTabs from "@/components/ui/CustomTabs";
 import { tabs } from "@/constants/timesheet";
+import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, View } from "react-native";
 import { styles } from "./timesheet-tab.styles";
 export default function TimesheetTabPlaceholder() {
   const [activeTab, setActiveTab] = useState(0);
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 0:

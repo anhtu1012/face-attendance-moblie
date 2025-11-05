@@ -1,4 +1,4 @@
-import { fakeTimekeepingDetails } from "@/models/data/timekeepingData";
+import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
 import {
   CheckinStatus,
   CheckoutStatus,
@@ -23,10 +23,9 @@ export default function TimekeepingModal({
   onClose,
   selectedTimekeepingId,
 }: Props) {
-  const timekeeping = fakeTimekeepingDetails.find(
-    (timekeepingDetail) =>
-      timekeepingDetail.timeKeepingId === selectedTimekeepingId
-  );
+  const { detailTimekeepingData: timekeeping } = useGetDetailTimekeepingData({
+    timekeepingId: selectedTimekeepingId.toString(),
+  });
 
   const dateString = new Date(timekeeping?.date ?? "").toLocaleDateString(
     "vi-VN"
@@ -74,22 +73,22 @@ export default function TimekeepingModal({
                     }
                   />
                 </View>
-                {!timekeeping?.isFromOT && (
+                {!timekeeping?.isFromOt && (
                   <TimeDetailBox
                     title="Ca làm việc"
                     data={[
                       {
                         label: "Thời gian",
-                        value: `${timekeeping?.shiftInfo?.shiftStartTime} - ${timekeeping?.shiftInfo?.shiftEndTime}`,
+                        value: `${timekeeping?.shiftInfor?.shiftStartTime} - ${timekeeping?.shiftInfor?.shiftEndTime}`,
                       },
                       {
                         label: "Số giờ",
-                        value: timekeeping?.shiftInfo?.shiftWorkHour ?? "--",
+                        value: timekeeping?.shiftInfor?.shiftWorkHour ?? "--",
                       },
                       {
                         label: "Số công",
                         value:
-                          timekeeping?.shiftInfo?.shiftTimekeepingNumber ??
+                          timekeeping?.shiftInfor?.shiftTimekeepingNumber ??
                           "--",
                       },
                     ]}

@@ -11,6 +11,7 @@ import { Appendix } from "@/models/contract/dtoAppendix";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -29,9 +30,11 @@ const AppendixTab = ({ userId, gmail }: AppendixTabProps) => {
     (contract) =>
       contract.status !== "INACTIVE" && contract.status !== "EXPIRED"
   );
-  const { data: appendixList, refetch } = useGetAppendixByUserContractId(
-    contractData?.id ?? ""
-  );
+  const {
+    data: appendixList,
+    refetch,
+    isLoading,
+  } = useGetAppendixByUserContractId(contractData?.id ?? "");
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [pdfModalVisible, setPdfModalVisible] = useState(false);
   const [selectedPdfUrl, setSelectedPdfUrl] = useState<string>("");
@@ -309,7 +312,11 @@ const AppendixTab = ({ userId, gmail }: AppendixTabProps) => {
     );
   };
 
-  if (!appendixList || appendixList.length === 0) {
+  if (isLoading) {
+    return <ActivityIndicator size="large" color="#3674B5" />;
+  }
+
+  if (!isLoading && (!appendixList || appendixList.length === 0)) {
     return <NoContractFound text="Không có phụ lục hợp đồng" />;
   }
 

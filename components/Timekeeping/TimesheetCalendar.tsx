@@ -1,4 +1,5 @@
-import { fakeTimekeepings } from "@/models/data/timekeepingData";
+import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
+import { RootState } from "@/lib/store";
 import { LegacyTimekeepingStatus } from "@/models/timesheet/timekeeping";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
@@ -6,6 +7,7 @@ import localeData from "dayjs/plugin/localeData";
 import weekday from "dayjs/plugin/weekday";
 import React, { useMemo, useState } from "react";
 import { StyleSheet, View } from "react-native";
+import { useSelector } from "react-redux";
 import TimekeepingBox from "./TimekeepingBox";
 import TimekeepingModal from "./TimekeepingModal";
 import TimesheetCalendarHeader from "./TimesheetCalendarHeader";
@@ -17,7 +19,16 @@ dayjs.extend(localeData);
 dayjs.locale("vi");
 
 export default function TimesheetCalendar() {
+  const userId = useSelector((state: RootState) => state.auth.userProfile.id);
   const [currentMonth, setCurrentMonth] = useState(dayjs());
+  const {
+    timekeepingData: timekeepingDataList,
+    isLoading: isLoadingTimekeeping,
+  } = useGetTimekeepingData({
+    userId: userId!,
+    startTime: currentMonth.startOf("month").toISOString(),
+    endTime: currentMonth.endOf("month").toISOString(),
+  });
   const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
 
   const calendarDays = useMemo(() => {
@@ -44,7 +55,9 @@ export default function TimesheetCalendar() {
       if (!date) return null;
 
       const dateString = date.format("YYYY-MM-DD");
-      const timekeeping = fakeTimekeepings.find((t) => t.date === dateString);
+      const timekeeping = timekeepingDataList?.data.find(
+        (t: any) => t.date === dateString
+      );
       const isNotCurrentMonth = date.month() !== currentMonth.month();
       const today = dayjs().startOf("day");
       const isFutureDate = date.isAfter(today);
@@ -58,7 +71,7 @@ export default function TimesheetCalendar() {
         backgroundColor = "#F8F8F8";
         displayValue = timekeeping?.totalWorkHour ?? "N";
       } else if (timekeeping) {
-        timekeepingId = timekeeping.timekeepingId;
+        timekeepingId = parseInt(timekeeping.timekeepingId);
         if (timekeeping.status === LegacyTimekeepingStatus.PENDING) {
           backgroundColor = "#E6F0FF";
           totalWorkHourColor = "#1976D2";
@@ -145,7 +158,6 @@ export default function TimesheetCalendar() {
 }
 
 const styles = StyleSheet.create({
-
   daysGrid: {
     flexDirection: "row",
     flexWrap: "wrap",

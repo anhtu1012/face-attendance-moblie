@@ -10,6 +10,7 @@ import { useGetContractByUserId } from "@/hooks/useGetContractByUserId";
 import { MaterialCommunityIcons, MaterialIcons } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
   ScrollView,
   StyleSheet,
   Text,
@@ -32,7 +33,11 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
   const [errorMessage, setErrorMessage] = useState("");
   const [contractHistoryModalVisible, setContractHistoryModalVisible] =
     useState(false);
-  const { data: contractList, refetch } = useGetContractByUserId(userId ?? "");
+  const {
+    data: contractList,
+    refetch,
+    isLoading,
+  } = useGetContractByUserId(userId ?? "");
   const confirmOtp = useConfirmOtp();
   const contractData = contractList?.find(
     (contract) =>
@@ -112,7 +117,9 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        {!contractData ? (
+        {isLoading ? (
+          <ActivityIndicator size="large" color="#3674B5" />
+        ) : !contractData ? (
           <NoContractFound text="Không có hợp đồng" />
         ) : (
           <>
