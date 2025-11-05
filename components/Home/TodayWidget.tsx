@@ -1,7 +1,9 @@
-import { dtoDetailTimekeeping } from "@/model/schedule/dtoWorkingSchedule";
+import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
+import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
+import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { AntDesign } from "@expo/vector-icons";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -15,11 +17,8 @@ import Animated, {
   withRepeat,
   withTiming,
 } from "react-native-reanimated";
-import CheckTimeBox from "../ui/CheckTimeBox";
-import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
-import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
-import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
+import CheckTimeBox from "../ui/CheckTimeBox";
 interface TodayWidgetProps {
   loadingSchedule: boolean;
 }
@@ -29,6 +28,8 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
   const pulse = useSharedValue(1);
   const { userId } = useGetUserProfile();
   const today = new Date();
+  console.log("today: ", today);
+
   const yesterday = new Date(today);
 
   // set yesterday

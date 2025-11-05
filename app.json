@@ -52,6 +52,15 @@
           "enableCodeScanner": false
         }
       ],
+      [
+        "react-native-edge-to-edge",
+        {
+          "android": {
+            "parentTheme": "Default",
+            "enforceNavigationBarContrast": false
+          }
+        }
+      ],
       "expo-router",
       [
         "expo-notifications",

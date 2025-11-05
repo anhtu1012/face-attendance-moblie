@@ -10,8 +10,6 @@ import {
   Keyboard,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
-  StatusBar,
   StyleSheet,
   Text,
   TextInput,
@@ -23,6 +21,7 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { SystemBars } from "react-native-edge-to-edge";
 
 import { loginUser } from "@/api/auth";
 import { setToken } from "@/api/axios";
@@ -30,6 +29,7 @@ import { setAuthData } from "@/lib/features/loginSlice";
 import { LoginResponse } from "@/models/auth/login";
 import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
+import { StatusBar } from "expo-status-bar";
 const { width, height } = Dimensions.get("window");
 
 export interface ILoginScreenProps {
@@ -113,11 +113,6 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
     };
   }, []);
 
-  const handleEyePress = () => {
-    setIsPasswordVisible((oldValue) => !oldValue);
-    onEyePress?.();
-  };
-
   const handleLogin = async () => {
     if (!userName.trim() || !password.trim()) {
       Toast.show({
@@ -172,7 +167,10 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
-      <StatusBar barStyle="light-content" />
+      <SystemBars style="light" />
+      {/*
+      <StatusBar style="dark" backgroundColor="#3674B5" />
+      */}
       <LinearGradient
         colors={["#5B7FD8", "#3674B5"]}
         start={{ x: 0, y: 0 }}
@@ -302,16 +300,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContainer: {
-    flexGrow: 1,
-    justifyContent: "center",
-    minHeight: height,
-    paddingBottom: 20,
+    flex: 1,
+    justifyContent: "flex-end",
   },
   contentContainer: {
     flex: 1,
-    justifyContent: "flex-end",
-    // paddingHorizontal: 24,
-    paddingBottom: 50,
+    justifyContent: "space-between",
   },
   // Illustration styles
   illustrationContainer: {
@@ -335,16 +329,17 @@ const styles = StyleSheet.create({
   // Card styles
   cardContainer: {
     width: "100%",
+    height: "100%",
     backgroundColor: "#fff",
     borderTopLeftRadius: 60,
     borderTopRightRadius: 60,
-    padding: 30,
+    padding: 40,
+    paddingBottom: 40,
     elevation: 8,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 8,
-    paddingTop: 60, // Account for illustration overlap
   },
   // Input styles
   inputGroup: {
