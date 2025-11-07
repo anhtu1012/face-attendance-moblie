@@ -6,6 +6,7 @@ import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { useUpdateUser } from "@/hooks/useUpdateUser";
 import { MILITARY_STATUS_OPTIONS } from "@/models/data/militaryStatus";
 import { MaterialIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useFormik } from "formik";
 import React, { useState } from "react";
@@ -61,7 +62,7 @@ export default function ProfilePage() {
     bankingName: userData?.bankingName || "",
     taxCode: userData?.taxCode || "",
     militaryStatus: userData?.militaryStatus || "",
-    citizenIdentityCard: userData?.citizenIdentityCard || "--",
+    citizenIdentityCard: userData?.citizenIdentityCard || "",
     issueDate: userData?.issueDate ? new Date(userData.issueDate) : new Date(),
     issueAt: userData?.issueAt || DEFAULT_ISSUE_AT,
     nationality: userData?.nationality || "",
@@ -252,48 +253,67 @@ export default function ProfilePage() {
 
       {/* Profile Card */}
       <View style={styles.profileCard}>
-        <View style={styles.profileImageContainer}>
-          <Image
-            source={
-              userData?.faceImg
-                ? { uri: userData?.faceImg }
-                : require("../../../assets/images/empty-avatar.png")
-            }
-            style={styles.profileImage}
-          />
-        </View>
-        <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>{userData?.fullName || "--"}</Text>
-          <Text style={styles.profilePosition}>Nhân viên</Text>
-          <Text style={styles.profileCode}>Mã: {userData?.id || "--"}</Text>
-          <View style={styles.statusContainer}></View>
-        </View>
-        <View style={styles.headerActions}>
-          <View style={styles.spacer} />
-          {isEditing ? (
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.headerActionButtonCancel}
-                onPress={handleCancel}
-              >
-                <MaterialIcons name="close" size={16} color="#666" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerActionButtonSave}
-                onPress={formik.submitForm}
-              >
-                <MaterialIcons name="save" size={16} color="white" />
-                <Text style={styles.headerActionButtonSaveText}>Lưu</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
+        {/* Gradient Background */}
+        <LinearGradient
+          colors={["#f5f5f5", "#f5f5f5"]}
+          start={{ x: 0.6, y: 0.6 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.profileGradientBg}
+        />
+
+        {/* Floating Edit Button */}
+        {!isEditing ? (
+          <TouchableOpacity
+            style={styles.floatingEditButton}
+            onPress={() => setIsEditing(true)}
+          >
+            <MaterialIcons name="edit" size={18} color="#3674B5" />
+          </TouchableOpacity>
+        ) : (
+          <View style={styles.floatingEditActions}>
             <TouchableOpacity
-              style={styles.headerActionButtonEdit}
-              onPress={() => setIsEditing(true)}
+              style={styles.floatingCancelButton}
+              onPress={handleCancel}
             >
-              <MaterialIcons name="edit" size={16} color="#3674B5" />
+              <MaterialIcons name="close" size={18} color="#666" />
             </TouchableOpacity>
-          )}
+            <TouchableOpacity
+              style={styles.floatingSaveButton}
+              onPress={formik.submitForm}
+            >
+              <MaterialIcons name="check" size={18} color="white" />
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Horizontal Layout: Avatar + Info */}
+        <View style={styles.profileContent}>
+          {/* Avatar */}
+          <View style={styles.avatarWrapper}>
+            <Image
+              source={
+                userData?.faceImg
+                  ? { uri: userData?.faceImg }
+                  : require("../../../assets/images/empty-avatar.png")
+              }
+              style={styles.avatarImage}
+            />
+          </View>
+
+          {/* Profile Info */}
+          <View style={styles.profileInfo}>
+            <Text style={styles.profileName} numberOfLines={1}>
+              {userData?.fullName || ""}
+            </Text>
+            <View style={styles.profileMetaRow}>
+              <MaterialIcons name="badge" size={14} color="#666" />
+              <Text style={styles.profileMeta}>Mã: {userData?.id || ""}</Text>
+            </View>
+            <View style={styles.profileMetaRow}>
+              <MaterialIcons name="work-outline" size={14} color="#666" />
+              <Text style={styles.profileMeta}>Nhân viên</Text>
+            </View>
+          </View>
         </View>
       </View>
 
@@ -368,61 +388,114 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   profileCard: {
-    backgroundColor: "#fff",
     marginHorizontal: 16,
-    marginVertical: 8,
-    borderRadius: 8,
-    padding: 12,
+    marginTop: 8,
+    marginBottom: 12,
+    borderRadius: 12,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 5,
+    overflow: "hidden",
+    position: "relative",
+    height: 90,
+  },
+  profileGradientBg: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 1,
+  },
+  floatingEditButton: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    backgroundColor: "rgba(173, 207, 238, 0.25)",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgba(125, 171, 230, 1)",
+    zIndex: 10,
+  },
+  floatingEditActions: {
+    position: "absolute",
+    top: 8,
+    right: 8,
+    flexDirection: "row",
+    gap: 6,
+    zIndex: 10,
+  },
+  floatingCancelButton: {
+    backgroundColor: "rgb(255, 255, 255)",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    borderWidth: 1,
+    borderColor: "rgb(102, 105, 108)",
+  },
+  floatingSaveButton: {
+    backgroundColor: "#10B981",
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: "center",
+    justifyContent: "center",
+    shadowColor: "#10B981",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  profileContent: {
     flexDirection: "row",
     alignItems: "center",
+    padding: 16,
+    gap: 14,
+    zIndex: 5,
+  },
+  avatarWrapper: {
+    padding: 3,
+    backgroundColor: "#fff",
+    borderRadius: 32,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 2,
-    borderLeftWidth: 3,
-    borderLeftColor: "#3674B5",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  profileImageContainer: {
-    marginRight: 12,
-  },
-  profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+  avatarImage: {
+    width: 58,
+    height: 58,
+    borderRadius: 29,
   },
   profileInfo: {
     flex: 1,
+    justifyContent: "center",
+    gap: 2,
   },
   profileName: {
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "700",
     color: "#333",
     marginBottom: 2,
   },
-  profilePosition: {
+  profileMetaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+  profileMeta: {
     fontSize: 12,
     color: "#666",
-    marginBottom: 1,
-  },
-  profileCode: {
-    fontSize: 11,
-    color: "#999",
-    marginBottom: 4,
-  },
-  statusContainer: {
-    alignSelf: "flex-start",
-  },
-  statusBadge: {
-    backgroundColor: "#3674B5",
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-  },
-  statusText: {
-    color: "#fff",
-    fontSize: 10,
-    fontWeight: "600",
+    fontWeight: "500",
   },
   tabContainer: {
     backgroundColor: "#fff",
@@ -484,65 +557,5 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 80,
     flexGrow: 1,
-  },
-  actionButtons: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  headerActionButtonEdit: {
-    flexDirection: "row",
-    alignItems: "flex-end",
-    backgroundColor: "#f8f9fa",
-    paddingHorizontal: 8,
-    paddingVertical: 8,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: "#3674B5",
-  },
-  headerActionButtonEditText: {
-    color: "#3674B5",
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 4,
-  },
-  headerActionButtonCancel: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f8f9fa",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 4,
-    borderWidth: 1,
-    borderColor: "#ddd",
-  },
-  headerActionButtonCancelText: {
-    color: "#666",
-    fontSize: 12,
-    fontWeight: "500",
-    marginLeft: 3,
-  },
-  headerActionButtonSave: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#D69E2E",
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 6,
-  },
-  headerActionButtonSaveText: {
-    color: "#fff",
-    fontSize: 12,
-    fontWeight: "600",
-    marginLeft: 3,
-  },
-  headerActions: {
-    flexDirection: "column",
-    alignItems: "flex-end",
-    paddingHorizontal: 16,
-    paddingVertical: 2,
-    gap: 8,
-  },
-  spacer: {
-    flex: 1,
   },
 });
