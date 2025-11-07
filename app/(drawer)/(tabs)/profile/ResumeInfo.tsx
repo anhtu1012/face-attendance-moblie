@@ -3,9 +3,8 @@ import CustomProfileInput from "@/components/ui/CustomProfileInput";
 import { DatePickerInput } from "@/components/ui/DatePickerInput";
 import ScanQRCodeModal from "@/components/ui/ScanQRCodeModal";
 import { DEFAULT_ISSUE_AT } from "@/constants/resume";
-import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { useCameraPermissions } from "expo-camera";
-import { useFormik } from "formik";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -17,21 +16,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as Yup from "yup";
 import { RadioGroup } from "../../../../components/ui/RadioButton";
-import { dtoGetUser, dtoUpdateUser } from "../../../../models/auth/dtoUser";
 import { NATION_OPTIONS } from "../../../../models/data/nation";
 import { NATIONALITY_OPTIONS } from "../../../../models/data/nationality";
 interface ResumeInfoProps {
-  userData: dtoGetUser | undefined;
-  onUpdateUserData: (data: dtoUpdateUser) => void;
+  formik: any;
+  isEditing: boolean;
 }
 
-const ResumeInfo: React.FC<ResumeInfoProps> = ({
-  userData,
-  onUpdateUserData,
-}) => {
-  const [isEditing, setIsEditing] = useState(false);
+const ResumeInfo: React.FC<ResumeInfoProps> = ({ formik, isEditing }) => {
   const [showNationalityDropdown, setShowNationalityDropdown] = useState(false);
   const [showNationDropdown, setShowNationDropdown] = useState(false);
 
@@ -44,85 +37,6 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     type: "success",
     title: "",
   });
-  const initialValues = {
-    citizenIdentityCard: userData?.citizenIdentityCard || "--",
-    issueDate: userData?.issueDate ? new Date(userData.issueDate) : new Date(),
-    issueAt: userData?.issueAt || DEFAULT_ISSUE_AT,
-    nationality: userData?.nationality || "",
-    nation: userData?.nation || "",
-    permanentAddress: userData?.permanentAddress || "",
-    currentAddress: userData?.currentAddress || "",
-    fullName: userData?.fullName || "",
-    birthday: userData?.birthday || new Date(),
-    gender: userData?.gender || "",
-  };
-
-  const validateSchema = Yup.object().shape({
-    citizenIdentityCard: Yup.string()
-      .matches(/^\d{9}$|^\d{12}$/, "Số CMND/CCCD phải gồm 9 hoặc 12 chữ số")
-      .required("Số CMND/CCCD là bắt buộc"),
-    issueDate: Yup.date().required("Ngày cấp là bắt buộc"),
-    issueAt: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Nơi cấp là bắt buộc"),
-
-    nationality: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Quốc tịch là bắt buộc"),
-    nation: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Dân tộc là bắt buộc"),
-    permanentAddress: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Địa chỉ thường trú là bắt buộc"),
-    currentAddress: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Địa chỉ hiện tại là bắt buộc"),
-    birthday: Yup.date().required("Ngày sinh là bắt buộc"),
-    gender: Yup.string().required("Giới tính là bắt buộc"),
-    fullName: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Họ và tên là bắt buộc")
-      .matches(/^[\p{L}\s'-]+$/u, "Tên không hợp lệ"),
-  });
-
-  const validate = (values: typeof initialValues) => {
-    const errors: any = {};
-    try {
-      validateSchema.validateSync(values, { abortEarly: false });
-    } catch (validationError: any) {
-      if (validationError.inner && Array.isArray(validationError.inner)) {
-        validationError.inner.forEach((error: any) => {
-          errors[error.path] = error.message;
-        });
-      }
-    }
-    return errors;
-  };
-
-  const handleSubmit = (values: typeof initialValues) => {
-    const trimmedValues = {
-      ...values,
-      citizenIdentityCard: values.citizenIdentityCard.trim(),
-      nationality: values.nationality.trim(),
-      nation: values.nation.trim(),
-      permanentAddress: values.permanentAddress.trim(),
-      currentAddress: values.currentAddress.trim(),
-      issueDate: values.issueDate,
-      fullName: values.fullName.trim(),
-      birthday: values.birthday,
-      gender: values.gender,
-      issueAt: DEFAULT_ISSUE_AT,
-    };
-    const onboardData = { ...userData, ...trimmedValues } as dtoUpdateUser;
-    onUpdateUserData(onboardData);
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    formik.resetForm();
-    setIsEditing(false);
-  };
 
   const handleScanQrCode = () => {
     if (permission?.status !== "granted") {
@@ -132,13 +46,6 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     }
   };
 
-  const formik = useFormik({
-    initialValues,
-    validate,
-    onSubmit: handleSubmit,
-    validateOnChange: true,
-    validateOnBlur: true,
-  });
   const CustomDropdown = ({
     error,
     icon,
@@ -244,7 +151,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
     };
     const formattedGender = parsedData.gender === "Nam" ? "M" : "F";
     formik.setValues({
-      ...initialValues,
+      ...formik.values,
       citizenIdentityCard: parsedData.citizenIdentityCard,
       fullName: parsedData.fullName,
       birthday: parsedData.dateOfBirth,
@@ -360,38 +267,6 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({
         {/* Header Actions */}
         <View style={styles.headerActions}>
           <Text style={styles.sectionTitle}>Sơ yếu lý lịch</Text>
-          {isEditing ? (
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.headerActionButtonCancel}
-                onPress={handleScanQrCode}
-              >
-                <MaterialIcons name="qr-code" size={20} color="#666" />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerActionButtonCancel}
-                onPress={handleCancel}
-              >
-                <MaterialIcons name="close" size={20} color="#666" />
-                <Text style={styles.headerActionButtonCancelText}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerActionButtonSave}
-                onPress={formik.submitForm}
-              >
-                <MaterialIcons name="save" size={20} color="white" />
-                <Text style={styles.headerActionButtonSaveText}>Lưu</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.headerActionButtonEdit}
-              onPress={() => setIsEditing(true)}
-            >
-              <MaterialIcons name="edit" size={24} color="#3674B5" />
-              <Text style={styles.headerActionButtonEditText}>Chỉnh sửa</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* Content */}

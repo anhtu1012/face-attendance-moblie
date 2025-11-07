@@ -1,7 +1,5 @@
 import CustomProfileInput from "@/components/ui/CustomProfileInput";
-import { useUpdateUser } from "@/hooks/useUpdateUser";
-import { Feather, MaterialIcons } from "@expo/vector-icons";
-import { useFormik } from "formik";
+import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   FlatList,
@@ -12,130 +10,24 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import * as Yup from "yup";
 
 import { MILITARY_STATUS_OPTIONS } from "@/models/data/militaryStatus";
-import { dtoGetUser, dtoUpdateUser } from "../../../../models/auth/dtoUser";
 interface GeneralInfoProps {
-  userData: dtoGetUser | undefined;
-  onUpdateUserData: (data: dtoUpdateUser) => void;
+  formik: any;
+  isEditing: boolean;
 }
 
-const GeneralInfo: React.FC<GeneralInfoProps> = ({
-  userData,
-  onUpdateUserData,
-}) => {
-  const [isEditing, setIsEditing] = useState(false);
+const GeneralInfo: React.FC<GeneralInfoProps> = ({ formik, isEditing }) => {
   const [showMarriedStatusDropdown, setShowMarriedStatusDropdown] =
     useState(false);
   const [showMilitaryStatusDropdown, setShowMilitaryStatusDropdown] =
     useState(false);
-  const updateUser = useUpdateUser();
+
   const MARRIED_STATUS_OPTIONS = [
     { label: "Độc thân", value: "Độc thân" },
     { label: "Đã kết hôn", value: "Đã kết hôn" },
     { label: "Đã ly hôn", value: "Đã ly hôn" },
   ];
-  const initialValues = {
-    email: userData?.email || "",
-    phone: userData?.phone || "",
-    marriedStatus: userData?.marriedStatus || "",
-    bankingAccountNo: userData?.bankingAccountNo || "",
-    bankingAccountName: userData?.bankingAccountName || "",
-    bankingName: userData?.bankingName || "",
-    taxCode: userData?.taxCode || "",
-    militaryStatus: userData?.militaryStatus || "",
-  };
-  const validateSchema = Yup.object().shape({
-    email: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .email("Email không hợp lệ")
-      .required("Email là bắt buộc")
-      .matches(
-        /^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-        "Bạn phải cung cấp một địa chỉ email hợp lệ"
-      ),
-    phone: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .matches(/^[0-9]{10,11}$/, "Số điện thoại không hợp lệ")
-      .required("Số điện thoại là bắt buộc"),
-    marriedStatus: Yup.string().required("Tình trạng hôn nhân là bắt buộc"),
-    bankingAccountNo: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Số tài khoản là bắt buộc")
-      .matches(/^[0-9]{10,11}$/, "Số tài khoản không hợp lệ"),
-    bankingAccountName: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Tên tài khoản là bắt buộc")
-      .matches(/^[\p{L}\s'-]+$/u, "Tên không được chứa ký tự đặc biệt hoặc số"),
-    bankingName: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Tên ngân hàng là bắt buộc")
-      .matches(/^[\p{L}\s'-]+$/u, "Tên không được chứa ký tự đặc biệt hoặc số"),
-    taxCode: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Mã số thuế là bắt buộc")
-      .matches(
-        /^[0-9]{10}([0-9]{3})?$/,
-        "Mã số thuế phải gồm 10 hoặc 13 chữ số"
-      ),
-    militaryStatus: Yup.string()
-      .required("Tình trạng quân dịch là bắt buộc")
-      .oneOf(
-        MILITARY_STATUS_OPTIONS.map((option) => option.value),
-        "Tình trạng quân dịch không hợp lệ"
-      ),
-  });
-  const validate = (values: typeof initialValues) => {
-    const errors: any = {};
-    try {
-      validateSchema.validateSync(values, { abortEarly: false });
-    } catch (validationError: any) {
-      validationError.inner.forEach((error: any) => {
-        errors[error.path] = error.message;
-      });
-    }
-    return errors;
-  };
-
-  const handleSubmit = (values: typeof initialValues) => {
-    const trimmedValues = {
-      ...values,
-      email: values.email.trim(),
-      marriedStatus: values.marriedStatus as
-        | "Đã kết hôn"
-        | "Độc thân"
-        | "Đã ly hôn",
-      phone: values.phone.trim(),
-      bankingAccountNo: values.bankingAccountNo.trim(),
-      bankingAccountName: values.bankingAccountName.trim(),
-      bankingName: values.bankingName.trim(),
-      dependent: [],
-      taxCode: values.taxCode.trim(),
-      militaryStatus: values.militaryStatus,
-    };
-    const onboardData = { ...userData, ...trimmedValues } as dtoUpdateUser;
-    console.log("Form submitted:", onboardData);
-    updateUser.mutate({
-      userId: "13",
-      onboardData: onboardData,
-    });
-    onUpdateUserData(onboardData);
-    setIsEditing(false);
-  };
-
-  const handleCancel = () => {
-    formik.resetForm();
-    setIsEditing(false);
-  };
-
-  const formik = useFormik({
-    initialValues,
-    validate,
-    onSubmit: handleSubmit,
-    validateOnChange: true,
-    validateOnBlur: true,
-  });
 
   const CustomDropdown = ({
     error,
@@ -183,32 +75,6 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({
         {/* Header Actions */}
         <View style={styles.headerActions}>
           <Text style={styles.sectionTitle}>Thông tin chung</Text>
-          {isEditing ? (
-            <View style={styles.actionButtons}>
-              <TouchableOpacity
-                style={styles.headerActionButtonCancel}
-                onPress={handleCancel}
-              >
-                <MaterialIcons name="close" size={20} color="#666" />
-                <Text style={styles.headerActionButtonCancelText}>Hủy</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.headerActionButtonSave}
-                onPress={formik.submitForm}
-              >
-                <MaterialIcons name="save" size={20} color="white" />
-                <Text style={styles.headerActionButtonSaveText}>Lưu</Text>
-              </TouchableOpacity>
-            </View>
-          ) : (
-            <TouchableOpacity
-              style={styles.headerActionButtonEdit}
-              onPress={() => setIsEditing(true)}
-            >
-              <MaterialIcons name="edit" size={24} color="#3674B5" />
-              <Text style={styles.headerActionButtonEditText}>Chỉnh sửa</Text>
-            </TouchableOpacity>
-          )}
         </View>
 
         {/* Content */}

@@ -1,9 +1,13 @@
 import AlertModal from "@/components/ui/AlertModal";
 import CustomHeaders from "@/components/ui/CustomHeaders";
 import CustomTabs from "@/components/ui/CustomTabs";
+import { DEFAULT_ISSUE_AT } from "@/constants/resume";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { useUpdateUser } from "@/hooks/useUpdateUser";
+import { MILITARY_STATUS_OPTIONS } from "@/models/data/militaryStatus";
+import { MaterialIcons } from "@expo/vector-icons";
 import { router } from "expo-router";
+import { useFormik } from "formik";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
@@ -11,9 +15,11 @@ import {
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
+import * as Yup from "yup";
 import { dtoUpdateUser } from "../../../models/auth/dtoUser";
 import AppendixTab from "./profile/AppendixTab";
 import DependentInfo from "./profile/DependentInfo";
@@ -21,11 +27,17 @@ import GeneralInfo from "./profile/GeneralInfo";
 import ResumeInfo from "./profile/ResumeInfo";
 import WorkContractInfo from "./profile/WorkContractInfo";
 export default function ProfilePage() {
+  const [isEditing, setIsEditing] = useState(false);
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState(0);
-  const { userProfile, isLoading, error, refetch, userId } =
-    useGetUserProfile();
-  const updateUserMutation = useUpdateUser();
+  const {
+    userProfile: userData,
+    isLoading,
+    error,
+    refetch,
+    userId,
+  } = useGetUserProfile();
+  const updateUser = useUpdateUser();
   const [showAlertModal, setShowAlertModal] = useState({
     visible: false,
     message: "",
@@ -40,11 +52,134 @@ export default function ProfilePage() {
     { id: 3, title: "Hợp đồng" },
     { id: 4, title: "Phụ lục hợp đồng" },
   ];
-  const handleUpdateUserData = (updatedData: dtoUpdateUser) => {
-    updateUserMutation.mutate(
+  const initialValues = {
+    email: userData?.email || "",
+    phone: userData?.phone || "",
+    marriedStatus: userData?.marriedStatus || "",
+    bankingAccountNo: userData?.bankingAccountNo || "",
+    bankingAccountName: userData?.bankingAccountName || "",
+    bankingName: userData?.bankingName || "",
+    taxCode: userData?.taxCode || "",
+    militaryStatus: userData?.militaryStatus || "",
+    citizenIdentityCard: userData?.citizenIdentityCard || "--",
+    issueDate: userData?.issueDate ? new Date(userData.issueDate) : new Date(),
+    issueAt: userData?.issueAt || DEFAULT_ISSUE_AT,
+    nationality: userData?.nationality || "",
+    nation: userData?.nation || "",
+    permanentAddress: userData?.permanentAddress || "",
+    currentAddress: userData?.currentAddress || "",
+    fullName: userData?.fullName || "",
+    birthday: userData?.birthday || new Date(),
+    gender: userData?.gender || "",
+  };
+  const validateSchema = Yup.object().shape({
+    email: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .email("Email không hợp lệ")
+      .required("Email là bắt buộc")
+      .matches(
+        /^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
+        "Bạn phải cung cấp một địa chỉ email hợp lệ"
+      ),
+    phone: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .matches(/^[0-9]{10,11}$/, "Số điện thoại không hợp lệ")
+      .required("Số điện thoại là bắt buộc"),
+    marriedStatus: Yup.string().required("Tình trạng hôn nhân là bắt buộc"),
+    bankingAccountNo: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Số tài khoản là bắt buộc")
+      .matches(/^[0-9]{10,11}$/, "Số tài khoản không hợp lệ"),
+    bankingAccountName: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Tên tài khoản là bắt buộc")
+      .matches(/^[\p{L}\s'-]+$/u, "Tên không được chứa ký tự đặc biệt hoặc số"),
+    bankingName: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Tên ngân hàng là bắt buộc")
+      .matches(/^[\p{L}\s'-]+$/u, "Tên không được chứa ký tự đặc biệt hoặc số"),
+    taxCode: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Mã số thuế là bắt buộc")
+      .matches(
+        /^[0-9]{10}([0-9]{3})?$/,
+        "Mã số thuế phải gồm 10 hoặc 13 chữ số"
+      ),
+    militaryStatus: Yup.string()
+      .required("Tình trạng quân dịch là bắt buộc")
+      .oneOf(
+        MILITARY_STATUS_OPTIONS.map((option) => option.value),
+        "Tình trạng quân dịch không hợp lệ"
+      ),
+    citizenIdentityCard: Yup.string()
+      .matches(/^\d{9}$|^\d{12}$/, "Số CMND/CCCD phải gồm 9 hoặc 12 chữ số")
+      .required("Số CMND/CCCD là bắt buộc"),
+    issueDate: Yup.date().required("Ngày cấp là bắt buộc"),
+    issueAt: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Nơi cấp là bắt buộc"),
+
+    nationality: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Quốc tịch là bắt buộc"),
+    nation: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Dân tộc là bắt buộc"),
+    permanentAddress: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Địa chỉ thường trú là bắt buộc"),
+    currentAddress: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Địa chỉ hiện tại là bắt buộc"),
+    birthday: Yup.date().required("Ngày sinh là bắt buộc"),
+    gender: Yup.string().required("Giới tính là bắt buộc"),
+    fullName: Yup.string()
+      .trim("Không được chứa khoảng trắng thừa")
+      .required("Họ và tên là bắt buộc")
+      .matches(/^[\p{L}\s'-]+$/u, "Tên không hợp lệ"),
+  });
+  const validate = (values: typeof initialValues) => {
+    const errors: any = {};
+    try {
+      validateSchema.validateSync(values, { abortEarly: false });
+    } catch (validationError: any) {
+      validationError.inner.forEach((error: any) => {
+        errors[error.path] = error.message;
+      });
+    }
+    return errors;
+  };
+  const handleSubmit = (values: typeof initialValues) => {
+    const trimmedValues = {
+      ...values,
+      email: values.email.trim(),
+      marriedStatus: values.marriedStatus as
+        | "Đã kết hôn"
+        | "Độc thân"
+        | "Đã ly hôn",
+      phone: values.phone.trim(),
+      bankingAccountNo: values.bankingAccountNo.trim(),
+      bankingAccountName: values.bankingAccountName.trim(),
+      bankingName: values.bankingName.trim(),
+      dependent: [],
+      taxCode: values.taxCode.trim(),
+      militaryStatus: values.militaryStatus,
+      citizenIdentityCard: values.citizenIdentityCard.trim(),
+      nationality: values.nationality.trim(),
+      nation: values.nation.trim(),
+      permanentAddress: values.permanentAddress.trim(),
+      currentAddress: values.currentAddress.trim(),
+      issueDate: values.issueDate,
+      fullName: values.fullName.trim(),
+      birthday: values.birthday,
+      gender: values.gender,
+      issueAt: DEFAULT_ISSUE_AT,
+    };
+    const onboardData = { ...userData, ...trimmedValues } as dtoUpdateUser;
+    updateUser.mutate(
       {
         userId: userId || "",
-        onboardData: updatedData,
+        onboardData: onboardData,
       },
       {
         onSuccess: () => {
@@ -65,39 +200,36 @@ export default function ProfilePage() {
         },
       }
     );
+    setIsEditing(false);
   };
+  const handleCancel = () => {
+    formik.resetForm();
+    setIsEditing(false);
+  };
+  const formik = useFormik({
+    initialValues,
+    validate,
+    onSubmit: handleSubmit,
+    validateOnChange: true,
+    validateOnBlur: true,
+  });
 
   const renderTabContent = () => {
     switch (activeTab) {
       case 0:
-        return (
-          <GeneralInfo
-            userData={userProfile}
-            onUpdateUserData={handleUpdateUserData}
-          />
-        );
+        return <GeneralInfo formik={formik} isEditing={isEditing} />;
       case 1:
-        return (
-          <ResumeInfo
-            userData={userProfile}
-            onUpdateUserData={handleUpdateUserData}
-          />
-        );
+        return <ResumeInfo formik={formik} isEditing={isEditing} />;
       case 2:
         return <DependentInfo userId={userId || ""} />;
       case 3:
         return (
-          <WorkContractInfo userId={userId} gmail={userProfile?.email || ""} />
+          <WorkContractInfo userId={userId} gmail={userData?.email || ""} />
         );
       case 4:
-        return <AppendixTab userId={userId} gmail={userProfile?.email || ""} />;
+        return <AppendixTab userId={userId} gmail={userData?.email || ""} />;
       default:
-        return (
-          <GeneralInfo
-            userData={userProfile}
-            onUpdateUserData={handleUpdateUserData}
-          />
-        );
+        return <GeneralInfo formik={formik} isEditing={isEditing} />;
     }
   };
 
@@ -123,24 +255,45 @@ export default function ProfilePage() {
         <View style={styles.profileImageContainer}>
           <Image
             source={
-              userProfile?.faceImg
-                ? { uri: userProfile?.faceImg }
+              userData?.faceImg
+                ? { uri: userData?.faceImg }
                 : require("../../../assets/images/empty-avatar.png")
             }
             style={styles.profileImage}
           />
         </View>
         <View style={styles.profileInfo}>
-          <Text style={styles.profileName}>
-            {userProfile?.fullName || "--"}
-          </Text>
+          <Text style={styles.profileName}>{userData?.fullName || "--"}</Text>
           <Text style={styles.profilePosition}>Nhân viên</Text>
-          <Text style={styles.profileCode}>Mã: 12</Text>
-          <View style={styles.statusContainer}>
-            <View style={styles.statusBadge}>
-              <Text style={styles.statusText}>Đang làm việc</Text>
+          <Text style={styles.profileCode}>Mã: {userData?.id || "--"}</Text>
+          <View style={styles.statusContainer}></View>
+        </View>
+        <View style={styles.headerActions}>
+          <View style={styles.spacer} />
+          {isEditing ? (
+            <View style={styles.actionButtons}>
+              <TouchableOpacity
+                style={styles.headerActionButtonCancel}
+                onPress={handleCancel}
+              >
+                <MaterialIcons name="close" size={16} color="#666" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.headerActionButtonSave}
+                onPress={formik.submitForm}
+              >
+                <MaterialIcons name="save" size={16} color="white" />
+                <Text style={styles.headerActionButtonSaveText}>Lưu</Text>
+              </TouchableOpacity>
             </View>
-          </View>
+          ) : (
+            <TouchableOpacity
+              style={styles.headerActionButtonEdit}
+              onPress={() => setIsEditing(true)}
+            >
+              <MaterialIcons name="edit" size={16} color="#3674B5" />
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -331,5 +484,65 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 80,
     flexGrow: 1,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  headerActionButtonEdit: {
+    flexDirection: "row",
+    alignItems: "flex-end",
+    backgroundColor: "#f8f9fa",
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#3674B5",
+  },
+  headerActionButtonEditText: {
+    color: "#3674B5",
+    fontSize: 14,
+    fontWeight: "600",
+    marginLeft: 4,
+  },
+  headerActionButtonCancel: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#f8f9fa",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: "#ddd",
+  },
+  headerActionButtonCancelText: {
+    color: "#666",
+    fontSize: 12,
+    fontWeight: "500",
+    marginLeft: 3,
+  },
+  headerActionButtonSave: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#D69E2E",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 6,
+  },
+  headerActionButtonSaveText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 3,
+  },
+  headerActions: {
+    flexDirection: "column",
+    alignItems: "flex-end",
+    paddingHorizontal: 16,
+    paddingVertical: 2,
+    gap: 8,
+  },
+  spacer: {
+    flex: 1,
   },
 });
