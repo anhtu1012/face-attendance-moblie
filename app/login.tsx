@@ -171,10 +171,10 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
     try {
       // TODO: Replace with your actual reset password API call
       // await resetPasswordAPI(userName, newPassword);
-      
+
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+
       Toast.show({
         type: "success",
         text1: "Đặt lại mật khẩu thành công",
@@ -183,7 +183,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
         text2Style: { textAlign: "center", fontSize: 14 },
         topOffset: insets.top + 10,
       });
-      
+
       setShowForgotPasswordModal(false);
       setNewPassword("");
       setConfirmPassword("");
@@ -255,7 +255,6 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       behavior={Platform.OS === "ios" ? "padding" : "height"}
       keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
-
       {/*
       <StatusBar style="dark" backgroundColor="#3674B5" />
       */}
@@ -315,7 +314,9 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                             autoCapitalize="none"
                           />
                           <TouchableOpacity
-                            onPress={() => setIsPasswordVisible(!isPasswordVisible)}
+                            onPress={() =>
+                              setIsPasswordVisible(!isPasswordVisible)
+                            }
                             style={styles.eyeIcon}
                           >
                             <Feather
@@ -328,11 +329,13 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                       </View>
 
                       {/* Forgot Password Link */}
-                      <TouchableOpacity 
+                      <TouchableOpacity
                         style={styles.forgotPasswordLink}
                         onPress={() => setShowForgotPasswordModal(true)}
                       >
-                        <Text style={styles.forgotPasswordText}>Quên mật khẩu?</Text>
+                        <Text style={styles.forgotPasswordText}>
+                          Quên mật khẩu?
+                        </Text>
                       </TouchableOpacity>
 
                       {/* Login Button */}
@@ -348,42 +351,12 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                           <Text style={styles.loginButtonText}>Đăng nhập</Text>
                         )}
                       </TouchableOpacity>
-
-                      {/* Divider */}
-                      <View style={styles.dividerContainer}>
-                        <View style={styles.dividerLine} />
-                        <Text style={styles.dividerText}>Hoặc</Text>
-                        <View style={styles.dividerLine} />
-                      </View>
-
-                      {/* Social Login Placeholder */}
-                      <View style={styles.socialContainer}>
-                        <TouchableOpacity style={styles.socialButton}>
-                          <Feather name="chrome" size={24} color="#DB4437" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.socialButton}>
-                          <Feather name="smartphone" size={24} color="#000" />
-                        </TouchableOpacity>
-                        <TouchableOpacity style={styles.socialButton}>
-                          <Feather name="facebook" size={24} color="#1877F2" />
-                        </TouchableOpacity>
-                      </View>
-
-                      {/* Register Link */}
-                      <View style={styles.registerContainer}>
-                        <Text style={styles.registerPrompt}>
-                          Chưa có tài khoản?{" "}
-                        </Text>
-                        <TouchableOpacity>
-                          <Text style={styles.registerText}>Đăng ký</Text>
-                        </TouchableOpacity>
-                      </View>
                     </>
                   ) : (
                     <>
                       {/* Reset Password Form */}
                       <View style={styles.resetHeader}>
-                        <TouchableOpacity 
+                        <TouchableOpacity
                           onPress={() => {
                             setShowForgotPasswordModal(false);
                             setNewPassword("");
@@ -391,13 +364,18 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                           }}
                           style={styles.backButton}
                         >
-                          <Feather name="arrow-left" size={24} color="#3674B5" />
+                          <Feather
+                            name="arrow-left"
+                            size={24}
+                            color="#3674B5"
+                          />
                         </TouchableOpacity>
                         <Text style={styles.resetTitle}>Đặt lại mật khẩu</Text>
                       </View>
 
                       <Text style={styles.resetDescription}>
-                        Nhập mật khẩu mới cho tài khoản <Text style={styles.resetUsername}>{userName}</Text>
+                        Nhập mật khẩu mới cho tài khoản{" "}
+                        <Text style={styles.resetUsername}>{userName}</Text>
                       </Text>
 
                       {/* New Password Input */}
@@ -442,7 +420,9 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                             autoCorrect={false}
                           />
                           <TouchableOpacity
-                            onPress={() => setShowConfirmPassword(!showConfirmPassword)}
+                            onPress={() =>
+                              setShowConfirmPassword(!showConfirmPassword)
+                            }
                             style={styles.eyeIcon}
                           >
                             <Feather
@@ -464,7 +444,9 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                         {isResetLoading ? (
                           <ActivityIndicator color="#fff" />
                         ) : (
-                          <Text style={styles.loginButtonText}>Đặt lại mật khẩu</Text>
+                          <Text style={styles.loginButtonText}>
+                            Đặt lại mật khẩu
+                          </Text>
                         )}
                       </TouchableOpacity>
                     </>
