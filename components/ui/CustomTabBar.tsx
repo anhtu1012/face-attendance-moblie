@@ -21,7 +21,9 @@ export const EXCLUDE_ROUTE = [
   "profile/WorkContractInfo",
   "profile/GeneralInfo",
   "profile/AppendixTab",
+  "profile/ResetPassword",
   "timekeep-camera",
+  "notifications",
 ];
 
 const ICON_SIZE = 22;

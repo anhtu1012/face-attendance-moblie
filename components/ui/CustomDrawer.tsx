@@ -108,7 +108,7 @@ const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
         {
           label: "Thông báo",
           icon: <Feather name="bell" size={24} color="#fff" />,
-          route: "/(drawer)/notifications",
+          route: "/(drawer)/(tabs)/notifications",
         },
       ].map((item, index) => (
         <Animated.View key={index} style={animatedStyles[index]}>

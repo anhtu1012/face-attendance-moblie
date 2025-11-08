@@ -27,6 +27,7 @@ import DependentInfo from "./profile/DependentInfo";
 import GeneralInfo from "./profile/GeneralInfo";
 import ResumeInfo from "./profile/ResumeInfo";
 import WorkContractInfo from "./profile/WorkContractInfo";
+import ResetPassword from "./profile/ResetPassword";
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
   const insets = useSafeAreaInsets();
@@ -52,6 +53,7 @@ export default function ProfilePage() {
     { id: 2, title: "Người phụ thuộc" },
     { id: 3, title: "Hợp đồng" },
     { id: 4, title: "Phụ lục hợp đồng" },
+    { id: 5, title: "Đặt lại mật khẩu" },
   ];
   const initialValues = {
     email: userData?.email || "",
@@ -80,7 +82,7 @@ export default function ProfilePage() {
       .required("Email là bắt buộc")
       .matches(
         /^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-        "Bạn phải cung cấp một địa chỉ email hợp lệ"
+        "Bạn phải cung cấp một địa chỉ email hợp lệ",
       ),
     phone: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
@@ -104,13 +106,13 @@ export default function ProfilePage() {
       .required("Mã số thuế là bắt buộc")
       .matches(
         /^[0-9]{10}([0-9]{3})?$/,
-        "Mã số thuế phải gồm 10 hoặc 13 chữ số"
+        "Mã số thuế phải gồm 10 hoặc 13 chữ số",
       ),
     militaryStatus: Yup.string()
       .required("Tình trạng quân dịch là bắt buộc")
       .oneOf(
         MILITARY_STATUS_OPTIONS.map((option) => option.value),
-        "Tình trạng quân dịch không hợp lệ"
+        "Tình trạng quân dịch không hợp lệ",
       ),
     citizenIdentityCard: Yup.string()
       .matches(/^\d{9}$|^\d{12}$/, "Số CMND/CCCD phải gồm 9 hoặc 12 chữ số")
@@ -199,7 +201,7 @@ export default function ProfilePage() {
             title: "Thông báo",
           });
         },
-      }
+      },
     );
     setIsEditing(false);
   };
@@ -229,6 +231,8 @@ export default function ProfilePage() {
         );
       case 4:
         return <AppendixTab userId={userId} gmail={userData?.email || ""} />;
+      case 5:
+        return <ResetPassword />;
       default:
         return <GeneralInfo formik={formik} isEditing={isEditing} />;
     }

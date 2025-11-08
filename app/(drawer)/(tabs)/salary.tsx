@@ -15,7 +15,7 @@ export default function SalaryPage() {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(
-    currentDate.getMonth() + 1
+    currentDate.getMonth() + 1,
   );
   const tabs = [
     { id: 0, title: "Tổng quan", icon: "pie-chart" },

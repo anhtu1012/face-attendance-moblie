@@ -224,6 +224,18 @@ export default function TabLayout() {
             href: null,
           }}
         />
+        <Tabs.Screen
+          name="profile/ResetPassword"
+          options={{
+            href: null,
+          }}
+        />
+        <Tabs.Screen
+          name="notifications"
+          options={{
+            href: null,
+          }}
+        />
       </Tabs>
     </DrawerScreenWrapper>
   );
