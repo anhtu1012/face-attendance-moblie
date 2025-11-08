@@ -109,7 +109,9 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
       },
     });
   };
-
+  if (!contractData) {
+    return <NoContractFound text="Không có hợp đồng" />;
+  }
   return (
     <View style={styles.container}>
       <ScrollView
@@ -119,8 +121,6 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
       >
         {isLoading ? (
           <ActivityIndicator size="large" color="#3674B5" />
-        ) : !contractData ? (
-          <NoContractFound text="Không có hợp đồng" />
         ) : (
           <>
             <View style={styles.detailsCard}>

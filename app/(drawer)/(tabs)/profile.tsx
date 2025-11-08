@@ -255,7 +255,7 @@ export default function ProfilePage() {
       <View style={styles.profileCard}>
         {/* Gradient Background */}
         <LinearGradient
-          colors={["#f5f5f5", "#f5f5f5"]}
+          colors={["white", "white"]}
           start={{ x: 0.6, y: 0.6 }}
           end={{ x: 1, y: 1 }}
           style={styles.profileGradientBg}
@@ -432,7 +432,7 @@ const styles = StyleSheet.create({
     zIndex: 10,
   },
   floatingCancelButton: {
-    backgroundColor: "rgb(255, 255, 255)",
+    backgroundColor: "rgba(234, 234, 234, 0.38)",
     width: 36,
     height: 36,
     borderRadius: 18,
