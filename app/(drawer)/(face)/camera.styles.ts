@@ -14,6 +14,18 @@ export const styles = StyleSheet.create({
     marginTop: "15%",
     marginBottom: "5%",
   },
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  loadingText: {
+    color: "#666",
+    fontSize: 16,
+    marginTop: 16,
+    textAlign: "center",
+  },
 
   // Modern overlay styles
   topOverlay: {

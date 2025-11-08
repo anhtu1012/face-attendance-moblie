@@ -48,35 +48,6 @@ export interface FormDetail {
   status: "PENDING" | "APPROVED" | "REJECTED" | "INACTIVE";
 }
 
-export const fakeSchedule: dtoDetailTimekeeping = {
-  timeKeepingId: 101,
-  userId: 42,
-  date: "2025-10-26",
-  checkinTime: "08:03",
-  checkoutTime: "17:30",
-  status: "START_LATE",
-  totalTimekeepingNumber: 1.0625, // 1 day + 0.0625 OT
-  totalWorkHour: 9.5, // 8 hours + 1.5 OT
-
-  shiftInfo: {
-    shiftStartTime: "08:00",
-    shiftEndTime: "17:00",
-    shiftWorkHour: 8,
-    shiftTimekeepingNumber: 1.0,
-  },
-
-  otInfo: {
-    otStartTime: "17:30",
-    otEndTime: "19:00",
-    otWorkHour: 1.5,
-    otTimekeepingNumber: 0.1875, // 1.5 / 8
-  },
-
-  checkinStatus: CheckinStatus.START_LATE,
-  checkoutStatus: CheckoutStatus.END_ONTIME,
-  isFromOt: true,
-};
-
 function HomePage() {
   const { userProfile, isLoading, error, refetch, userId } =
     useGetUserProfile();

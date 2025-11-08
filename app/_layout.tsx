@@ -19,6 +19,7 @@ import { persistor, store } from "../lib/store";
 // import { NotificationProvider } from '@/contexts/NotificationContext';
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LogBox } from "react-native";
+import { SystemBars } from "react-native-edge-to-edge";
 export const unstable_settings = {
   // Ensure any route can link back to `/`
   initialRouteName: "login",
@@ -48,75 +49,78 @@ export default function RootLayout() {
   const queryClient = new QueryClient();
 
   return (
-    <SafeAreaProvider>
-      {/*
+    <>
+      <SystemBars style="dark" />
+      <SafeAreaProvider>
+        {/*
       <ErrorBoundary>
       */}
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <QueryClientProvider client={queryClient}>
-            <GestureHandlerRootView style={{ flex: 1 }}>
-              <ThemeProvider
-                value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-              >
-                <SafeAreaView
-                  style={{ flex: 1, backgroundColor: "#ffffff" }}
-                  edges={["top", "left", "right", "bottom"]}
+        <Provider store={store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <QueryClientProvider client={queryClient}>
+              <GestureHandlerRootView style={{ flex: 1 }}>
+                <ThemeProvider
+                  value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
                 >
-                  <Stack>
-                    <Stack.Screen
-                      name="login"
-                      options={{
-                        headerShown: false,
-                        gestureEnabled: false,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="(drawer)"
-                      options={{
-                        headerShown: false,
-                        gestureEnabled: false,
-                      }}
-                    />
-                    <Stack.Screen
-                      name="timesheet"
-                      options={{
-                        headerShown: false,
-                        presentation: "modal",
-                      }}
-                    />
-                    <Stack.Screen
-                      name="form-detail"
-                      options={{
-                        headerShown: false,
-                        presentation: "modal",
-                      }}
-                    />
-                    <Stack.Screen
-                      name="form-list"
-                      options={{
-                        headerShown: false,
-                      }}
-                    />
-              
-                    <Stack.Screen
-                      name="form-detail-view"
-                      options={{
-                        headerShown: false,
-                        presentation: "modal",
-                      }}
-                    />
-                  </Stack>
-                </SafeAreaView>
-                <StatusBar style="dark" />
-              </ThemeProvider>
-            </GestureHandlerRootView>
-          </QueryClientProvider>
-        </PersistGate>
-      </Provider>
-      {/*
+                  <SafeAreaView
+                    style={{ flex: 1, backgroundColor: "#ffffff" }}
+                    edges={["top", "left", "right", "bottom"]}
+                  >
+                    <Stack>
+                      <Stack.Screen
+                        name="login"
+                        options={{
+                          headerShown: false,
+                          gestureEnabled: false,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="(drawer)"
+                        options={{
+                          headerShown: false,
+                          gestureEnabled: false,
+                        }}
+                      />
+                      <Stack.Screen
+                        name="timesheet"
+                        options={{
+                          headerShown: false,
+                          presentation: "modal",
+                        }}
+                      />
+                      <Stack.Screen
+                        name="form-detail"
+                        options={{
+                          headerShown: false,
+                          presentation: "modal",
+                        }}
+                      />
+                      <Stack.Screen
+                        name="form-list"
+                        options={{
+                          headerShown: false,
+                        }}
+                      />
+
+                      <Stack.Screen
+                        name="form-detail-view"
+                        options={{
+                          headerShown: false,
+                          presentation: "modal",
+                        }}
+                      />
+                    </Stack>
+                  </SafeAreaView>
+                  <StatusBar style="dark" />
+                </ThemeProvider>
+              </GestureHandlerRootView>
+            </QueryClientProvider>
+          </PersistGate>
+        </Provider>
+        {/*
       </ErrorBoundary>
       */}
-    </SafeAreaProvider>
+      </SafeAreaProvider>
+    </>
   );
 }

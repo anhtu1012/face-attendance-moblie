@@ -58,14 +58,14 @@ const CustomTabBar = ({
       : EXPECTED_VISIBLE_TABS;
 
   // Debug logging (only in development)
-  if (__DEV__) {
-    console.log("=== CustomTabBar Debug ===");
-    console.log("Total routes:", state.routes.length);
-    console.log("All routes:", state.routes.map((r) => r.name).join(", "));
-    console.log("Calculated visible tabs:", visibleTabsCount);
-    console.log("Expected visible tabs:", EXPECTED_VISIBLE_TABS);
-    console.log("Using:", actualVisibleTabs);
-  }
+  // if (__DEV__) {
+  //   console.log("=== CustomTabBar Debug ===");
+  //   console.log("Total routes:", state.routes.length);
+  //   console.log("All routes:", state.routes.map((r) => r.name).join(", "));
+  //   console.log("Calculated visible tabs:", visibleTabsCount);
+  //   console.log("Expected visible tabs:", EXPECTED_VISIBLE_TABS);
+  //   console.log("Using:", actualVisibleTabs);
+  // }
 
   const buttonWidth = dimensions.width / actualVisibleTabs;
 
@@ -194,6 +194,7 @@ const styles = StyleSheet.create({
 
     // Optional: Add subtle border to separate from background
     borderWidth: Platform.OS === "ios" ? StyleSheet.hairlineWidth : 0.5,
+    borderBottomWidth: 0,
     borderColor: "#e5e5e5",
   },
 });
