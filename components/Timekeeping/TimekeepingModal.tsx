@@ -50,20 +50,20 @@ export default function TimekeepingModal({
                     type="in"
                     time={timekeeping?.checkinTime ?? "--:--"}
                     checkinStatus={
-                      timekeeping?.checkinStatus ?? CheckinStatus.START_ONTIME
+                      timekeeping?.checkInStatus ?? CheckinStatus.START_ONTIME
                     }
                     checkoutStatus={
-                      timekeeping?.checkoutStatus ?? CheckoutStatus.END_ONTIME
+                      timekeeping?.checkOutStatus ?? CheckoutStatus.END_ONTIME
                     }
                   />
                   <CheckTimeBox
                     type="out"
-                    time={timekeeping?.checkoutTime ?? "--:--"}
+                    time={timekeeping?.checkOutTime ?? "--:--"}
                     checkinStatus={
-                      timekeeping?.checkinStatus ?? CheckinStatus.START_ONTIME
+                      timekeeping?.checkInStatus ?? CheckinStatus.START_ONTIME
                     }
                     checkoutStatus={
-                      timekeeping?.checkoutStatus ?? CheckoutStatus.END_ONTIME
+                      timekeeping?.checkOutStatus ?? CheckoutStatus.END_ONTIME
                     }
                   />
                   <TimesheetTotalHourBox
@@ -121,13 +121,13 @@ export default function TimekeepingModal({
                       label: `${
                         timekeeping?.checkinTime ?? "--"
                       }, ${dateString}`,
-                      value: timekeeping?.checkinStatus ?? "--",
+                      value: timekeeping?.checkInStatus ?? "--",
                     },
                     {
                       label: `${
-                        timekeeping?.checkoutTime ?? "--"
+                        timekeeping?.checkOutTime ?? "--"
                       }, ${dateString}`,
-                      value: timekeeping?.checkoutStatus ?? "--",
+                      value: timekeeping?.checkOutStatus ?? "--",
                     },
                   ]}
                 />

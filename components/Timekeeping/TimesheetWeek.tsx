@@ -1,5 +1,7 @@
-import { fakeTimekeepings } from "@/models/data/timekeepingData";
+import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
+import { RootState } from "@/lib/store";
 import { LegacyTimekeepingStatus } from "@/models/timesheet/timekeeping";
+import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import weekOfYear from "dayjs/plugin/weekOfYear";
@@ -12,15 +14,25 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSelector } from "react-redux";
 import TimekeepingModal from "./TimekeepingModal";
 import TimesheetWeekCard from "./TimesheetWeekCard";
-
 dayjs.extend(weekOfYear);
 dayjs.extend(isoWeek);
 
 const TimesheetWeek = () => {
+  const userId = useSelector((state: RootState) => state.auth.userProfile.id);
   const [currentWeek, setCurrentWeek] = useState(dayjs());
   const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
+  const { timekeepingData: timekeepingDataList, refetch } =
+    useGetTimekeepingData({
+      userId: userId!,
+      startTime: currentWeek.startOf("isoWeek").toISOString(),
+      endTime: currentWeek.endOf("isoWeek").toISOString(),
+    });
+  useFocusEffect(() => {
+    refetch();
+  });
   // Tính toán tuần hiện tại
   const weekRange = useMemo(() => {
     const startOfWeek = currentWeek.startOf("isoWeek"); // Bắt đầu từ T.2
@@ -36,22 +48,24 @@ const TimesheetWeek = () => {
       days.push(startOfWeek.add(i, "day"));
     }
     return days;
-  }, [currentWeek]);
+  }, [currentWeek, timekeepingDataList]);
 
   // Map timekeeping data to week days
   const weekData = useMemo(() => {
     return weekDays.map((day, index) => {
       const dateString = day.format("YYYY-MM-DD");
-      const timekeeping = fakeTimekeepings.find((t) => t.date === dateString);
+      const timekeeping = timekeepingDataList?.data.find(
+        (t: any) => t.date === dateString
+      );
 
       // Determine status display based on timekeeping status
       let statusDisplay: string | number = "N";
       let statusColor = "#8C8F92";
       let timekeepingId = 0;
       let isPending = false;
-
+      const isFutureDate = day.isAfter(dayjs());
       if (timekeeping) {
-        timekeepingId = timekeeping.timekeepingId;
+        timekeepingId = parseInt(timekeeping.timekeepingId);
         if (timekeeping.status === LegacyTimekeepingStatus.PENDING) {
           statusDisplay = "0";
           statusColor = "#1976D2";
@@ -63,6 +77,9 @@ const TimesheetWeek = () => {
           statusDisplay = "N";
           statusColor = "#8C8F92";
         }
+      } else if (isFutureDate) {
+        statusDisplay = "0";
+        statusColor = "#8C8F92";
       }
       // Day name
       const dayNames = ["T.2", "T.3", "T.4", "T.5", "T.6", "T.7", "CN"];

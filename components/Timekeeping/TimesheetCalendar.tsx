@@ -6,13 +6,14 @@ import "dayjs/locale/vi";
 import localeData from "dayjs/plugin/localeData";
 import weekday from "dayjs/plugin/weekday";
 import React, { useMemo, useState } from "react";
-import { ActivityIndicator, StyleSheet, View } from "react-native";
+import { RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useSelector } from "react-redux";
 import TimekeepingBox from "./TimekeepingBox";
 import TimekeepingModal from "./TimekeepingModal";
 import TimesheetCalendarHeader from "./TimesheetCalendarHeader";
 import TimesheetCalendarWeekHeader from "./TimesheetCalendarWeekHeader";
 import TimesheetNotes from "./TimesheetNotes";
+import { useFocusEffect } from "@react-navigation/native";
 
 dayjs.extend(weekday);
 dayjs.extend(localeData);
@@ -24,13 +25,18 @@ export default function TimesheetCalendar() {
   const {
     timekeepingData: timekeepingDataList,
     isLoading: isLoadingTimekeeping,
+    refetch,
+    isFetching,
   } = useGetTimekeepingData({
     userId: userId!,
     startTime: currentMonth.startOf("month").toISOString(),
     endTime: currentMonth.endOf("month").toISOString(),
   });
+  useFocusEffect(() => {
+    refetch();
+  });
   const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
-
+  const [refreshing, setRefreshing] = useState(false);
   const calendarDays = useMemo(() => {
     const startOfMonth = currentMonth.startOf("month");
     const endOfMonth = currentMonth.endOf("month");
@@ -48,7 +54,7 @@ export default function TimesheetCalendar() {
     while (daysArray.length % 7 !== 0) daysArray.push(null);
 
     return daysArray;
-  }, [currentMonth]);
+  }, [currentMonth, timekeepingDataList]);
 
   const calendarData = useMemo(() => {
     return calendarDays.map((date) => {
@@ -112,18 +118,33 @@ export default function TimesheetCalendar() {
         isFutureDate: isFutureDate,
       };
     });
-  }, [calendarDays, currentMonth]);
+  }, [calendarDays, currentMonth, timekeepingDataList]);
 
   const handlePrevMonth = () =>
     setCurrentMonth(currentMonth.subtract(1, "month"));
   const handleNextMonth = () => setCurrentMonth(currentMonth.add(1, "month"));
 
-  return isLoadingTimekeeping ? (
-    <View>
-      <ActivityIndicator size="small" color="#3674B5" />
-    </View>
-  ) : (
-    <View>
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  return (
+    <ScrollView
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={["#3674B5"]}
+          tintColor="#3674B5"
+        />
+      }
+      showsVerticalScrollIndicator={false}
+    >
       <TimesheetCalendarHeader
         currentMonth={currentMonth}
         handlePrevMonth={handlePrevMonth}
@@ -157,7 +178,7 @@ export default function TimesheetCalendar() {
         selectedTimekeepingId={selectedTimekeepingId}
       />
       <TimesheetNotes />
-    </View>
+    </ScrollView>
   );
 }
 

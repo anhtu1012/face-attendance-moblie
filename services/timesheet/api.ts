@@ -1,4 +1,5 @@
 import api from "@/config/axios";
+import { dtoTimekeepingDashboard } from "@/model/schedule/dtoWorkingSchedule";
 import { dtoPutTimekeep } from "@/models/timesheet/dtoTimekeep";
 
 export const timkeep = async (data: dtoPutTimekeep, timekeepingId: string) => {
@@ -12,7 +13,7 @@ export const getDetailTimekeepingData = async (timekeepingId: string) => {
 export const getTimekeepingData = async (
   startTime: string,
   endTime: string,
-  userId: string,
+  userId: string
 ) => {
   return api.get("time-keeping/danh-sach-cham-cong", {
     params: {
@@ -41,4 +42,14 @@ export const getCurrentTimekeepingData = async (userId: string) => {
       userId: userId,
     },
   });
+};
+export const getTimekeepingDashboardData = async (userId: string, month: number) => {
+  return api.get<dtoTimekeepingDashboard>(
+    `/time-keeping/timekeeping-dashboard`, {
+      params: {
+        userId: userId,
+        month: month,
+      },
+    }
+  );
 };

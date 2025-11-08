@@ -265,8 +265,17 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({ formik, isEditing }) => {
         showsVerticalScrollIndicator={false}
       >
         {/* Header Actions */}
+
         <View style={styles.headerActions}>
           <Text style={styles.sectionTitle}>Sơ yếu lý lịch</Text>
+          {isEditing && (
+            <TouchableOpacity
+              onPress={handleScanQrCode}
+              style={styles.qrButton}
+            >
+              <Feather name="maximize" size={20} color="#3674B5" />
+            </TouchableOpacity>
+          )}
         </View>
 
         {/* Content */}
@@ -673,6 +682,13 @@ const styles = StyleSheet.create({
   selectedItemText: {
     color: "#3674B5",
     fontWeight: "500",
+  },
+  qrButton: {
+    padding: 8,
+    borderRadius: 8,
+    backgroundColor: "#F0F7FF",
+    borderWidth: 1,
+    borderColor: "#3674B5",
   },
 });
 

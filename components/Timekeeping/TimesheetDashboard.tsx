@@ -1,3 +1,5 @@
+import { useGetTimekeepingDashboardData } from "@/hooks/useGetTimekeepingDashboardData";
+import { RootState } from "@/lib/store";
 import {
   Feather,
   MaterialCommunityIcons,
@@ -5,73 +7,33 @@ import {
 } from "@expo/vector-icons";
 import React, { useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSelector } from "react-redux";
 import MonthPickerButton from "../ui/MonthPickerButton";
 import MonthPickerModal from "../ui/MonthPickerModal";
 import StatItem from "../ui/StatItem";
-interface TimesheetStats {
-  actualTimekeeping: number;
-  monthStandardTimekeeping: number;
-  actualHour: number;
-  monthStandardHour: number;
-  lateNumber: number;
-  earlyNumber: number;
-  offWorkNumber: number;
-  forgetLogNumber: number;
-  normalOtTimekeeping: number;
-  normalOtHour: number;
-  offDayOtTimekeeping: number;
-  offDayOtHour: number;
-  holidayOtTimekeeping: number;
-  holidayOtHour: number;
-  lateFine: string;
-  forgetLogFine: string;
-}
 
-interface TimesheetDashboardProps {
-  data?: TimesheetStats;
-  onMonthChange?: (year: number, month: number) => void;
-}
-const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
-  data,
-  onMonthChange,
-}) => {
+const TimesheetDashboard: React.FC = () => {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(
     currentDate.getMonth() + 1
   );
   const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const userId = useSelector((state: RootState) => state.auth.userProfile.id);
+  const { timekeepingDashboardData, refetch } = useGetTimekeepingDashboardData(
+    userId!,
+    selectedMonth
+  );
 
   const handleMonthSelect = (year: number, month: number) => {
     setSelectedYear(year);
     setSelectedMonth(month);
     setShowMonthPicker(false);
-    if (onMonthChange) {
-      onMonthChange(year, month);
-    }
+    refetch();
   };
 
   const getMonthYearText = () => {
     return `T${selectedMonth}, ${selectedYear}`;
-  };
-  // Mock data for demonstration
-  const stats: TimesheetStats = data ?? {
-    actualTimekeeping: 22,
-    monthStandardTimekeeping: 26,
-    actualHour: 180,
-    monthStandardHour: 208,
-    lateNumber: 3,
-    earlyNumber: 1,
-    offWorkNumber: 2,
-    forgetLogNumber: 1,
-    normalOtTimekeeping: 0.5,
-    normalOtHour: 4,
-    offDayOtTimekeeping: 1.25,
-    offDayOtHour: 10,
-    holidayOtTimekeeping: 0,
-    holidayOtHour: 0,
-    lateFine: "20,000",
-    forgetLogFine: "20,000",
   };
 
   return (
@@ -95,9 +57,9 @@ const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
           </View>
           <Text style={styles.summaryLabel}>Công thực tế</Text>
           <Text style={styles.summaryValue}>
-            {stats.actualTimekeeping}
+            {timekeepingDashboardData?.actualTimekeeping}
             <Text style={styles.summaryTotal}>
-              /{stats.monthStandardTimekeeping}
+              /{timekeepingDashboardData?.monthStandardTimekeeping}
             </Text>
           </Text>
         </View>
@@ -114,8 +76,10 @@ const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
           </View>
           <Text style={styles.summaryLabel}>Giờ làm thực tế</Text>
           <Text style={styles.summaryValue}>
-            {stats.actualHour}
-            <Text style={styles.summaryTotal}>/{stats.monthStandardHour}</Text>
+            {timekeepingDashboardData?.actualHour}
+            <Text style={styles.summaryTotal}>
+              /{timekeepingDashboardData?.monthStandardHour}
+            </Text>
           </Text>
         </View>
       </View>
@@ -130,19 +94,19 @@ const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
         <View style={styles.statsGrid}>
           <StatItem
             label="Công làm việc"
-            value={stats.actualTimekeeping}
+            value={timekeepingDashboardData?.actualTimekeeping ?? 0}
             icon="briefcase"
             color="#10B981"
           />
           <StatItem
             label="Giờ làm việc thực tính"
-            value={stats.actualHour}
+            value={timekeepingDashboardData?.actualHour ?? 0}
             icon="clock"
             color="#10B981"
           />
           <StatItem
             label="Số công chuẩn"
-            value={stats.monthStandardTimekeeping}
+            value={timekeepingDashboardData?.monthStandardTimekeeping ?? 0}
             icon="calendar"
             color="#6B7280"
           />
@@ -159,31 +123,43 @@ const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
         <View style={styles.statsGrid}>
           <StatItem
             label="Số lần đi muộn"
-            value={stats.lateNumber}
+            value={timekeepingDashboardData?.lateNumber ?? 0}
             icon="alert-circle"
             color="#EF4444"
-            highlight={stats.lateNumber > 0}
+            highlight={
+              timekeepingDashboardData?.lateNumber &&
+              timekeepingDashboardData?.lateNumber > 0
+            }
           />
           <StatItem
             label="Số lần về sớm"
-            value={stats.earlyNumber}
+            value={timekeepingDashboardData?.earlyNumber ?? 0}
             icon="alert-circle"
             color="#F59E0B"
-            highlight={stats.earlyNumber > 0}
+            highlight={
+              timekeepingDashboardData?.earlyNumber &&
+              timekeepingDashboardData?.earlyNumber > 0
+            }
           />
           <StatItem
             label="Số công nghỉ không lý do"
-            value={stats.offWorkNumber}
+            value={timekeepingDashboardData?.offWorkNumber ?? 0}
             icon="x-circle"
             color="#EF4444"
-            highlight={stats.offWorkNumber > 0}
+            highlight={
+              timekeepingDashboardData?.offWorkNumber &&
+              timekeepingDashboardData?.offWorkNumber > 0
+            }
           />
           <StatItem
             label="Số lần quên check in/out"
-            value={stats.forgetLogNumber}
+            value={timekeepingDashboardData?.forgetLogNumber ?? 0}
             icon="alert-triangle"
             color="#F59E0B"
-            highlight={stats.forgetLogNumber > 0}
+            highlight={
+              timekeepingDashboardData?.forgetLogNumber &&
+              timekeepingDashboardData?.forgetLogNumber > 0
+            }
           />
         </View>
       </View>
@@ -202,39 +178,39 @@ const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
         <View style={styles.statsGrid}>
           <StatItem
             label="Công làm thêm ngày thường"
-            value={stats.normalOtTimekeeping}
+            value={timekeepingDashboardData?.normalOtTimekeeping ?? 0}
             icon="plus-circle"
             color="#8B5CF6"
           />
           <StatItem
             label="Giờ làm thêm ngày thường"
-            value={stats.normalOtHour}
+            value={timekeepingDashboardData?.normalOtHour ?? 0}
             icon="clock"
             color="#8B5CF6"
             suffix="h"
           />
           <StatItem
             label="Công làm thêm ngày nghỉ"
-            value={stats.offDayOtTimekeeping}
+            value={timekeepingDashboardData?.offDayOtTimekeeping ?? 0}
             icon="plus-circle"
             color="#EF4444"
           />
           <StatItem
             label="Giờ làm thêm ngày nghỉ"
-            value={stats.offDayOtHour}
+            value={timekeepingDashboardData?.offDayOtHour ?? 0}
             icon="clock"
             color="#EF4444"
             suffix="h"
           />
           <StatItem
             label="Công làm thêm ngày lễ"
-            value={stats.holidayOtTimekeeping}
+            value={timekeepingDashboardData?.holidayOtTimekeeping ?? 0}
             color="#F59E0B"
             icon="plus-circle"
           />
           <StatItem
             label="Giờ làm thêm ngày lễ"
-            value={stats.holidayOtHour}
+            value={timekeepingDashboardData?.holidayOtHour ?? 0}
             icon="clock"
             color="#F59E0B"
             suffix="h"
@@ -255,13 +231,15 @@ const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
             value={0}
             icon="alert-triangle"
             color="#EF4444"
-            moneyValue={stats.forgetLogFine}
+            moneyValue={
+              timekeepingDashboardData?.forgetLogFine?.toString() ?? ""
+            }
           />
           <StatItem
             label="Tiền phạt chấm công"
             value={0}
             icon="clock"
-            moneyValue={stats.lateFine}
+            moneyValue={timekeepingDashboardData?.lateFine?.toString() ?? ""}
             color="#EF4444"
           />
         </View>

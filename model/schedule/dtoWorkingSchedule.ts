@@ -16,7 +16,7 @@ export interface dtoTimekeeping {
       totalWorkHour: number;
       hasOT: boolean;
       status: string;
-    },
+    }
   ];
   limit: number;
   page: number;
@@ -27,7 +27,7 @@ export interface dtoDetailTimekeeping {
   userId: number;
   date: string; // ISO date string "YYYY-MM-DD"
   checkinTime: string | null; // "HH:mm" or null if missing
-  checkoutTime: string | null; // "HH:mm" or null if missing
+  checkOutTime: string | null; // "HH:mm" or null if missing
   status:
     | "PENDING"
     | "START_ONTIME"
@@ -40,7 +40,25 @@ export interface dtoDetailTimekeeping {
   totalWorkHour: number; // Includes OT
   shiftInfor: ShiftInfo;
   otInfo?: OTInfo;
-  checkinStatus?: CheckinStatus;
-  checkoutStatus?: CheckoutStatus;
+  checkInStatus?: CheckinStatus;
+  checkOutStatus?: CheckoutStatus;
   isFromOt?: boolean; // default false
+}
+export interface dtoTimekeepingDashboard {
+  actualTimekeeping: number;
+  monthStandardTimekeeping: number;
+  actualHour: number;
+  monthStandardHour: number;
+  lateNumber: number;
+  earlyNumber: number;
+  offWorkNumber: number;
+  forgetLogNumber: number;
+  normalOtTimekeeping: number;
+  normalOtHour: number;
+  offDayOtTimekeeping: number;
+  offDayOtHour: number;
+  holidayOtTimekeeping: number;
+  holidayOtHour: number;
+  lateFine: number;
+  forgetLogFine: number;
 }
