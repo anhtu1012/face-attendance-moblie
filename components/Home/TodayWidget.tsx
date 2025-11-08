@@ -19,7 +19,6 @@ import Animated, {
 } from "react-native-reanimated";
 import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
 import CheckTimeBox from "../ui/CheckTimeBox";
-import { useIsFocused } from "@react-navigation/native";
 interface TodayWidgetProps {
   loadingSchedule: boolean;
 }
@@ -67,7 +66,7 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     // Trả về ngày hiện tại theo định dạng YYYY-MM-DD
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
       2,
-      "0",
+      "0"
     )}-${String(today.getDate()).padStart(2, "0")}`;
   };
 

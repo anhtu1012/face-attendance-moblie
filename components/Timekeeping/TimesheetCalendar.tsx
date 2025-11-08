@@ -89,10 +89,10 @@ export default function TimesheetCalendar() {
         backgroundColor = "#FFFFFF";
         totalWorkHourColor = "#8C8F92";
       }
-      if (timekeeping?.status === LegacyTimekeepingStatus.END) {
+      if (timekeeping?.status === LegacyTimekeepingStatus.END_ONTIME) {
         backgroundColor = "#C5F0DD";
         totalWorkHourColor = "#00A854";
-        displayValue = timekeeping.totalWorkHour;
+        displayValue = timekeeping?.totalWorkHour ?? "0";
       }
       if (timekeeping?.status === LegacyTimekeepingStatus.NOT_WORK) {
         displayValue = "N";

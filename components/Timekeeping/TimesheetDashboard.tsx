@@ -172,7 +172,7 @@ const TimesheetDashboard: React.FC<TimesheetDashboardProps> = ({
             highlight={stats.earlyNumber > 0}
           />
           <StatItem
-            label="Số công nghỉ không ý do"
+            label="Số công nghỉ không lý do"
             value={stats.offWorkNumber}
             icon="x-circle"
             color="#EF4444"

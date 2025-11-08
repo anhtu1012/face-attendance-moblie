@@ -24,8 +24,10 @@ export enum CheckoutStatus {
 // Legacy status for backward compatibility (Calendar/Week views)
 export enum LegacyTimekeepingStatus {
   PENDING = "PENDING",
-  END = "END",
+  END_ONTIME = "END_ONTIME",
   NOT_WORK = "NOT_WORK",
+  END_EARLY = "END_EARLY",
+  FORGET_LOG = "FORGET_LOG",
 }
 
 export interface Timekeeping {

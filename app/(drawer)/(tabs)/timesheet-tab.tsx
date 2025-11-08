@@ -4,7 +4,6 @@ import TimesheetWeek from "@/components/Timekeeping/TimesheetWeek";
 import CustomHeaders from "@/components/ui/CustomHeaders";
 import CustomTabs from "@/components/ui/CustomTabs";
 import { tabs } from "@/constants/timesheet";
-import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { ScrollView, View } from "react-native";
