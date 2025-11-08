@@ -11,24 +11,19 @@ import {
 } from "react-native";
 
 interface SalaryOverviewProps {
-  userId: number;
-  startTime: string;
-  endTime: string;
+  userId: string;
   selectedMonth: number;
   selectedYear: number;
 }
 
 const SalaryOverview: React.FC<SalaryOverviewProps> = ({
   userId,
-  startTime,
-  endTime,
   selectedMonth,
   selectedYear,
 }) => {
   const { data, isLoading, refetch } = useGetSalarySummary(
     userId,
-    startTime,
-    endTime
+    selectedMonth,
   );
 
   const formatCurrency = (amount: number) => {
@@ -62,7 +57,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
     },
     {
       label: "Tiền phạt",
-      amount: -(data?.totalFine || 0),
+      amount: data?.totalFine || 0,
       icon: "alert-circle-outline",
       color: "#EF4444",
       bgColor: "#FEE2E2",
@@ -143,7 +138,11 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
                     { color: item.amount < 0 ? "#EF4444" : "#1F2937" },
                   ]}
                 >
-                  {item.amount < 0 ? "" : "+"}
+                  {item.amount < 0 || item.label === "Lương cơ bản"
+                    ? ""
+                    : item.label === "Tiền phạt"
+                      ? "-"
+                      : "+"}
                   {formatCurrency(item.amount)}
                 </Text>
               </View>

@@ -1,10 +1,10 @@
-import { DailySalary } from "@/models/salary/dtoSalary";
+import { dailySalaryData, dtoDailySalary } from "@/models/salary/dtoSalary";
 import React from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import { BarChart } from "react-native-chart-kit";
 
 interface SalaryBarChartProps {
-  data: DailySalary[];
+  data: dailySalaryData[];
 }
 
 const SalaryBarChart: React.FC<SalaryBarChartProps> = ({ data }) => {

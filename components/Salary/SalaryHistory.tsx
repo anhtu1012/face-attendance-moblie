@@ -21,32 +21,32 @@ dayjs.extend(isoWeek);
 dayjs.extend(isBetween);
 
 interface SalaryHistoryProps {
-  userId: number;
-  startTime: string;
-  endTime: string;
+  userId: string;
+  fromDate: string;
+  toDate: string;
   selectedMonth: number;
   selectedYear: number;
 }
 
 const SalaryHistory: React.FC<SalaryHistoryProps> = ({
   userId,
-  startTime,
-  endTime,
+  fromDate,
+  toDate,
   selectedMonth,
   selectedYear,
 }) => {
-  const { data, isLoading, refetch } = useGetDailySalarySummary(
-    userId,
-    startTime,
-    endTime
-  );
+  const {
+    data: dailySalarySummaryData,
+    isLoading,
+    refetch,
+  } = useGetDailySalarySummary(userId, fromDate, toDate);
 
   // State for current period pagination (7 days starting from day 1 of month)
   const [currentStartDate, setCurrentStartDate] = useState(() =>
     dayjs()
       .year(selectedYear)
       .month(selectedMonth - 1)
-      .date(1)
+      .date(1),
   );
 
   // Reset to first day of month when month/year changes
@@ -55,7 +55,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
       dayjs()
         .year(selectedYear)
         .month(selectedMonth - 1)
-        .date(1)
+        .date(1),
     );
   }, [selectedMonth, selectedYear]);
 
@@ -90,7 +90,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
 
   // Get current period's data (7 days, only within selected month)
   const currentWeekData = useMemo(() => {
-    if (!data) return [];
+    if (!dailySalarySummaryData) return [];
 
     const monthStart = dayjs()
       .year(selectedYear)
@@ -110,7 +110,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
       : periodStart;
     const actualEnd = periodEnd.isAfter(monthEnd) ? monthEnd : periodEnd;
 
-    return data.filter((day) => {
+    return dailySalarySummaryData.filter((day) => {
       const dayDate = dayjs(day.date);
       // Only include days within the selected month
       if (
@@ -121,7 +121,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
       }
       return dayDate.isBetween(actualStart, actualEnd, "day", "[]");
     });
-  }, [data, currentStartDate, selectedMonth, selectedYear]);
+  }, [dailySalarySummaryData, currentStartDate, selectedMonth, selectedYear]);
 
   // Period navigation handlers
   const handlePrevWeek = () => {
@@ -133,7 +133,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
 
     // Don't go before month start
     setCurrentStartDate(
-      prevStart.isBefore(monthStart) ? monthStart : prevStart
+      prevStart.isBefore(monthStart) ? monthStart : prevStart,
     );
   };
 

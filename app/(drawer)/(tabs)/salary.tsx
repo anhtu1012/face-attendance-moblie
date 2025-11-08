@@ -4,13 +4,14 @@ import CustomHeaders from "@/components/ui/CustomHeaders";
 import CustomTabs from "@/components/ui/CustomTabs";
 import MonthPickerButton from "@/components/ui/MonthPickerButton";
 import MonthPickerModal from "@/components/ui/MonthPickerModal";
+import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { router } from "expo-router";
 import React, { useState } from "react";
 import { StyleSheet, View } from "react-native";
 
 export default function SalaryPage() {
   const [activeTab, setActiveTab] = useState(0);
-  const userId = 13;
+  const { userId } = useGetUserProfile();
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
@@ -21,6 +22,11 @@ export default function SalaryPage() {
     { id: 0, title: "Tổng quan", icon: "pie-chart" },
     { id: 1, title: "Lịch sử", icon: "bar-chart" },
   ];
+  const handleMonthSelect = (year: number, month: number) => {
+    setSelectedYear(year);
+    setSelectedMonth(month);
+  };
+
   const getDateRange = (year: number, month: number) => {
     const startDate = new Date(year, month - 1, 1);
     const endDate = new Date(year, month, 0);
@@ -30,18 +36,13 @@ export default function SalaryPage() {
     };
   };
   const { startTime, endTime } = getDateRange(selectedYear, selectedMonth);
-  const handleMonthSelect = (year: number, month: number) => {
-    setSelectedYear(year);
-    setSelectedMonth(month);
-  };
+
   const renderTabContent = () => {
     switch (activeTab) {
       case 0:
         return (
           <SalaryOverview
-            userId={userId}
-            startTime={startTime}
-            endTime={endTime}
+            userId={userId || ""}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />
@@ -49,9 +50,9 @@ export default function SalaryPage() {
       case 1:
         return (
           <SalaryHistory
-            userId={userId}
-            startTime={startTime}
-            endTime={endTime}
+            userId={userId || ""}
+            fromDate={startTime}
+            toDate={endTime}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />
@@ -59,9 +60,7 @@ export default function SalaryPage() {
       default:
         return (
           <SalaryOverview
-            userId={userId}
-            startTime={startTime}
-            endTime={endTime}
+            userId={userId || ""}
             selectedMonth={selectedMonth}
             selectedYear={selectedYear}
           />
