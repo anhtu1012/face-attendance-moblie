@@ -19,6 +19,7 @@ import Animated, {
 } from "react-native-reanimated";
 import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
 import CheckTimeBox from "../ui/CheckTimeBox";
+import { useIsFocused } from "@react-navigation/native";
 interface TodayWidgetProps {
   loadingSchedule: boolean;
 }
@@ -27,6 +28,7 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
   // Pulse animation for check-in button
   const pulse = useSharedValue(1);
   const { userId } = useGetUserProfile();
+  const isFocused = useIsFocused();
   const today = new Date();
   console.log("today: ", today);
 
@@ -34,10 +36,10 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
 
   // set yesterday
   yesterday.setDate(yesterday.getDate() - 1);
-  yesterday.setUTCHours(0, 0, 0, 0);
+  yesterday.setUTCHours(17, 0, 0, 0);
 
   // set Today
-  today.setUTCHours(0, 0, 0, 0);
+  today.setUTCHours(23, 59, 59, 0);
 
   const {
     timekeepingData,
@@ -48,6 +50,7 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     endTime: today.toISOString(),
     userId: userId!,
   });
+  console.log("timekeeping: ", timekeepingData);
 
   const timekeepingId = timekeepingData?.data[0]?.timekeepingId;
 
@@ -61,6 +64,7 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     timekeepingId: timekeepingId || "",
     enabled: !!timekeepingId,
   });
+  console.log("today: ", todayTimekeepingData);
 
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
