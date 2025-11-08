@@ -6,7 +6,7 @@ import "dayjs/locale/vi";
 import localeData from "dayjs/plugin/localeData";
 import weekday from "dayjs/plugin/weekday";
 import React, { useMemo, useState } from "react";
-import { StyleSheet, View } from "react-native";
+import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { useSelector } from "react-redux";
 import TimekeepingBox from "./TimekeepingBox";
 import TimekeepingModal from "./TimekeepingModal";
@@ -118,7 +118,11 @@ export default function TimesheetCalendar() {
     setCurrentMonth(currentMonth.subtract(1, "month"));
   const handleNextMonth = () => setCurrentMonth(currentMonth.add(1, "month"));
 
-  return (
+  return isLoadingTimekeeping ? (
+    <View>
+      <ActivityIndicator size="small" color="#3674B5" />
+    </View>
+  ) : (
     <View>
       <TimesheetCalendarHeader
         currentMonth={currentMonth}

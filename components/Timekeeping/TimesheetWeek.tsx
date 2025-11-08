@@ -56,7 +56,7 @@ const TimesheetWeek = () => {
           statusDisplay = "0";
           statusColor = "#1976D2";
           isPending = true;
-        } else if (timekeeping.status === LegacyTimekeepingStatus.END) {
+        } else if (timekeeping.status === LegacyTimekeepingStatus.END_ONTIME) {
           statusDisplay = timekeeping.totalWorkHour;
           statusColor = "#00A854";
         } else if (timekeeping.status === LegacyTimekeepingStatus.NOT_WORK) {

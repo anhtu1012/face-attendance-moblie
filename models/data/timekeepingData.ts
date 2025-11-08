@@ -17,7 +17,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:00",
     checkoutTime: "17:00",
     hasOT: false,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 2,
@@ -26,7 +26,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:10",
     checkoutTime: "17:00",
     hasOT: false,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 3,
@@ -35,7 +35,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:00",
     checkoutTime: "18:00",
     hasOT: true,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   // Tuần 2 (07/10 - 11/10) - T.2 đến T.6
   {
@@ -45,7 +45,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:00",
     checkoutTime: "17:00",
     hasOT: false,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 5,
@@ -54,7 +54,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:05",
     checkoutTime: "17:00",
     hasOT: false,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 6,
@@ -63,7 +63,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:00",
     checkoutTime: "17:00",
     hasOT: false,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 7,
@@ -72,7 +72,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:00",
     checkoutTime: "17:30",
     hasOT: true,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 8,
@@ -81,7 +81,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:20",
     checkoutTime: "17:00",
     hasOT: true,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   // Tuần 3 (14/10 - 17/10) - T.2 đến T.5
   {
@@ -91,7 +91,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:00",
     checkoutTime: "17:00",
     hasOT: false,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 10,
@@ -100,7 +100,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:00",
     checkoutTime: "17:00",
     hasOT: false,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 11,
@@ -109,7 +109,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:00",
     checkoutTime: "18:00",
     hasOT: true,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 12,
@@ -118,7 +118,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:15",
     checkoutTime: "17:00",
     hasOT: false,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   // Tuần 4 (20/10 - 24/10)
   {
@@ -128,7 +128,7 @@ export const fakeTimekeepings: Timekeeping[] = [
     checkinTime: "08:30",
     checkoutTime: "17:30",
     hasOT: true,
-    status: LegacyTimekeepingStatus.END,
+    status: LegacyTimekeepingStatus.END_ONTIME,
   },
   {
     timekeepingId: 14,

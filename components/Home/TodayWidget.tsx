@@ -2,6 +2,7 @@ import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData
 import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { AntDesign } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { router } from "expo-router";
 import React, { useEffect } from "react";
 import {
