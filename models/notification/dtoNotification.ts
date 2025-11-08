@@ -7,7 +7,8 @@ export interface NotificationType {
   type: NotificationEnum;
   isRead: boolean;
   userId: string;
-  time: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface dtoNotification {

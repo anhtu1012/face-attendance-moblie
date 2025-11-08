@@ -1,14 +1,15 @@
 import CustomHeaders from "@/components/ui/CustomHeaders";
 import { useGetNotificationList } from "@/hooks/useGetNotificationList";
+import useSocket from "@/hooks/useSocket";
 import {
   dtoNotification,
   NotificationEnum,
   NotificationType,
 } from "@/models/notification/dtoNotification";
-import { Feather, MaterialIcons } from "@expo/vector-icons";
+import { Feather } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   RefreshControl,
@@ -16,21 +17,52 @@ import {
   Text,
   TouchableOpacity,
   View,
-  Animated,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
-
-// Notification interface
 
 const NotificationsScreen = () => {
-  const insets = useSafeAreaInsets();
   const [filter, setFilter] = useState<"all" | "unread">("all");
   const [refreshing, setRefreshing] = useState(false);
+  const [notificationList, setNotificationList] = useState<
+    dtoNotification["data"]
+  >([]);
   const isFocused = useIsFocused();
-  const { notificationList } = useGetNotificationList(isFocused);
+  const { notificationList: notificationListData } =
+    useGetNotificationList(isFocused);
+
+  useEffect(() => {
+    if (!notificationListData) return;
+    setNotificationList(notificationListData);
+  }, [notificationListData]);
+
+  const socket = useSocket();
+
+  // useEffect(() => {
+  //   if (!socket) return;
+  //
+  //   const handleNewNotification = () => {
+  //     setNotificationList((prev) => [notificationList, ...prev] as any);
+  //   };
+  //
+  //   const notificationKey = `NEW_NOTIFICATION`;
+  //   socket.on(notificationKey, handleNewNotification);
+  //
+  //   return () => {
+  //     socket.off(notificationKey, handleNewNotification);
+  //   };
+  // }, [socket]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleGetSocketData = (socket: any) => {
+      console.log("Message: ", socket.connected);
+    };
+    socket.on("test", handleGetSocketData);
+
+    return () => {
+      socket.off("test", handleGetSocketData);
+    };
+  }, [socket]);
 
   // Filter notifications
   const filteredNotifications =
@@ -137,7 +169,15 @@ const NotificationsScreen = () => {
 
           <View style={styles.footerRow}>
             <Feather name="clock" size={12} color="#999" />
-            <Text style={styles.notificationTime}>{item.time}</Text>
+            <Text style={styles.notificationTime}>
+              {new Date(item.createdAt).toLocaleDateString("vi-VN", {
+                day: "2-digit",
+                month: "short",
+                year: "numeric",
+                hour: "numeric",
+                minute: "numeric",
+              })}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>

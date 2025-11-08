@@ -1,8 +1,6 @@
 import TodayWidget from "@/components/Home/TodayWidget";
 import { motivationalQuotes } from "@/constants/homepage";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
-import { dtoDetailTimekeeping } from "@/model/schedule/dtoWorkingSchedule";
-import { CheckinStatus, CheckoutStatus } from "@/models/timesheet/timekeeping";
 import { cancelSubmittedForm, getSubmittedForm } from "@/services/form/api";
 import {
   AntDesign,
@@ -49,8 +47,7 @@ export interface FormDetail {
 }
 
 function HomePage() {
-  const { userProfile, isLoading, error, refetch, userId } =
-    useGetUserProfile();
+  const { userId, userProfile } = useGetUserProfile();
   const [submittedForms, setSubmittedForms] = useState<FormDetail[]>([]);
   const [refreshing, setRefreshing] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -62,13 +59,14 @@ function HomePage() {
   const navigation = useNavigation();
 
   useEffect(() => {
+    if (!isFocused) return;
     handleGetSubmittedForm();
-  }, [isFocused, userProfile]);
+  }, [isFocused, userId]);
 
   const handleGetSubmittedForm = async () => {
     try {
-      if (!userProfile) return;
-      const res = await getSubmittedForm(userProfile?.id);
+      if (!userId) return;
+      const res = await getSubmittedForm(userId);
       setSubmittedForms(res.data.data);
     } catch (error) {
       console.log(error);
@@ -222,8 +220,8 @@ function HomePage() {
           {submittedForms.length > 0 ? (
             <View style={styles.formCardsContainer}>
               {submittedForms
+                .toReversed()
                 .slice(0, 3)
-                .reverse()
                 .map((form, index) => (
                   <TouchableOpacity
                     key={index}

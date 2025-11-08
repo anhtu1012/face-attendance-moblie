@@ -30,8 +30,6 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
   const { userId } = useGetUserProfile();
   const isFocused = useIsFocused();
   const today = new Date();
-  console.log("today: ", today);
-
   const yesterday = new Date(today);
 
   // set yesterday
@@ -41,30 +39,19 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
   // set Today
   today.setUTCHours(23, 59, 59, 0);
 
-  const {
-    timekeepingData,
-    timekeepingError,
-    isLoading: isLoadingTimekeeping,
-  } = useGetTimekeepingData({
-    startTime: yesterday.toISOString(),
-    endTime: today.toISOString(),
-    userId: userId!,
-  });
-  console.log("timekeeping: ", timekeepingData);
+  const { timekeepingData, isLoading: isLoadingTimekeeping } =
+    useGetTimekeepingData({
+      startTime: yesterday.toISOString(),
+      endTime: today.toISOString(),
+      userId: userId || "",
+    });
 
   const timekeepingId = timekeepingData?.data[0]?.timekeepingId;
-
-  const {
-    detailTimekeepingData: todayTimekeepingData,
-    detailTimekeepingError,
-    refetch,
-    isLoading,
-    isFetching,
-  } = useGetDetailTimekeepingData({
-    timekeepingId: timekeepingId || "",
-    enabled: !!timekeepingId,
-  });
-  console.log("today: ", todayTimekeepingData);
+  const { detailTimekeepingData: todayTimekeepingData, isLoading } =
+    useGetDetailTimekeepingData({
+      timekeepingId: timekeepingId || "",
+      enabled: !!timekeepingId,
+    });
 
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);

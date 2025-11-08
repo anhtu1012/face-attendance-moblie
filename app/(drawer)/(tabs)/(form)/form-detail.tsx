@@ -125,7 +125,7 @@ export default function FormDetailScreen() {
               <View style={styles.infoTextContainer}>
                 <Text style={styles.infoLabel}>Ngày gửi</Text>
                 <Text style={styles.infoValue}>
-                  {new Date(formData.createdAt).toLocaleDateString("vi-VN", {
+                  {new Date(formData.createdAt).toLocaleString("vi-VN", {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
@@ -145,6 +145,8 @@ export default function FormDetailScreen() {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
+                    hour: "numeric",
+                    minute: "numeric",
                   })}
                 </Text>
               </View>
@@ -161,6 +163,8 @@ export default function FormDetailScreen() {
                     day: "2-digit",
                     month: "short",
                     year: "numeric",
+                    hour: "numeric",
+                    minute: "numeric",
                   })}
                 </Text>
               </View>
