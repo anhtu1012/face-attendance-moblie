@@ -1,5 +1,6 @@
 import { AlertModalProps, initialModalValue } from "@/components/ui/AlertModal";
-import { getMissingPose, registerFace } from "@/services/face/api";
+import { formCategory } from "@/constants/form";
+import { getMissingPose } from "@/services/face/api";
 import { submitForm } from "@/services/form/api";
 import { classifyPose, initialPoseData } from "@/utils/faceRecognitionUtils";
 import { createZip } from "@/utils/zipUtils";
@@ -37,6 +38,7 @@ export const useFaceRegistration = () => {
   const isRegisteringRef = useRef(false);
   const registrationGeneration = useRef(0);
   const missingPoseRef = useRef<any[]>([]);
+  const isMountedRef = useRef(true);
   const [modal, setModal] = useState<AlertModalProps>({
     visible: false,
     message: "",
@@ -76,7 +78,13 @@ export const useFaceRegistration = () => {
     // (async () => {
     //   await Brightness.requestPermissionsAsync();
     // })();
+    isMountedRef.current = true;
+
     return () => {
+      // Component is unmounting - cleanup everything
+      isMountedRef.current = false;
+      isRegisteringRef.current = false;
+
       // you must call `stopListeners` when current component is unmounted
       stopListeners();
     };
@@ -121,7 +129,7 @@ export const useFaceRegistration = () => {
     if (currentPose !== currentMissingPose) return;
 
     console.log("✅ Matched pose:", currentPose);
-    
+
     // Prevent concurrent registrations
     if (isRegisteringRef.current) return;
 
@@ -130,6 +138,13 @@ export const useFaceRegistration = () => {
 
     try {
       const photo = await cameraRef.current?.takePhoto();
+
+      // Check if component is still mounted
+      if (!isMountedRef.current) {
+        console.log("Component unmounted during photo capture");
+        return;
+      }
+
       if (!photo?.path || !userProfile?.id) {
         isRegisteringRef.current = false;
         return;
@@ -148,11 +163,15 @@ export const useFaceRegistration = () => {
         });
       });
 
-      if (currentGeneration !== registrationGeneration.current) {
+      // Check again if still mounted and generation is correct
+      if (
+        !isMountedRef.current ||
+        currentGeneration !== registrationGeneration.current
+      ) {
         isRegisteringRef.current = false;
         return;
       }
-      
+
       // delete already checked pose
       setMissingPose((prev) => prev.slice(1));
 
@@ -167,20 +186,28 @@ export const useFaceRegistration = () => {
         // Ensure we have all 6 images
         if (updatedImagePaths.length !== 6) {
           console.error("Expected 6 images, got:", updatedImagePaths.length);
-          setIsPending(false);
-          setModal((prev) => ({
-            ...prev,
-            visible: true,
-            type: "error",
-            title: "Lỗi",
-            message: "Không đủ ảnh để đăng ký. Vui lòng thử lại.",
-            onClose: () => setModal(initialModalValue),
-          }));
+          if (isMountedRef.current) {
+            setIsPending(false);
+            setModal((prev) => ({
+              ...prev,
+              visible: true,
+              type: "error",
+              title: "Lỗi",
+              message: "Không đủ ảnh để đăng ký. Vui lòng thử lại.",
+              onClose: () => setModal(initialModalValue),
+            }));
+          }
           return;
         }
 
         // Create images zip file
         const zipUri = await createZip(updatedImagePaths);
+
+        // Check if still mounted after async operation
+        if (!isMountedRef.current) {
+          console.log("Component unmounted during zip creation");
+          return;
+        }
 
         // Create face form data
         const faceFormData = new FormData();
@@ -196,7 +223,7 @@ export const useFaceRegistration = () => {
 
         // Create face register form's form data
         const formData = new FormData();
-        formData.append("formId", "5");
+        formData.append("formId", formCategory.FACE_REGISTER.toString());
         formData.append("submittedById", userProfile.id);
         formData.append(
           "reason",
@@ -212,6 +239,12 @@ export const useFaceRegistration = () => {
 
         // Send face register form
         await submitForm(formData);
+
+        // Check if still mounted after API call
+        if (!isMountedRef.current) {
+          console.log("Component unmounted during form submission");
+          return;
+        }
 
         // Hide spinner
         setIsPending(false);
@@ -231,15 +264,21 @@ export const useFaceRegistration = () => {
       }
     } catch (error: any) {
       console.error("Face registration error:", error);
-      setIsPending(false);
-      setModal((prev) => ({
-        ...prev,
-        visible: true,
-        type: "error",
-        title: "Lỗi",
-        message: error.response?.data?.message || error.message || "Có lỗi xảy ra khi đăng ký khuôn mặt",
-        onClose: () => setModal(initialModalValue),
-      }));
+
+      if (isMountedRef.current) {
+        setIsPending(false);
+        setModal((prev) => ({
+          ...prev,
+          visible: true,
+          type: "error",
+          title: "Lỗi",
+          message:
+            error.response?.data?.message ||
+            error.message ||
+            "Có lỗi xảy ra khi đăng ký khuôn mặt",
+          onClose: () => setModal(initialModalValue),
+        }));
+      }
     } finally {
       if (currentGeneration === registrationGeneration.current) {
         isRegisteringRef.current = false;
@@ -260,18 +299,51 @@ export const useFaceRegistration = () => {
   );
 
   useEffect(() => {
-    // Clear old image paths data
-    setImagePaths([]);
+    let isMounted = true;
 
     const getUserProfile = async () => {
-      let userDataStr = await AsyncStorage.getItem("userProfile");
+      try {
+        // Clear old image paths data
+        if (isMounted) {
+          setImagePaths([]);
+        }
 
-      if (userDataStr) {
+        // Try both keys for compatibility
+        let userDataStr = await AsyncStorage.getItem("userProfile");
+        if (!userDataStr) {
+          userDataStr = await AsyncStorage.getItem("userData");
+        }
+
+        if (!userDataStr) {
+          console.error("No user profile found in AsyncStorage");
+          if (isMounted) {
+            setModal({
+              visible: true,
+              type: "error",
+              title: "Lỗi",
+              message:
+                "Không tìm thấy thông tin người dùng. Vui lòng đăng nhập lại.",
+              onClose: () => {
+                setModal(initialModalValue);
+                router.back();
+              },
+            });
+          }
+          return;
+        }
+
         const user = JSON.parse(userDataStr);
 
-        let missingPoseRes = await getMissingPose(user.id);
+        if (!user?.id) {
+          console.error("User profile missing ID:", user);
+          return;
+        }
 
-        console.log("missing pose: ", missingPoseRes.data);
+        const missingPoseRes = await getMissingPose(user.id);
+
+        console.log("missing pose response:", missingPoseRes.data);
+
+        if (!isMounted) return;
 
         if (missingPoseRes.data.missingPose === 6) {
           setMissingPose(initialPoseData);
@@ -280,11 +352,29 @@ export const useFaceRegistration = () => {
         }
 
         setUserProfile(user);
+      } catch (error: any) {
+        console.error("Error loading user profile:", error);
+        if (isMounted) {
+          setModal({
+            visible: true,
+            type: "error",
+            title: "Lỗi",
+            message: error.message || "Không thể tải thông tin người dùng",
+            onClose: () => setModal(initialModalValue),
+          });
+        }
       }
     };
 
-    if (isFocused) getUserProfile();
-    else if (!isFocused) setUserFace(null);
+    if (isFocused) {
+      getUserProfile();
+    } else {
+      setUserFace(null);
+    }
+
+    return () => {
+      isMounted = false;
+    };
   }, [isFocused]);
 
   const handleCameraLayout = (e: any) => {
