@@ -120,26 +120,39 @@ export const useFaceRegistration = () => {
     // If missing pose mismatch current pose -> stop
     if (currentPose !== currentMissingPose) return;
 
-    console.log("currentPose: ", currentPose);
-    // console.log("missingPose (ref): ", currentMissingPose);
+    console.log("✅ Matched pose:", currentPose);
+    
+    // Prevent concurrent registrations
+    if (isRegisteringRef.current) return;
 
     const currentGeneration = ++registrationGeneration.current;
     isRegisteringRef.current = true;
 
     try {
       const photo = await cameraRef.current?.takePhoto();
-      if (!photo?.path || !userProfile?.id) return;
+      if (!photo?.path || !userProfile?.id) {
+        isRegisteringRef.current = false;
+        return;
+      }
 
       // Create the full phto path
       const fullPhotoPath = `file://${photo.path}`;
 
       // store image uri once successfully checked
-      setImagePaths((prev) => {
-        console.log([...prev, fullPhotoPath]);
-        return [...prev, fullPhotoPath];
+      const updatedImagePaths = await new Promise<string[]>((resolve) => {
+        setImagePaths((prev) => {
+          const newPaths = [...prev, fullPhotoPath];
+          console.log("Updated image paths:", newPaths);
+          resolve(newPaths);
+          return newPaths;
+        });
       });
 
-      if (currentGeneration !== registrationGeneration.current) return;
+      if (currentGeneration !== registrationGeneration.current) {
+        isRegisteringRef.current = false;
+        return;
+      }
+      
       // delete already checked pose
       setMissingPose((prev) => prev.slice(1));
 
@@ -147,12 +160,27 @@ export const useFaceRegistration = () => {
       // await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
 
       // show modal when already enough face
-      if (currentMissingPose == 5) {
+      if (currentMissingPose === 5) {
         // Show spinner
         setIsPending(true);
 
+        // Ensure we have all 6 images
+        if (updatedImagePaths.length !== 6) {
+          console.error("Expected 6 images, got:", updatedImagePaths.length);
+          setIsPending(false);
+          setModal((prev) => ({
+            ...prev,
+            visible: true,
+            type: "error",
+            title: "Lỗi",
+            message: "Không đủ ảnh để đăng ký. Vui lòng thử lại.",
+            onClose: () => setModal(initialModalValue),
+          }));
+          return;
+        }
+
         // Create images zip file
-        const zipUri = await createZip(imagePaths);
+        const zipUri = await createZip(updatedImagePaths);
 
         // Create face form data
         const faceFormData = new FormData();
@@ -192,6 +220,7 @@ export const useFaceRegistration = () => {
         setModal((prev) => ({
           ...prev,
           visible: true,
+          type: "success",
           title: "Thành công",
           message: "Đăng ký khuôn mặt thành công",
           onClose: () => {
@@ -201,7 +230,16 @@ export const useFaceRegistration = () => {
         }));
       }
     } catch (error: any) {
-      console.log(`❌ ${error.response?.data?.message ?? error}`);
+      console.error("Face registration error:", error);
+      setIsPending(false);
+      setModal((prev) => ({
+        ...prev,
+        visible: true,
+        type: "error",
+        title: "Lỗi",
+        message: error.response?.data?.message || error.message || "Có lỗi xảy ra khi đăng ký khuôn mặt",
+        onClose: () => setModal(initialModalValue),
+      }));
     } finally {
       if (currentGeneration === registrationGeneration.current) {
         isRegisteringRef.current = false;

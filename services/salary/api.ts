@@ -2,7 +2,7 @@ import axios from "@/config/axios";
 
 // Get salary summary for a period
 export const getSalarySummary = async (userId: string, month: number) => {
-  return await axios.get(`/time-keeping/daily-salary`, {
+  return await axios.get(`/time-keeping/luong-hang-ngay`, {
     params: {
       userId,
       month,

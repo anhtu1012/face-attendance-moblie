@@ -13,7 +13,7 @@ export const getDetailTimekeepingData = async (timekeepingId: string) => {
 export const getTimekeepingData = async (
   startTime: string,
   endTime: string,
-  userId: string
+  userId: string,
 ) => {
   return api.get("time-keeping/danh-sach-cham-cong", {
     params: {
@@ -43,13 +43,15 @@ export const getCurrentTimekeepingData = async (userId: string) => {
     },
   });
 };
-export const getTimekeepingDashboardData = async (userId: string, month: number) => {
-  return api.get<dtoTimekeepingDashboard>(
-    `/time-keeping/timekeeping-dashboard`, {
-      params: {
-        userId: userId,
-        month: month,
-      },
-    }
-  );
+export const getTimekeepingDashboardData = async (
+  userId: string,
+  month: number,
+) => {
+  return api.get<dtoTimekeepingDashboard>(`/time-keeping/thong-ke-cham-cong`, {
+    params: {
+      userId: userId,
+      month: month,
+    },
+  });
 };
+
