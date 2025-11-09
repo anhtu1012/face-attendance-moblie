@@ -28,11 +28,14 @@ export default function SalaryPage() {
   };
 
   const getDateRange = (year: number, month: number) => {
-    const startDate = new Date(year, month - 1, 1);
-    const endDate = new Date(year, month, 0);
+    const startDate = new Date(year, month - 1, 1, 6, 59, 59);
+    const endDate = new Date(year, month, 0, 30, 59, 59);
+    console.log("startDate: ", startDate);
+    console.log("endDate: ", endDate);
+
     return {
-      startTime: startDate.toISOString().split("T")[0],
-      endTime: endDate.toISOString().split("T")[0],
+      startTime: startDate.toISOString(),
+      endTime: endDate.toISOString(),
     };
   };
   const { startTime, endTime } = getDateRange(selectedYear, selectedMonth);

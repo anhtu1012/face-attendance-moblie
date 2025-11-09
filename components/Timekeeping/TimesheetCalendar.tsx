@@ -32,9 +32,6 @@ export default function TimesheetCalendar() {
     startTime: currentMonth.startOf("month").toISOString(),
     endTime: currentMonth.endOf("month").toISOString(),
   });
-  useFocusEffect(() => {
-    refetch();
-  });
   const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
   const [refreshing, setRefreshing] = useState(false);
   const calendarDays = useMemo(() => {
@@ -62,7 +59,7 @@ export default function TimesheetCalendar() {
 
       const dateString = date.format("YYYY-MM-DD");
       const timekeeping = timekeepingDataList?.data.find(
-        (t: any) => t.date === dateString
+        (t: any) => t.date === dateString,
       );
       const isNotCurrentMonth = date.month() !== currentMonth.month();
       const today = dayjs().startOf("day");

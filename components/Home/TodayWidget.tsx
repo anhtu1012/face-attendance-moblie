@@ -47,6 +47,7 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     });
 
   const timekeepingId = timekeepingData?.data[0]?.timekeepingId;
+
   const { detailTimekeepingData: todayTimekeepingData, isLoading } =
     useGetDetailTimekeepingData({
       timekeepingId: timekeepingId || "",
@@ -67,7 +68,7 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     // Trả về ngày hiện tại theo định dạng YYYY-MM-DD
     return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
       2,
-      "0"
+      "0",
     )}-${String(today.getDate()).padStart(2, "0")}`;
   };
 
@@ -106,8 +107,8 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     checkInTime = todayTimekeepingData.checkinTime;
   }
 
-  if (todayTimekeepingData.checkoutTime) {
-    checkOutTime = todayTimekeepingData.checkoutTime;
+  if (todayTimekeepingData.checkOutTime) {
+    checkOutTime = todayTimekeepingData.checkOutTime;
   }
 
   return (
@@ -163,14 +164,14 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
         <CheckTimeBox
           type="in"
           time={todayTimekeepingData.checkinTime!}
-          checkinStatus={todayTimekeepingData.checkinStatus!}
-          checkoutStatus={todayTimekeepingData.checkoutStatus!}
+          checkinStatus={todayTimekeepingData.checkInStatus!}
+          checkoutStatus={todayTimekeepingData.checkOutStatus!}
         />
         <CheckTimeBox
           type="out"
-          time={todayTimekeepingData.checkoutTime!}
-          checkinStatus={todayTimekeepingData.checkinStatus!}
-          checkoutStatus={todayTimekeepingData.checkoutStatus!}
+          time={todayTimekeepingData.checkOutTime!}
+          checkinStatus={todayTimekeepingData.checkInStatus!}
+          checkoutStatus={todayTimekeepingData.checkOutStatus!}
         />
         <TimesheetTotalHourBox
           totalWorkHour={todayTimekeepingData.totalWorkHour}
