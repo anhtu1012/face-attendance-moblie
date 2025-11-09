@@ -30,9 +30,6 @@ const TimesheetWeek = () => {
       startTime: currentWeek.startOf("isoWeek").toISOString(),
       endTime: currentWeek.endOf("isoWeek").toISOString(),
     });
-  useFocusEffect(() => {
-    refetch();
-  });
   // Tính toán tuần hiện tại
   const weekRange = useMemo(() => {
     const startOfWeek = currentWeek.startOf("isoWeek"); // Bắt đầu từ T.2
@@ -102,7 +99,7 @@ const TimesheetWeek = () => {
       };
     });
   }, [weekDays]);
-  console.log(weekData);
+
 
   const handlePrevWeek = () => setCurrentWeek(currentWeek.subtract(1, "week"));
   const handleNextWeek = () => setCurrentWeek(currentWeek.add(1, "week"));

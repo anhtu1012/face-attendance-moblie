@@ -13,7 +13,6 @@ import TimekeepingModal from "./TimekeepingModal";
 import TimesheetCalendarHeader from "./TimesheetCalendarHeader";
 import TimesheetCalendarWeekHeader from "./TimesheetCalendarWeekHeader";
 import TimesheetNotes from "./TimesheetNotes";
-import { useFocusEffect } from "@react-navigation/native";
 
 dayjs.extend(weekday);
 dayjs.extend(localeData);

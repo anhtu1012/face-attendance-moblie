@@ -45,7 +45,6 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
       endTime: today.toISOString(),
       userId: userId || "",
     });
-
   const timekeepingId = timekeepingData?.data[0]?.timekeepingId;
 
   const { detailTimekeepingData: todayTimekeepingData, isLoading } =
@@ -53,7 +52,6 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
       timekeepingId: timekeepingId || "",
       enabled: !!timekeepingId,
     });
-
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
   }, []);
