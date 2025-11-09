@@ -5,7 +5,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import localeData from "dayjs/plugin/localeData";
 import weekday from "dayjs/plugin/weekday";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
 import { useSelector } from "react-redux";
 import TimekeepingBox from "./TimekeepingBox";
@@ -31,6 +31,7 @@ export default function TimesheetCalendar() {
     startTime: currentMonth.startOf("month").toISOString(),
     endTime: currentMonth.endOf("month").toISOString(),
   });
+
   const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
   const [refreshing, setRefreshing] = useState(false);
   const calendarDays = useMemo(() => {
