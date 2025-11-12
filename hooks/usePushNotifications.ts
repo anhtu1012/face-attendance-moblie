@@ -1,12 +1,16 @@
+import { updateUserPushToken } from "@/api/user";
+import { RootState } from "@/lib/store";
 import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 import { useEffect, useRef, useState } from "react";
 import { Platform } from "react-native";
+import { useSelector } from "react-redux";
 
 export interface PushNotificationState {
   notification?: Notifications.Notification;
   expoPushToken?: Notifications.ExpoPushToken;
+  isTokenRegistered?: boolean;
 }
 
 export const usePushNotifications = (): PushNotificationState => {
@@ -25,8 +29,17 @@ export const usePushNotifications = (): PushNotificationState => {
   const [notification, setNotification] = useState<
     Notifications.Notification | undefined
   >();
+  const [isTokenRegistered, setIsTokenRegistered] = useState(false);
   const notificationListener = useRef<Notifications.Subscription | null>(null);
   const responseListener = useRef<Notifications.Subscription | null>(null);
+
+  // Get userId and accessToken from Redux store (must be at top level)
+  const userId = useSelector(
+    (state: RootState) => state?.auth?.userProfile?.id
+  );
+  const accessToken = useSelector(
+    (state: RootState) => state?.auth?.accessToken
+  );
 
   async function registerForPushNotificationAsync() {
     let token;
@@ -39,9 +52,8 @@ export const usePushNotifications = (): PushNotificationState => {
         finalStatus = status;
       }
       if (finalStatus !== "granted") {
-        throw new Error(
-          "Permission not granted to get push token for push notification!"
-        );
+        console.log("❌ Permission not granted for push notifications");
+        return null;
       }
       token = await Notifications.getExpoPushTokenAsync({
         projectId: Constants.expoConfig?.extra?.eas?.projectId,
@@ -56,29 +68,78 @@ export const usePushNotifications = (): PushNotificationState => {
       }
       return token;
     } else {
-      console.log("Running on emulator...");
+      console.log("⚠️ Must use physical device for Push Notifications");
+      return null;
     }
   }
+
+  // Register push token with backend
+  async function registerTokenWithBackend(
+    token: Notifications.ExpoPushToken,
+    userId: string
+  ) {
+    try {
+      console.log("📱 Registering push token with backend...");
+      await updateUserPushToken(userId, token.data);
+      console.log("✅ Push token registered successfully with user:", userId);
+      setIsTokenRegistered(true);
+    } catch (error) {
+      console.error("❌ Failed to register push token:", error);
+      setIsTokenRegistered(false);
+    }
+  }
+  // Effect 1: Get push token and setup notification listeners (runs once)
   useEffect(() => {
-    registerForPushNotificationAsync().then((token) => {
-      setExpoPushToken(token);
-    });
+    registerForPushNotificationAsync()
+      .then((token) => {
+        if (token) {
+          setExpoPushToken(token);
+          console.log("📱 Expo Push Token:", token.data);
+        }
+      })
+      .catch((error) => {
+        console.error("❌ Error getting push token:", error);
+      });
+
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
+        console.log("📬 Notification received:", notification);
         setNotification(notification);
       });
-    responseListener.current = Notifications.addNotificationReceivedListener(
-      (response) => {
-        console.log(response);
-      }
-    );
+    responseListener.current =
+      Notifications.addNotificationResponseReceivedListener((response) => {
+        console.log("👆 Notification tapped:", response);
+      });
+
     return () => {
-      notificationListener.current && notificationListener.current.remove();
-      responseListener.current && responseListener.current.remove();
+      if (notificationListener.current) {
+        notificationListener.current.remove();
+      }
+      if (responseListener.current) {
+        responseListener.current.remove();
+      }
     };
   }, []);
+
+  // Effect 2: Update backend when all conditions are met (runs on login/rehydrate)
+  useEffect(() => {
+    console.log("🔍 Checking conditions:", {
+      hasToken: !!expoPushToken,
+      hasUserId: !!userId,
+      hasAccessToken: !!accessToken,
+    });
+
+    if (expoPushToken && userId && accessToken) {
+      console.log("✅ All conditions met! Updating backend...");
+      registerTokenWithBackend(expoPushToken, userId);
+    } else {
+      console.log("⏳ Waiting for Redux to rehydrate...");
+    }
+  }, [expoPushToken, userId, accessToken]);
+
   return {
     expoPushToken,
     notification,
+    isTokenRegistered,
   };
 };

@@ -1,6 +1,7 @@
 import SalaryBarChart from "@/components/Salary/SalaryBarChart";
 import { useGetDailySalarySummary } from "@/hooks/useGetDailySalarySummary";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import isoWeek from "dayjs/plugin/isoWeek";
@@ -40,6 +41,17 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
     isLoading,
     refetch,
   } = useGetDailySalarySummary(userId, fromDate, toDate);
+
+  // State for showing/hiding salary amounts (default hidden for privacy)
+  const [showSalary, setShowSalary] = useState(false);
+  const isFocused = useIsFocused();
+
+  // Reset showSalary to false when screen loses focus
+  useEffect(() => {
+    if (!isFocused) {
+      setShowSalary(false);
+    }
+  }, [isFocused]);
 
   // Helper function to get the start of week (Monday-based)
   const getWeekStart = (date: dayjs.Dayjs) => {
@@ -90,6 +102,9 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
   }, [selectedMonth, selectedYear]);
 
   const formatCurrency = (amount: number) => {
+    if (!showSalary) {
+      return "********";
+    }
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
@@ -213,33 +228,45 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
           />
         }
       >
-        <View style={styles.weekNavigation}>
-          <TouchableOpacity
-            onPress={handlePrevWeek}
-            style={[styles.navButton, !canGoPrev && styles.navButtonDisabled]}
-            disabled={!canGoPrev}
-          >
-            <ChevronLeft color={canGoPrev ? "#1F2937" : "#D1D5DB"} size={24} />
-          </TouchableOpacity>
+        <View style={styles.weekNavigationContainer}>
+          <View style={styles.weekNavigation}>
+            <TouchableOpacity
+              onPress={handlePrevWeek}
+              style={[styles.navButton, !canGoPrev && styles.navButtonDisabled]}
+              disabled={!canGoPrev}
+            >
+              <ChevronLeft
+                color={canGoPrev ? "#1F2937" : "#D1D5DB"}
+                size={24}
+              />
+            </TouchableOpacity>
 
-          <View style={styles.weekInfo}>
-            <Text style={styles.weekNavigationText}>{weekRange}</Text>
-            <Text style={styles.weekSubtext}>Tuần làm việc</Text>
+            <View style={styles.weekInfo}>
+              <Text style={styles.weekNavigationText}>{weekRange}</Text>
+              <Text style={styles.weekSubtext}>Tuần làm việc</Text>
+            </View>
+
+            <TouchableOpacity
+              onPress={handleNextWeek}
+              style={[styles.navButton, !canGoNext && styles.navButtonDisabled]}
+              disabled={!canGoNext}
+            >
+              <ChevronRight
+                color={canGoNext ? "#1F2937" : "#D1D5DB"}
+                size={24}
+              />
+            </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            onPress={handleNextWeek}
-            style={[styles.navButton, !canGoNext && styles.navButtonDisabled]}
-            disabled={!canGoNext}
-          >
-            <ChevronRight color={canGoNext ? "#1F2937" : "#D1D5DB"} size={24} />
-          </TouchableOpacity>
         </View>
 
         {/* Bar Chart */}
         {currentWeekData && currentWeekData.length > 0 && (
           <View style={styles.section}>
-            <SalaryBarChart data={currentWeekData} />
+            <SalaryBarChart
+              data={currentWeekData}
+              showSalary={showSalary}
+              onToggleVisibility={() => setShowSalary(!showSalary)}
+            />
           </View>
         )}
 
@@ -519,6 +546,11 @@ const styles = StyleSheet.create({
   },
 
   // Week Navigation
+  weekNavigationContainer: {
+    marginHorizontal: 20,
+    marginBottom: 16,
+    marginTop: 10,
+  },
   weekNavigation: {
     flexDirection: "row",
     justifyContent: "space-between",
@@ -526,17 +558,15 @@ const styles = StyleSheet.create({
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
     paddingVertical: 16,
-    marginHorizontal: 20,
-    marginBottom: 16,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E7EB",
-    marginTop: 10,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
+    marginBottom: 12,
   },
   navButton: {
     width: 40,

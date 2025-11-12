@@ -1,27 +1,47 @@
 import { dailySalaryData } from "@/models/salary/dtoSalary";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { Eye, EyeOff } from "lucide-react-native";
 import React from "react";
-import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  Dimensions,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { BarChart } from "react-native-chart-kit";
 
 interface SalaryBarChartProps {
   data: dailySalaryData[];
+  showSalary?: boolean;
+  onToggleVisibility?: () => void;
 }
 
-const SalaryBarChart: React.FC<SalaryBarChartProps> = ({ data }) => {
+const SalaryBarChart: React.FC<SalaryBarChartProps> = ({
+  data,
+  showSalary = false,
+  onToggleVisibility,
+}) => {
   const screenWidth = Dimensions.get("window").width;
 
   // Format number with Vietnamese comma separator
   const formatCurrency = (amount: number) => {
+    if (!showSalary) {
+      return "********";
+    }
     return new Intl.NumberFormat("vi-VN").format(Math.round(amount));
   };
 
   // Format for chart display (shorter version)
   const formatChartValue = (value: number) => {
+    if (!showSalary) {
+      return "***";
+    }
     if (value >= 1000000) {
-      return `${value / 1000000}M`;
+      return `${(value / 1000000).toFixed(2)}M`;
     } else if (value >= 1000) {
-      return `${value / 1000}K`;
+      return `${(value / 1000).toFixed(0)}K`;
     }
     return value.toString();
   };
@@ -91,11 +111,26 @@ const SalaryBarChart: React.FC<SalaryBarChartProps> = ({ data }) => {
           <Text style={styles.quickStatLabel}>TB/ngày</Text>
         </View>
         <View style={styles.quickStatDivider} />
-        <View style={styles.quickStatItem}>
-          <Text style={[styles.quickStatValue, { color: "#3674B5" }]}>
-            {formatCurrency(totalSalary)}
-          </Text>
-          <Text style={styles.quickStatLabel}>Tổng</Text>
+        <View style={styles.quickStatItemWithIcon}>
+          <View style={styles.quickStatItem}>
+            <Text style={[styles.quickStatValue, { color: "#3674B5" }]}>
+              {formatCurrency(totalSalary)}
+            </Text>
+            <Text style={styles.quickStatLabel}>Tổng</Text>
+          </View>
+          {onToggleVisibility && (
+            <TouchableOpacity
+              onPress={onToggleVisibility}
+              style={styles.eyeIconButtonInline}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            >
+              {showSalary ? (
+                <Eye size={20} color="#3674B5" />
+              ) : (
+                <EyeOff size={20} color="#3674B5" />
+              )}
+            </TouchableOpacity>
+          )}
         </View>
       </View>
 
@@ -305,6 +340,13 @@ const styles = StyleSheet.create({
     flex: 1,
     alignItems: "center",
   },
+  quickStatItemWithIcon: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+  },
   quickStatDivider: {
     width: 1,
     height: 30,
@@ -322,6 +364,9 @@ const styles = StyleSheet.create({
     color: "#6B7280",
     fontWeight: "600",
     textAlign: "center",
+  },
+  eyeIconButtonInline: {
+    padding: 4,
   },
   scrollContent: {
     paddingRight: 16,

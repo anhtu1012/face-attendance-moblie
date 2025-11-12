@@ -16,7 +16,7 @@ export interface dtoGetUser {
   bankingAccountNo: string;
   bankingAccountName: string;
   bankingName: string;
-  militaryStatus: 
+  militaryStatus:
     | "Hoàn thành nghĩa vụ quân sự"
     | "Chưa hoàn thành nghĩa vụ quân sự"
     | "Không có nghĩa vụ quân sự";
@@ -31,6 +31,7 @@ export interface dtoGetUser {
   currentAddress: string;
   status: string | null;
   isActive: boolean;
+  userPushToken: string | null;
   dependent: dtoDependent[];
 }
 // UPDATE USER
@@ -56,6 +57,7 @@ export interface dtoUpdateUser {
   nationality: string; // Quốc tịch
   permanentAddress: string; // Nơi thường trú
   currentAddress: string; // Địa chỉ hiện tại
+  userPushToken?: string | null; // Push notification token
   dependent: dtoDependent[];
 }
 // DEPENDENT
@@ -67,6 +69,6 @@ export interface dtoDependent {
   dpTaxCode: string; // Mã số thuế
   dpCitizenIdentityCard: string; // Số CCCD/CMND
   dpIssueDate: Date; // Ngày cấp
-  dpIssueAt: string; // Nơi cấp 
-  dpDependentDate: Date; // Ngày phụ thuộc  
+  dpIssueAt: string; // Nơi cấp
+  dpDependentDate: Date; // Ngày phụ thuộc
 }

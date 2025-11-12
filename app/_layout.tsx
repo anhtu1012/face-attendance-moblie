@@ -12,7 +12,6 @@ import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-import ErrorBoundary from "../components/ErrorBoundary";
 import { useColorScheme } from "../hooks/use-color-scheme";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { persistor, store } from "../lib/store";
@@ -25,6 +24,81 @@ export const unstable_settings = {
   initialRouteName: "login",
 };
 
+// Component that uses push notifications (must be inside Redux Provider)
+function AppContent() {
+  const colorScheme = useColorScheme();
+  const { expoPushToken, notification, isTokenRegistered } =
+    usePushNotifications();
+
+  useEffect(() => {
+    if (expoPushToken) {
+      console.log("📱 Push Token:", expoPushToken.data ?? "");
+      console.log("✅ Token registered with backend:", isTokenRegistered);
+    }
+
+    if (notification) {
+      const data = JSON.stringify(notification, undefined, 2);
+      console.log("📬 Notification Data:", data);
+    }
+  }, [expoPushToken, notification, isTokenRegistered]);
+
+  return (
+    <GestureHandlerRootView style={{ flex: 1 }}>
+      <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <SafeAreaView
+          style={{ flex: 1, backgroundColor: "#ffffff" }}
+          edges={["top", "left", "right", "bottom"]}
+        >
+          <Stack>
+            <Stack.Screen
+              name="login"
+              options={{
+                headerShown: false,
+                gestureEnabled: false,
+              }}
+            />
+            <Stack.Screen
+              name="(drawer)"
+              options={{
+                headerShown: false,
+                gestureEnabled: false,
+              }}
+            />
+            <Stack.Screen
+              name="timesheet"
+              options={{
+                headerShown: false,
+                presentation: "modal",
+              }}
+            />
+            <Stack.Screen
+              name="form-detail"
+              options={{
+                headerShown: false,
+                presentation: "modal",
+              }}
+            />
+            <Stack.Screen
+              name="form-list"
+              options={{
+                headerShown: false,
+              }}
+            />
+            <Stack.Screen
+              name="form-detail-view"
+              options={{
+                headerShown: false,
+                presentation: "modal",
+              }}
+            />
+          </Stack>
+        </SafeAreaView>
+        <StatusBar style="dark" />
+      </ThemeProvider>
+    </GestureHandlerRootView>
+  );
+}
+
 export default function RootLayout() {
   if (__DEV__) {
     require("../ReactotronConfig");
@@ -34,18 +108,6 @@ export default function RootLayout() {
     "functionality provided by expo-notifications was removed from Expo Go",
   ]);
 
-  const colorScheme = useColorScheme();
-  const { expoPushToken, notification } = usePushNotifications();
-  useEffect(() => {
-    if (expoPushToken) {
-      console.log("Token: ", expoPushToken.data ?? "");
-    }
-
-    if (notification) {
-      const data = JSON.stringify(notification, undefined, 2);
-      console.log("Data: ", data);
-    }
-  }, [expoPushToken, notification]);
   const queryClient = new QueryClient();
 
   return (
@@ -58,62 +120,7 @@ export default function RootLayout() {
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
             <QueryClientProvider client={queryClient}>
-              <GestureHandlerRootView style={{ flex: 1 }}>
-                <ThemeProvider
-                  value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
-                >
-                  <SafeAreaView
-                    style={{ flex: 1, backgroundColor: "#ffffff" }}
-                    edges={["top", "left", "right", "bottom"]}
-                  >
-                    <Stack>
-                      <Stack.Screen
-                        name="login"
-                        options={{
-                          headerShown: false,
-                          gestureEnabled: false,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="(drawer)"
-                        options={{
-                          headerShown: false,
-                          gestureEnabled: false,
-                        }}
-                      />
-                      <Stack.Screen
-                        name="timesheet"
-                        options={{
-                          headerShown: false,
-                          presentation: "modal",
-                        }}
-                      />
-                      <Stack.Screen
-                        name="form-detail"
-                        options={{
-                          headerShown: false,
-                          presentation: "modal",
-                        }}
-                      />
-                      <Stack.Screen
-                        name="form-list"
-                        options={{
-                          headerShown: false,
-                        }}
-                      />
-
-                      <Stack.Screen
-                        name="form-detail-view"
-                        options={{
-                          headerShown: false,
-                          presentation: "modal",
-                        }}
-                      />
-                    </Stack>
-                  </SafeAreaView>
-                  <StatusBar style="dark" />
-                </ThemeProvider>
-              </GestureHandlerRootView>
+              <AppContent />
             </QueryClientProvider>
           </PersistGate>
         </Provider>

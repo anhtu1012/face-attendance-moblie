@@ -1,12 +1,15 @@
 import { useGetSalarySummary } from "@/hooks/useGetSalarySummary";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import React from "react";
+import { Eye, EyeOff } from "lucide-react-native";
+import React, { useEffect, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
+  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -21,12 +24,26 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
   selectedMonth,
   selectedYear,
 }) => {
+  // State for showing/hiding salary amounts (default hidden for privacy)
+  const [showSalary, setShowSalary] = useState(false);
+  const isFocused = useIsFocused();
+
   const { data, isLoading, refetch } = useGetSalarySummary(
     userId,
     selectedMonth
   );
 
+  // Reset showSalary to false when screen loses focus
+  useEffect(() => {
+    if (!isFocused) {
+      setShowSalary(false);
+    }
+  }, [isFocused]);
+
   const formatCurrency = (amount: number) => {
+    if (!showSalary) {
+      return "********";
+    }
     return new Intl.NumberFormat("vi-VN", {
       style: "currency",
       currency: "VND",
@@ -98,9 +115,22 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
               />
             </View>
             <Text style={styles.totalLabel}>Tổng lương thực nhận</Text>
-            <Text style={styles.totalAmount}>
-              {formatCurrency(data?.totalSalary || 0)}
-            </Text>
+            <View style={styles.totalAmountContainer}>
+              <Text style={styles.totalAmount}>
+                {formatCurrency(data?.totalSalary || 0)}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setShowSalary(!showSalary)}
+                style={styles.eyeIconButton}
+                hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              >
+                {showSalary ? (
+                  <Eye size={24} color="#3674B5" />
+                ) : (
+                  <EyeOff size={24} color="#3674B5" />
+                )}
+              </TouchableOpacity>
+            </View>
             <View style={styles.totalBadge}>
               <Feather name="check-circle" size={14} color="#3674B5" />
               <Text style={styles.totalBadgeText}>
@@ -173,7 +203,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
                 </Text>
               </View>
               <Text style={[styles.calculationValue, { color: "#10B981" }]}>
-                +{formatCurrency(data?.totalOtSalary || 0)}
+                {formatCurrency(data?.totalOtSalary || 0)}
               </Text>
             </View>
 
@@ -185,7 +215,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
                 </Text>
               </View>
               <Text style={[styles.calculationValue, { color: "#10B981" }]}>
-                +{formatCurrency(data?.totalAllowance || 0)}
+                {formatCurrency(data?.totalAllowance || 0)}
               </Text>
             </View>
 
@@ -197,7 +227,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
                 </Text>
               </View>
               <Text style={[styles.calculationValue, { color: "#EF4444" }]}>
-                -{formatCurrency(data?.totalFine || 0)}
+                {formatCurrency(data?.totalFine || 0)}
               </Text>
             </View>
 
@@ -289,11 +319,20 @@ const styles = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 8,
   },
+  totalAmountContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 12,
+    marginBottom: 12,
+  },
   totalAmount: {
     fontSize: 32,
     fontWeight: "800",
     color: "#3674B5",
-    marginBottom: 12,
+  },
+  eyeIconButton: {
+    padding: 4,
   },
   totalBadge: {
     flexDirection: "row",
