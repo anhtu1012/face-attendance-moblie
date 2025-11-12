@@ -34,7 +34,7 @@ function HomePage() {
   const { userId, userProfile } = useGetUserProfile();
   const { submittedFormListData } = useGetSubmittedForm({
     userId: userId || "",
-    enabled: isFocused,
+    enabled: true,
   });
   const [submittedForms, setSubmittedForms] = useState<SubmittedFormItem[]>(
     submittedFormListData?.data || [],

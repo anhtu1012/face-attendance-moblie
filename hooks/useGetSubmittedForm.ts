@@ -19,6 +19,7 @@ export const useGetSubmittedForm = ({
         return res.data;
       },
       enabled: enabled && !!userId,
+      staleTime: Infinity,
     });
 
   return {
