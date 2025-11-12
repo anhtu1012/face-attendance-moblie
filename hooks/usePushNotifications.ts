@@ -52,7 +52,6 @@ export const usePushNotifications = (): PushNotificationState => {
         finalStatus = status;
       }
       if (finalStatus !== "granted") {
-        console.log("❌ Permission not granted for push notifications");
         return null;
       }
       token = await Notifications.getExpoPushTokenAsync({
@@ -68,7 +67,6 @@ export const usePushNotifications = (): PushNotificationState => {
       }
       return token;
     } else {
-      console.log("⚠️ Must use physical device for Push Notifications");
       return null;
     }
   }
@@ -79,9 +77,8 @@ export const usePushNotifications = (): PushNotificationState => {
     userId: string
   ) {
     try {
-      console.log("📱 Registering push token with backend...");
       await updateUserPushToken(userId, token.data);
-      console.log("✅ Push token registered successfully with user:", userId);
+      console.log("✅ Push token registered with user:", userId);
       setIsTokenRegistered(true);
     } catch (error) {
       console.error("❌ Failed to register push token:", error);
@@ -94,7 +91,6 @@ export const usePushNotifications = (): PushNotificationState => {
       .then((token) => {
         if (token) {
           setExpoPushToken(token);
-          console.log("📱 Expo Push Token:", token.data);
         }
       })
       .catch((error) => {
@@ -103,12 +99,11 @@ export const usePushNotifications = (): PushNotificationState => {
 
     notificationListener.current =
       Notifications.addNotificationReceivedListener((notification) => {
-        console.log("📬 Notification received:", notification);
         setNotification(notification);
       });
     responseListener.current =
       Notifications.addNotificationResponseReceivedListener((response) => {
-        console.log("👆 Notification tapped:", response);
+        // Handle notification tap
       });
 
     return () => {
@@ -123,17 +118,8 @@ export const usePushNotifications = (): PushNotificationState => {
 
   // Effect 2: Update backend when all conditions are met (runs on login/rehydrate)
   useEffect(() => {
-    console.log("🔍 Checking conditions:", {
-      hasToken: !!expoPushToken,
-      hasUserId: !!userId,
-      hasAccessToken: !!accessToken,
-    });
-
     if (expoPushToken && userId && accessToken) {
-      console.log("✅ All conditions met! Updating backend...");
       registerTokenWithBackend(expoPushToken, userId);
-    } else {
-      console.log("⏳ Waiting for Redux to rehydrate...");
     }
   }, [expoPushToken, userId, accessToken]);
 

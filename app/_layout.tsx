@@ -20,13 +20,13 @@ import { useColorScheme } from "../hooks/use-color-scheme";
 import { usePushNotifications } from "../hooks/usePushNotifications";
 import { persistor, store } from "../lib/store";
 // import { NotificationProvider } from '@/contexts/NotificationContext';
+import { toastConfig } from "@/components/CustomToast";
+import useSocket from "@/hooks/useSocket";
+import { dtoSocketNotification } from "@/models/socket/dtoSocketNotification";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LogBox } from "react-native";
 import { SystemBars } from "react-native-edge-to-edge";
 import Toast from "react-native-toast-message";
-import { toastConfig } from "@/components/CustomToast";
-import useSocket from "@/hooks/useSocket";
-import { dtoSocketNotification } from "@/models/socket/dtoSocketNotification";
 
 export const unstable_settings = {
   // Ensure any route can link back to `/`
@@ -36,20 +36,33 @@ export const unstable_settings = {
 // Component that uses push notifications (must be inside Redux Provider)
 function AppContent() {
   const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
   const { expoPushToken, notification, isTokenRegistered } =
     usePushNotifications();
+  const socket = useSocket();
 
+  // Socket listener effect
   useEffect(() => {
-    if (expoPushToken) {
-      console.log("📱 Push Token:", expoPushToken.data ?? "");
-      console.log("✅ Token registered with backend:", isTokenRegistered);
-    }
+    if (!socket) return;
 
-    if (notification) {
-      const data = JSON.stringify(notification, undefined, 2);
-      console.log("📬 Notification Data:", data);
-    }
-  }, [expoPushToken, notification, isTokenRegistered]);
+    console.log("🔌 Socket connected");
+
+    const handleGetSocketData = (data: dtoSocketNotification) => {
+      console.log("📨 Notification:", data.description);
+      Toast.show({
+        type: "info",
+        text1: "Thông báo",
+        text2: data.description,
+        topOffset: insets.top + 10,
+      });
+    };
+
+    socket.on("NOTIFICATION_SENT", handleGetSocketData);
+
+    return () => {
+      socket.off("NOTIFICATION_SENT", handleGetSocketData);
+    };
+  }, [socket, insets]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
@@ -117,52 +130,6 @@ export default function RootLayout() {
     "functionality provided by expo-notifications was removed from Expo Go",
   ]);
 
-  const colorScheme = useColorScheme();
-  const insets = useSafeAreaInsets();
-  const { expoPushToken, notification } = usePushNotifications();
-  const socket = useSocket();
-
-  // Socket listener effect
-  useEffect(() => {
-    if (!socket) {
-      console.log("⚠️ Socket not available");
-      return;
-    }
-
-    console.log(
-      "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION",
-    );
-
-    const handleGetSocketData = (data: dtoSocketNotification) => {
-      console.log("📨 Socket message received:", data);
-      Toast.show({
-        type: "info",
-        text1: "Thông báo",
-        text2: data.description,
-        topOffset: insets.top + 10,
-      });
-    };
-
-    // Add listener
-    socket.on("NOTIFICATION_SENT", handleGetSocketData);
-
-    // Cleanup listener on unmount
-    return () => {
-      console.log("🧹 Cleaning up socket listener");
-      socket.off("NOTIFICATION_SENT", handleGetSocketData);
-    };
-  }, [socket]); // Add refetch to dependencies
-
-  useEffect(() => {
-    if (expoPushToken) {
-      console.log("Token: ", expoPushToken.data ?? "");
-    }
-
-    if (notification) {
-      const data = JSON.stringify(notification, undefined, 2);
-      console.log("Data: ", data);
-    }
-  }, [expoPushToken, notification]);
   const queryClient = new QueryClient();
 
   return (
