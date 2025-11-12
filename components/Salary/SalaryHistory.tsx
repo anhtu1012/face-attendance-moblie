@@ -41,22 +41,52 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
     refetch,
   } = useGetDailySalarySummary(userId, fromDate, toDate);
 
-  // State for current period pagination (7 days starting from day 1 of month)
+  // Helper function to get the start of week (Monday-based)
+  const getWeekStart = (date: dayjs.Dayjs) => {
+    const dayOfWeek = date.day(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    return date.subtract(daysFromMonday, "day").startOf("day");
+  };
+
+  // Get initial start date - current week for current month, otherwise first day
+  const getInitialStartDate = (year: number, month: number) => {
+    const today = dayjs();
+    const monthStart = dayjs()
+      .year(year)
+      .month(month - 1)
+      .startOf("month");
+    const monthEnd = dayjs()
+      .year(year)
+      .month(month - 1)
+      .endOf("month");
+
+    // If viewing current month, show current week
+    if (year === today.year() && month === today.month() + 1) {
+      const weekStart = getWeekStart(today);
+
+      // Ensure week start is within the month
+      if (weekStart.isBefore(monthStart)) {
+        return monthStart;
+      }
+      if (weekStart.isAfter(monthEnd)) {
+        return monthStart;
+      }
+
+      return weekStart;
+    }
+
+    // For other months, start from first day
+    return monthStart;
+  };
+
+  // State for current period pagination (7 days starting from current week or day 1)
   const [currentStartDate, setCurrentStartDate] = useState(() =>
-    dayjs()
-      .year(selectedYear)
-      .month(selectedMonth - 1)
-      .date(1),
+    getInitialStartDate(selectedYear, selectedMonth)
   );
 
-  // Reset to first day of month when month/year changes
+  // Reset to appropriate start date when month/year changes
   useEffect(() => {
-    setCurrentStartDate(
-      dayjs()
-        .year(selectedYear)
-        .month(selectedMonth - 1)
-        .date(1),
-    );
+    setCurrentStartDate(getInitialStartDate(selectedYear, selectedMonth));
   }, [selectedMonth, selectedYear]);
 
   const formatCurrency = (amount: number) => {
@@ -123,30 +153,49 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
     });
   }, [dailySalarySummaryData, currentStartDate, selectedMonth, selectedYear]);
 
+  // Check navigation availability
+  const canGoPrev = useMemo(() => {
+    const monthStart = dayjs()
+      .year(selectedYear)
+      .month(selectedMonth - 1)
+      .startOf("month");
+    return currentStartDate.isAfter(monthStart);
+  }, [currentStartDate, selectedMonth, selectedYear]);
+
+  const canGoNext = useMemo(() => {
+    const monthEnd = dayjs()
+      .year(selectedYear)
+      .month(selectedMonth - 1)
+      .endOf("month");
+    return currentStartDate.clone().add(6, "day").isBefore(monthEnd);
+  }, [currentStartDate, selectedMonth, selectedYear]);
+
   // Period navigation handlers
   const handlePrevWeek = () => {
+    if (!canGoPrev) return;
+
     const prevStart = currentStartDate.clone().subtract(7, "day");
     const monthStart = dayjs()
       .year(selectedYear)
       .month(selectedMonth - 1)
-      .date(1);
+      .startOf("month");
 
-    // Don't go before month start
     setCurrentStartDate(
-      prevStart.isBefore(monthStart) ? monthStart : prevStart,
+      prevStart.isBefore(monthStart) ? monthStart : prevStart
     );
   };
 
   const handleNextWeek = () => {
+    if (!canGoNext) return;
+
     const nextStart = currentStartDate.clone().add(7, "day");
     const monthEnd = dayjs()
       .year(selectedYear)
       .month(selectedMonth - 1)
       .endOf("month");
 
-    // Don't go after month end
-    const maxStart = monthEnd.clone().subtract(6, "day");
-    setCurrentStartDate(nextStart.isAfter(maxStart) ? maxStart : nextStart);
+    if (nextStart.isAfter(monthEnd)) return;
+    setCurrentStartDate(nextStart);
   };
 
   return (
@@ -165,14 +214,25 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
         }
       >
         <View style={styles.weekNavigation}>
-          <TouchableOpacity onPress={handlePrevWeek} style={styles.navButton}>
-            <ChevronLeft color="black" size={24} />
+          <TouchableOpacity
+            onPress={handlePrevWeek}
+            style={[styles.navButton, !canGoPrev && styles.navButtonDisabled]}
+            disabled={!canGoPrev}
+          >
+            <ChevronLeft color={canGoPrev ? "#1F2937" : "#D1D5DB"} size={24} />
           </TouchableOpacity>
 
-          <Text style={styles.weekNavigationText}>{weekRange}</Text>
+          <View style={styles.weekInfo}>
+            <Text style={styles.weekNavigationText}>{weekRange}</Text>
+            <Text style={styles.weekSubtext}>Tuần làm việc</Text>
+          </View>
 
-          <TouchableOpacity onPress={handleNextWeek} style={styles.navButton}>
-            <ChevronRight color="black" size={24} />
+          <TouchableOpacity
+            onPress={handleNextWeek}
+            style={[styles.navButton, !canGoNext && styles.navButtonDisabled]}
+            disabled={!canGoNext}
+          >
+            <ChevronRight color={canGoNext ? "#1F2937" : "#D1D5DB"} size={24} />
           </TouchableOpacity>
         </View>
 
@@ -203,9 +263,7 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
                       day.isHoliday && styles.dailyCardHoliday,
                     ]}
                   >
-                    {/* Top Row: Date and Total */}
                     <View style={styles.dailyTopRow}>
-                      {/* Left: Date */}
                       <View style={styles.dailyDateBox}>
                         <Text
                           style={[
@@ -216,14 +274,6 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
                           {dayOfWeek}
                         </Text>
                         <Text style={styles.dayNumber}>{dayNum}</Text>
-                      </View>
-
-                      {/* Right: Total */}
-                      <View style={styles.dailyTotalBox}>
-                        <Text style={styles.dailyTotalLabel}>Lương cơ bản</Text>
-                        <Text style={styles.dailyTotalValue}>
-                          {formatCurrency(day.totalSalary)}
-                        </Text>
                       </View>
                     </View>
 
@@ -475,13 +525,18 @@ const styles = StyleSheet.create({
     alignItems: "center",
     backgroundColor: "#FFFFFF",
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     marginHorizontal: 20,
     marginBottom: 16,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: "#E5E7EB",
     marginTop: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
   },
   navButton: {
     width: 40,
@@ -489,11 +544,26 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#F9FAFB",
+  },
+  navButtonDisabled: {
+    backgroundColor: "#F3F4F6",
+    opacity: 0.5,
+  },
+  weekInfo: {
+    alignItems: "center",
+    flex: 1,
   },
   weekNavigationText: {
     fontSize: 16,
     fontWeight: "700",
-    color: "black",
+    color: "#1F2937",
+    marginBottom: 2,
+  },
+  weekSubtext: {
+    fontSize: 11,
+    fontWeight: "500",
+    color: "#6B7280",
   },
 
   // Daily List

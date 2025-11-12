@@ -23,7 +23,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
 }) => {
   const { data, isLoading, refetch } = useGetSalarySummary(
     userId,
-    selectedMonth,
+    selectedMonth
   );
 
   const formatCurrency = (amount: number) => {
@@ -141,8 +141,8 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
                   {item.amount < 0 || item.label === "Lương cơ bản"
                     ? ""
                     : item.label === "Tiền phạt"
-                      ? "-"
-                      : "+"}
+                    ? ""
+                    : ""}
                   {formatCurrency(item.amount)}
                 </Text>
               </View>

@@ -1,4 +1,5 @@
-import { dailySalaryData, dtoDailySalary } from "@/models/salary/dtoSalary";
+import { dailySalaryData } from "@/models/salary/dtoSalary";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import React from "react";
 import { Dimensions, ScrollView, StyleSheet, Text, View } from "react-native";
 import { BarChart } from "react-native-chart-kit";
@@ -10,116 +11,221 @@ interface SalaryBarChartProps {
 const SalaryBarChart: React.FC<SalaryBarChartProps> = ({ data }) => {
   const screenWidth = Dimensions.get("window").width;
 
+  // Format number with Vietnamese comma separator
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat("vi-VN").format(Math.round(amount));
+  };
+
+  // Format for chart display (shorter version)
+  const formatChartValue = (value: number) => {
+    if (value >= 1000000) {
+      return `${value / 1000000}M`;
+    } else if (value >= 1000) {
+      return `${value / 1000}K`;
+    }
+    return value.toString();
+  };
+
   if (!data || data.length === 0) {
-    return null;
+    return (
+      <View style={styles.emptyContainer}>
+        <MaterialCommunityIcons name="chart-bar" size={48} color="#D1D5DB" />
+        <Text style={styles.emptyText}>Chưa có dữ liệu lương</Text>
+      </View>
+    );
   }
 
-  // Prepare chart data - take only first 10 days for readability
-  const chartData = data;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-  const labels = chartData.map((item) => {
+  const labels = data.map((item) => {
     const date = new Date(item.date);
     const dayOfWeek = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"][date.getDay()];
-    return `${date.getDate()}/${dayOfWeek}`;
+    const day = date.getDate();
+    return `${dayOfWeek}\n${day}`;
   });
 
-  const salaryData = chartData.map((item) => item.totalSalary / 1000000); // Convert to millions
-  const otData = chartData.map((item) => item.otSalary / 1000000);
-  const fineData = chartData.map((item) => item.totalFine / 1000);
+  const salaryData = data.map((item) =>
+    item.totalSalary ? item.totalSalary : 0
+  );
 
   const maxSalary = Math.max(...salaryData);
-  const yAxisMax = Math.ceil(maxSalary / 0.5) * 0.5; // Round up to nearest 0.5M
+  const minSalary = Math.min(...salaryData);
+  const totalSalary = salaryData.reduce((a, b) => a + b, 0);
+  const avgSalary = totalSalary / salaryData.length;
+
+  // Count days with OT and fines
+  const daysWithOT = data.filter((item) => item.hasOT).length;
+  const daysWithFine = data.filter((item) => item.totalFine > 0).length;
 
   return (
     <View style={styles.container}>
+      {/* Header with icon */}
       <View style={styles.header}>
-        <Text style={styles.title}>Biểu đồ lương</Text>
-        <Text style={styles.subtitle}>Đơn vị: Triệu đồng</Text>
+        <View style={styles.headerLeft}>
+          <View style={styles.iconContainer}>
+            <MaterialCommunityIcons
+              name="chart-bar"
+              size={20}
+              color="#3674B5"
+            />
+          </View>
+          <View>
+            <Text style={styles.title}>Biểu đồ lương theo ngày</Text>
+            <Text style={styles.subtitle}>Đơn vị: Đồng (VND)</Text>
+          </View>
+        </View>
       </View>
 
-      <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+      {/* Quick Stats Bar */}
+      <View style={styles.quickStats}>
+        <View style={styles.quickStatItem}>
+          <Text style={styles.quickStatValue}>{data.length}</Text>
+          <Text style={styles.quickStatLabel}>Ngày</Text>
+        </View>
+        <View style={styles.quickStatDivider} />
+        <View style={styles.quickStatItem}>
+          <Text style={[styles.quickStatValue, { color: "#10B981" }]}>
+            {formatCurrency(avgSalary)}
+          </Text>
+          <Text style={styles.quickStatLabel}>TB/ngày</Text>
+        </View>
+        <View style={styles.quickStatDivider} />
+        <View style={styles.quickStatItem}>
+          <Text style={[styles.quickStatValue, { color: "#3674B5" }]}>
+            {formatCurrency(totalSalary)}
+          </Text>
+          <Text style={styles.quickStatLabel}>Tổng</Text>
+        </View>
+      </View>
+
+      {/* Chart */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
+      >
         <View style={styles.chartContainer}>
           <BarChart
             data={{
               labels,
               datasets: [
                 {
-                  data: salaryData,
+                  data: salaryData.length > 0 ? salaryData : [0],
                 },
               ],
             }}
-            width={Math.max(screenWidth - 40, chartData.length * 50)}
-            height={220}
+            width={Math.max(screenWidth - 40, data.length * 60)}
+            height={240}
             yAxisLabel=""
-            yAxisSuffix="M"
+            yAxisSuffix=""
             fromZero
             yAxisInterval={1}
             chartConfig={{
               backgroundColor: "#FFFFFF",
               backgroundGradientFrom: "#FFFFFF",
-              backgroundGradientTo: "#F9FAFB",
-              decimalPlaces: 1,
-              color: (opacity = 1) => `rgba(16, 185, 129, ${opacity})`,
-              labelColor: (opacity = 1) => `rgba(107, 114, 128, ${opacity})`,
+              backgroundGradientTo: "#FAFBFC",
+              decimalPlaces: 0,
+              color: (opacity = 1) => {
+                return `rgba(54, 116, 181, ${opacity})`;
+              },
+              labelColor: (opacity = 1) => `rgba(75, 85, 99, ${opacity})`,
               style: {
                 borderRadius: 16,
               },
               propsForBackgroundLines: {
-                strokeDasharray: "",
-                stroke: "#E5E7EB",
                 strokeWidth: 1,
+                stroke: "#E5E7EB",
               },
               propsForLabels: {
-                fontSize: 11,
+                fontSize: 10,
                 fontWeight: "600",
               },
-              barPercentage: 0.7,
+              barPercentage: 0.65,
+              formatTopBarValue: (value: number) => formatChartValue(value),
             }}
             style={styles.chart}
             showValuesOnTopOfBars
             withInnerLines
-            segments={4}
+            segments={5}
           />
         </View>
       </ScrollView>
 
-      {/* Legend */}
-      <View style={styles.legendContainer}>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: "#10B981" }]} />
-          <Text style={styles.legendText}>Tổng lương</Text>
+      {/* Insights */}
+      {(daysWithOT > 0 || daysWithFine > 0) && (
+        <View style={styles.insightsContainer}>
+          <Text style={styles.insightsTitle}>Thông tin thêm</Text>
+          <View style={styles.insightsRow}>
+            {daysWithOT > 0 && (
+              <View style={styles.insightBadge}>
+                <MaterialCommunityIcons
+                  name="clock-plus-outline"
+                  size={14}
+                  color="#F59E0B"
+                />
+                <Text style={styles.insightText}>{daysWithOT} ngày có OT</Text>
+              </View>
+            )}
+            {daysWithFine > 0 && (
+              <View
+                style={[styles.insightBadge, { backgroundColor: "#FEE2E2" }]}
+              >
+                <MaterialCommunityIcons
+                  name="alert-circle-outline"
+                  size={14}
+                  color="#EF4444"
+                />
+                <Text style={[styles.insightText, { color: "#DC2626" }]}>
+                  {daysWithFine} ngày có phạt
+                </Text>
+              </View>
+            )}
+          </View>
         </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: "#F59E0B" }]} />
-          <Text style={styles.legendText}>Có OT</Text>
-        </View>
-        <View style={styles.legendItem}>
-          <View style={[styles.legendDot, { backgroundColor: "#EF4444" }]} />
-          <Text style={styles.legendText}>Có phạt</Text>
-        </View>
-      </View>
+      )}
 
-      {/* Stats Summary */}
+      {/* Detailed Stats */}
       <View style={styles.statsContainer}>
         <View style={styles.statCard}>
-          <Text style={styles.statLabel}>Trung bình</Text>
-          <Text style={styles.statValue}>
-            {(
-              salaryData.reduce((a, b) => a + b, 0) / salaryData.length
-            ).toFixed(1)}
-            M
-          </Text>
-        </View>
-        <View style={styles.statCard}>
+          <View style={styles.statIconBox}>
+            <MaterialCommunityIcons
+              name="trending-up"
+              size={18}
+              color="#10B981"
+            />
+          </View>
           <Text style={styles.statLabel}>Cao nhất</Text>
           <Text style={[styles.statValue, { color: "#10B981" }]}>
-            {Math.max(...salaryData).toFixed(1)}M
+            {formatCurrency(maxSalary)}
           </Text>
         </View>
+
+        <View style={[styles.statCard, { backgroundColor: "#EFF6FF" }]}>
+          <View style={[styles.statIconBox, { backgroundColor: "#DBEAFE" }]}>
+            <MaterialCommunityIcons
+              name="chart-line"
+              size={18}
+              color="#3674B5"
+            />
+          </View>
+          <Text style={styles.statLabel}>Trung bình</Text>
+          <Text style={[styles.statValue, { color: "#3674B5" }]}>
+            {formatCurrency(avgSalary)}
+          </Text>
+        </View>
+
         <View style={styles.statCard}>
+          <View style={styles.statIconBox}>
+            <MaterialCommunityIcons
+              name="trending-down"
+              size={18}
+              color="#EF4444"
+            />
+          </View>
           <Text style={styles.statLabel}>Thấp nhất</Text>
           <Text style={[styles.statValue, { color: "#EF4444" }]}>
-            {Math.min(...salaryData).toFixed(1)}M
+            {formatCurrency(minSalary)}
           </Text>
         </View>
       </View>
@@ -137,73 +243,166 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: "#E5E7EB",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+  emptyContainer: {
+    backgroundColor: "#FFFFFF",
+    borderRadius: 16,
+    padding: 40,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: "#E5E7EB",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    fontSize: 14,
+    color: "#9CA3AF",
+    marginTop: 12,
+    fontWeight: "500",
   },
   header: {
     marginBottom: 16,
+  },
+  headerLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  iconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
   },
   title: {
     fontSize: 16,
     fontWeight: "700",
     color: "#1F2937",
-    marginBottom: 4,
+    marginBottom: 2,
   },
   subtitle: {
-    fontSize: 12,
+    fontSize: 11,
     color: "#6B7280",
     fontWeight: "500",
+  },
+  quickStats: {
+    flexDirection: "row",
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 16,
+    alignItems: "center",
+    justifyContent: "space-around",
+  },
+  quickStatItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  quickStatDivider: {
+    width: 1,
+    height: 30,
+    backgroundColor: "#E5E7EB",
+  },
+  quickStatValue: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: "#1F2937",
+    marginBottom: 2,
+    textAlign: "center",
+  },
+  quickStatLabel: {
+    fontSize: 10,
+    color: "#6B7280",
+    fontWeight: "600",
+    textAlign: "center",
+  },
+  scrollContent: {
+    paddingRight: 16,
   },
   chartContainer: {
     alignItems: "center",
+    paddingVertical: 8,
   },
   chart: {
-    borderRadius: 16,
+    borderRadius: 12,
     paddingRight: 0,
   },
-  legendContainer: {
-    flexDirection: "row",
-    justifyContent: "center",
+  insightsContainer: {
     marginTop: 16,
-    gap: 20,
+    paddingTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: "#F3F4F6",
   },
-  legendItem: {
+  insightsTitle: {
+    fontSize: 12,
+    fontWeight: "700",
+    color: "#374151",
+    marginBottom: 8,
+  },
+  insightsRow: {
+    flexDirection: "row",
+    gap: 8,
+    flexWrap: "wrap",
+  },
+  insightBadge: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "#FEF3C7",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
     gap: 6,
   },
-  legendDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-  },
-  legendText: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "500",
+  insightText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#D97706",
   },
   statsContainer: {
     flexDirection: "row",
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: "#E5E7EB",
-    gap: 12,
+    borderTopColor: "#F3F4F6",
+    gap: 10,
   },
   statCard: {
     flex: 1,
     alignItems: "center",
     backgroundColor: "#F9FAFB",
     padding: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#F3F4F6",
+  },
+  statIconBox: {
+    width: 32,
+    height: 32,
     borderRadius: 8,
+    backgroundColor: "#ECFDF5",
+    alignItems: "center",
+    justifyContent: "center",
+    marginBottom: 6,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: "#6B7280",
     marginBottom: 4,
-    fontWeight: "500",
+    fontWeight: "600",
+    textAlign: "center",
   },
   statValue: {
-    fontSize: 16,
-    fontWeight: "700",
+    fontSize: 13,
+    fontWeight: "800",
     color: "#1F2937",
+    textAlign: "center",
+    flexWrap: "wrap",
   },
 });

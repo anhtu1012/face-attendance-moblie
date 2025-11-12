@@ -1,7 +1,6 @@
 import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
 import { RootState } from "@/lib/store";
 import { LegacyTimekeepingStatus } from "@/models/timesheet/timekeeping";
-import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import weekOfYear from "dayjs/plugin/weekOfYear";
@@ -73,6 +72,9 @@ const TimesheetWeek = () => {
         } else if (timekeeping.status === LegacyTimekeepingStatus.NOT_WORK) {
           statusDisplay = "N";
           statusColor = "#8C8F92";
+        } else if (timekeeping.status === LegacyTimekeepingStatus.END_LATE) {
+          statusDisplay = timekeeping.totalWorkHour;
+          statusColor = "#00A854";
         }
       } else if (isFutureDate) {
         statusDisplay = "0";
@@ -81,7 +83,6 @@ const TimesheetWeek = () => {
       // Day name
       const dayNames = ["T.2", "T.3", "T.4", "T.5", "T.6", "T.7", "CN"];
       const dayName = dayNames[index];
-
       return {
         date: day.format("DD/MM"),
         timekeepingId: timekeepingId,
@@ -92,14 +93,13 @@ const TimesheetWeek = () => {
           timekeeping?.checkinTime && timekeeping?.checkoutTime
             ? `${timekeeping.checkinTime} - ${timekeeping.checkoutTime}`
             : timekeeping?.checkinTime
-            ? `${timekeeping.checkinTime} - _:__`
+            ? `${timekeeping.checkinTime} - _ _:_ _`
             : undefined,
         hasOT: timekeeping?.hasOT,
         isPending: isPending,
       };
     });
   }, [weekDays]);
-
 
   const handlePrevWeek = () => setCurrentWeek(currentWeek.subtract(1, "week"));
   const handleNextWeek = () => setCurrentWeek(currentWeek.add(1, "week"));
