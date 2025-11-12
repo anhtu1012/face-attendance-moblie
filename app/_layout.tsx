@@ -8,7 +8,11 @@ import { StatusBar } from "expo-status-bar";
 import React, { useEffect } from "react";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import "react-native-reanimated";
-import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import {
+  SafeAreaProvider,
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
@@ -21,6 +25,8 @@ import { LogBox } from "react-native";
 import { SystemBars } from "react-native-edge-to-edge";
 import Toast from "react-native-toast-message";
 import { toastConfig } from "@/components/CustomToast";
+import useSocket from "@/hooks/useSocket";
+import { dtoSocketNotification } from "@/models/socket/dtoSocketNotification";
 
 export const unstable_settings = {
   // Ensure any route can link back to `/`
@@ -111,6 +117,52 @@ export default function RootLayout() {
     "functionality provided by expo-notifications was removed from Expo Go",
   ]);
 
+  const colorScheme = useColorScheme();
+  const insets = useSafeAreaInsets();
+  const { expoPushToken, notification } = usePushNotifications();
+  const socket = useSocket();
+
+  // Socket listener effect
+  useEffect(() => {
+    if (!socket) {
+      console.log("⚠️ Socket not available");
+      return;
+    }
+
+    console.log(
+      "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION",
+    );
+
+    const handleGetSocketData = (data: dtoSocketNotification) => {
+      console.log("📨 Socket message received:", data);
+      Toast.show({
+        type: "info",
+        text1: "Thông báo",
+        text2: data.description,
+        topOffset: insets.top + 10,
+      });
+    };
+
+    // Add listener
+    socket.on("NOTIFICATION_SENT", handleGetSocketData);
+
+    // Cleanup listener on unmount
+    return () => {
+      console.log("🧹 Cleaning up socket listener");
+      socket.off("NOTIFICATION_SENT", handleGetSocketData);
+    };
+  }, [socket]); // Add refetch to dependencies
+
+  useEffect(() => {
+    if (expoPushToken) {
+      console.log("Token: ", expoPushToken.data ?? "");
+    }
+
+    if (notification) {
+      const data = JSON.stringify(notification, undefined, 2);
+      console.log("Data: ", data);
+    }
+  }, [expoPushToken, notification]);
   const queryClient = new QueryClient();
 
   return (

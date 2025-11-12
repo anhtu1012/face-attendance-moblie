@@ -1,7 +1,6 @@
-import React from "react";
-import { View, Text, StyleSheet } from "react-native";
 import { Feather } from "@expo/vector-icons";
-import { BaseToast, ErrorToast, InfoToast } from "react-native-toast-message";
+import React from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 export const toastConfig = {
   // Customize success toast
