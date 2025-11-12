@@ -27,7 +27,7 @@ const CheckTimeBox = ({
   const isCheckoutOntime = checkoutStatus === CheckoutStatus.END_ONTIME;
 
   const handleRenderCardBackground = (
-    type: CheckTimeBoxProps["type"],
+    type: CheckTimeBoxProps["type"]
   ): StyleProp<ViewStyle> => {
     if (type === "in") {
       if (!checkinStatus) return { backgroundColor: "#C3C3C3" };
@@ -35,12 +35,12 @@ const CheckTimeBox = ({
       return { backgroundColor: "#FFE8E8" };
     }
     if (!checkoutStatus) return { backgroundColor: "#C3C3C3" };
-    if (isCheckinOntime) return { backgroundColor: "#E9F7EF" };
+    if (isCheckoutOntime) return { backgroundColor: "#E9F7EF" };
     return { backgroundColor: "#FFE8E8" };
   };
 
   const handleRenderCardColor = (
-    type: CheckTimeBoxProps["type"],
+    type: CheckTimeBoxProps["type"]
   ): StyleProp<TextStyle> => {
     if (type === "in") {
       if (!checkinStatus) return { color: "#C3C3C3" };
@@ -48,7 +48,7 @@ const CheckTimeBox = ({
       return { color: "#E74C3C" };
     }
     if (!checkoutStatus) return { color: "#C3C3C3" };
-    if (isCheckinOntime) return { color: "#2ECC71" };
+    if (isCheckoutOntime) return { color: "#2ECC71" };
     return { color: "#E74C3C" };
   };
 
@@ -59,7 +59,7 @@ const CheckTimeBox = ({
       return <XCircle color="#E74C3C" size={18} />;
     }
     if (!checkoutStatus) return <CircleAlert color="#7A7A7A" size={18} />;
-    if (isCheckinOntime) return <CheckCircle color="#2ECC71" size={18} />;
+    if (isCheckoutOntime) return <CheckCircle color="#2ECC71" size={18} />;
     return <XCircle color="#E74C3C" size={18} />;
   };
 
@@ -70,7 +70,7 @@ const CheckTimeBox = ({
       return "Đến trễ";
     }
     if (!checkoutStatus) return "Chưa check-out";
-    if (isCheckinOntime) return "Về đúng giờ";
+    if (isCheckoutOntime) return "Về đúng giờ";
     return "Về sớm";
   };
 
