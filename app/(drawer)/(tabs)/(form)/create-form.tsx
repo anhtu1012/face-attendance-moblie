@@ -6,12 +6,7 @@ import AlertModal, {
 import CustomHeaders from "@/components/ui/CustomHeaders";
 import { submitForm } from "@/services/form/api";
 import { createZip } from "@/utils/zipUtils";
-import {
-  AntDesign,
-  Feather,
-  Ionicons,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as DocumentPicker from "expo-document-picker";
@@ -27,6 +22,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import Toast from "react-native-toast-message";
 
 type DateType = {
   startDate: string;
@@ -56,6 +53,7 @@ const initialShowPickerValue: ShowPickerType = {
 
 export default function CreateFormPage() {
   const { id, title } = useLocalSearchParams();
+  const insets = useSafeAreaInsets();
   const [reason, setReason] = useState("");
   const [date, setDate] = useState<DateType>(initialDateValue);
   const [files, setFiles] = useState<DocumentPicker.DocumentPickerAsset[]>([]);
@@ -117,29 +115,42 @@ export default function CreateFormPage() {
 
       await submitForm(formData);
       console.log("Gửi đơn thành công");
+
+      // Clear form
       setReason("");
       setDate(initialDateValue);
       setFiles([]);
-      setModal((prev) => ({
-        ...prev,
-        visible: true,
-        title: "Thành công",
-        message: "Gửi đơn thành công",
-        onClose: () => setModal(initialModalValue),
-      }));
+
+      // Show success toast
+      Toast.show({
+        type: "success",
+        text1: "Gửi đơn thành công!",
+        text2: "Đơn của bạn đã được gửi và đang chờ duyệt",
+        topOffset: insets.top + 10,
+        visibilityTime: 3000,
+      });
+
+      // Navigate back to home page
+      // setTimeout(() => {
+      router.push({
+        pathname: "/(drawer)/(tabs)",
+        params: {
+          refetchForms: "true",
+        },
+      });
+      // }, 500);
     } catch (error: any) {
       console.log("Không thể gửi đơn");
       console.log(error);
 
-      // Set error modal
-      setModal((prev) => ({
-        ...prev,
-        visible: true,
+      // Show error toast
+      Toast.show({
         type: "error",
-        title: "Thất bại",
-        message: "Lỗi khi gửi đơn",
-        onClose: () => setModal(initialModalValue),
-      }));
+        text1: "Không thể gửi đơn",
+        text2: error?.response?.data?.message || "Vui lòng thử lại sau",
+        topOffset: insets.top + 10,
+        visibilityTime: 4000,
+      });
     } finally {
       setLoading(false);
     }

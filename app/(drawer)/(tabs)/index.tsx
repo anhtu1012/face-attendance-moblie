@@ -13,7 +13,7 @@ import {
 } from "@expo/vector-icons";
 import { DrawerActions, useIsFocused } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
-import { router, useNavigation } from "expo-router";
+import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -30,12 +30,13 @@ import {
 } from "react-native";
 
 function HomePage() {
-  const isFocused = useIsFocused();
   const { userId, userProfile } = useGetUserProfile();
-  const { submittedFormListData } = useGetSubmittedForm({
-    userId: userId || "",
-    enabled: true,
-  });
+  const { refetchForms } = useLocalSearchParams();
+  const { submittedFormListData, refetch: refetchGetSubmittedFormListData } =
+    useGetSubmittedForm({
+      userId: userId || "",
+      enabled: false,
+    });
   const [submittedForms, setSubmittedForms] = useState<SubmittedFormItem[]>(
     submittedFormListData?.data || [],
   );
@@ -56,6 +57,24 @@ function HomePage() {
       console.log(error);
     }
   };
+
+  useEffect(() => {
+    refetchGetSubmittedFormListData();
+  }, []);
+
+  // Refetch when redirected from create-form
+  useEffect(() => {
+    if (refetchForms === "true") {
+      refetchGetSubmittedFormListData();
+    }
+  }, [refetchForms]);
+
+  // Update local state when data changes
+  useEffect(() => {
+    if (submittedFormListData?.data) {
+      setSubmittedForms(submittedFormListData.data);
+    }
+  }, [submittedFormListData]);
 
   // Auto-rotate quotes every 5 seconds
   useEffect(() => {
