@@ -1,7 +1,6 @@
 import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
 import {
   CheckinStatus,
-  CheckoutStatus,
   TimekeepingStatus,
 } from "@/models/timesheet/timekeeping";
 import React from "react";
@@ -28,7 +27,7 @@ export default function TimekeepingModal({
   });
 
   const dateString = new Date(timekeeping?.date ?? "").toLocaleDateString(
-    "vi-VN",
+    "vi-VN"
   );
   return (
     <Modal
@@ -48,22 +47,18 @@ export default function TimekeepingModal({
                 <View style={styles.row}>
                   <CheckTimeBox
                     type="in"
-                    time={timekeeping?.checkinTime ?? "--:--"}
+                    time={timekeeping?.checkinTime ?? ""}
                     checkinStatus={
                       timekeeping?.checkInStatus ?? CheckinStatus.START_ONTIME
-                    }
-                    checkoutStatus={
-                      timekeeping?.checkOutStatus ?? CheckoutStatus.END_ONTIME
                     }
                   />
                   <CheckTimeBox
                     type="out"
-                    time={timekeeping?.checkOutTime ?? "--:--"}
-                    checkinStatus={
-                      timekeeping?.checkInStatus ?? CheckinStatus.START_ONTIME
-                    }
+                    time={timekeeping?.checkOutTime ?? ""}
                     checkoutStatus={
-                      timekeeping?.checkOutStatus ?? CheckoutStatus.END_ONTIME
+                      timekeeping?.checkOutTime
+                        ? timekeeping?.checkOutStatus
+                        : undefined
                     }
                   />
                   <TimesheetTotalHourBox

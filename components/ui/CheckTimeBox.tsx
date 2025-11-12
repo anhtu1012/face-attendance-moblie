@@ -13,8 +13,8 @@ import {
 interface CheckTimeBoxProps {
   type: "out" | "in";
   time: string;
-  checkinStatus: CheckinStatus;
-  checkoutStatus: CheckoutStatus;
+  checkinStatus?: CheckinStatus | string;
+  checkoutStatus?: CheckoutStatus | string;
 }
 
 const CheckTimeBox = ({
@@ -25,7 +25,6 @@ const CheckTimeBox = ({
 }: CheckTimeBoxProps) => {
   const isCheckinOntime = checkinStatus === CheckinStatus.START_ONTIME;
   const isCheckoutOntime = checkoutStatus === CheckoutStatus.END_ONTIME;
-
   const handleRenderCardBackground = (
     type: CheckTimeBoxProps["type"]
   ): StyleProp<ViewStyle> => {
@@ -43,11 +42,11 @@ const CheckTimeBox = ({
     type: CheckTimeBoxProps["type"]
   ): StyleProp<TextStyle> => {
     if (type === "in") {
-      if (!checkinStatus) return { color: "#C3C3C3" };
+      if (!checkinStatus) return { color: "#7A7A7A" };
       if (isCheckinOntime) return { color: "#2ECC71" };
       return { color: "#E74C3C" };
     }
-    if (!checkoutStatus) return { color: "#C3C3C3" };
+    if (!checkoutStatus) return { color: "#7A7A7A" };
     if (isCheckoutOntime) return { color: "#2ECC71" };
     return { color: "#E74C3C" };
   };
@@ -81,7 +80,7 @@ const CheckTimeBox = ({
       </Text>
       <View style={styles.cardRow}>
         <Text style={[styles.cardValue, handleRenderCardColor(type)]}>
-          {time}
+          {time ? time : "--:--"}
         </Text>
         {handleRenderCardIcon(type)}
       </View>

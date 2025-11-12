@@ -5,8 +5,14 @@ import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import localeData from "dayjs/plugin/localeData";
 import weekday from "dayjs/plugin/weekday";
-import React, { useCallback, useMemo, useState } from "react";
-import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, View } from "react-native";
+import React, { useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  View,
+} from "react-native";
 import { useSelector } from "react-redux";
 import TimekeepingBox from "./TimekeepingBox";
 import TimekeepingModal from "./TimekeepingModal";
@@ -59,7 +65,7 @@ export default function TimesheetCalendar() {
 
       const dateString = date.format("YYYY-MM-DD");
       const timekeeping = timekeepingDataList?.data.find(
-        (t: any) => t.date === dateString,
+        (t: any) => t.date === dateString
       );
       const isNotCurrentMonth = date.month() !== currentMonth.month();
       const today = dayjs().startOf("day");
@@ -99,6 +105,11 @@ export default function TimesheetCalendar() {
       }
       if (timekeeping?.status === LegacyTimekeepingStatus.NOT_WORK) {
         displayValue = "N";
+      }
+      if (timekeeping?.status === LegacyTimekeepingStatus.END_LATE) {
+        backgroundColor = "#C5F0DD";
+        totalWorkHourColor = "#E74C3C";
+        displayValue = timekeeping?.totalWorkHour ?? "0";
       }
       return {
         date: date,
