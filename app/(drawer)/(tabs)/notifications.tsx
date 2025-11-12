@@ -26,7 +26,7 @@ const NotificationsScreen = () => {
     dtoNotification["data"]
   >([]);
   const isFocused = useIsFocused();
-  const { notificationList: notificationListData } =
+  const { notificationList: notificationListData, refetch } =
     useGetNotificationList(isFocused);
 
   useEffect(() => {
@@ -36,33 +36,30 @@ const NotificationsScreen = () => {
 
   const socket = useSocket();
 
-  // useEffect(() => {
-  //   if (!socket) return;
-  //
-  //   const handleNewNotification = () => {
-  //     setNotificationList((prev) => [notificationList, ...prev] as any);
-  //   };
-  //
-  //   const notificationKey = `NEW_NOTIFICATION`;
-  //   socket.on(notificationKey, handleNewNotification);
-  //
-  //   return () => {
-  //     socket.off(notificationKey, handleNewNotification);
-  //   };
-  // }, [socket]);
-
+  // Socket listener effect
   useEffect(() => {
-    if (!socket) return;
+    if (!socket) {
+      console.log("⚠️ Socket not available");
+      return;
+    }
 
-    const handleGetSocketData = (socket: any) => {
-      console.log("Message: ", socket.connected);
+    console.log("🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION");
+
+    const handleGetSocketData = (data: any) => {
+      console.log("📨 Socket message received:", data);
+      // Refetch notifications when a new one arrives
+      refetch();
     };
-    socket.on("test", handleGetSocketData);
 
+    // Add listener
+    socket.on("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
+
+    // Cleanup listener on unmount
     return () => {
-      socket.off("test", handleGetSocketData);
+      console.log("🧹 Cleaning up socket listener");
+      socket.off("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
     };
-  }, [socket]);
+  }, [socket, refetch]); // Add refetch to dependencies
 
   // Filter notifications
   const filteredNotifications =

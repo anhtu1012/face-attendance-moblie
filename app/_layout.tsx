@@ -19,6 +19,9 @@ import { persistor, store } from "../lib/store";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LogBox } from "react-native";
 import { SystemBars } from "react-native-edge-to-edge";
+import Toast from "react-native-toast-message";
+import { toastConfig } from "@/components/CustomToast";
+
 export const unstable_settings = {
   // Ensure any route can link back to `/`
   initialRouteName: "login",
@@ -112,8 +115,8 @@ export default function RootLayout() {
 
   return (
     <>
-      <SystemBars style="dark" />
       <SafeAreaProvider>
+        <SystemBars style="dark" />
         {/*
       <ErrorBoundary>
       */}
@@ -124,6 +127,8 @@ export default function RootLayout() {
             </QueryClientProvider>
           </PersistGate>
         </Provider>
+        {/* Toast component - must be rendered at root level */}
+        <Toast config={toastConfig} />
         {/*
       </ErrorBoundary>
       */}

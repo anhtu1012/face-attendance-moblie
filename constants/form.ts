@@ -1,13 +1,13 @@
 export enum formCategory {
-  FACE_REGISTER,
-  ABSENT,
-  OT,
-  FORGET_TIMEKEEP,
-  QUIT_JOB,
-  END_EARLY,
-  OTHER,
-  TRANSFER_JOB,
-  LATE,
+  FACE_REGISTER = 1,
+  ABSENT = 2,
+  OT = 3,
+  FORGET_TIMEKEEP = 4,
+  QUIT_JOB = 5,
+  END_EARLY = 6,
+  OTHER = 7,
+  TRANSFER_JOB = 8,
+  LATE = 9,
 }
 
 export const formTypes = [

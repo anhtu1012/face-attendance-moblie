@@ -28,6 +28,7 @@ import { setAuthData } from "@/lib/features/loginSlice";
 import { LoginResponse } from "@/models/auth/login";
 import Toast from "react-native-toast-message";
 import { useDispatch } from "react-redux";
+
 const { width, height } = Dimensions.get("window");
 
 export interface ILoginScreenProps {
@@ -228,7 +229,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       Toast.show({
         type: "success",
         text1: "Đăng nhập thành công!",
-        text1Style: { textAlign: "center", fontSize: 16 },
+        text2: "Chào mừng bạn trở lại",
         topOffset: insets.top + 10,
       });
 
@@ -236,14 +237,21 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
         router.replace("/(drawer)" as any);
       }, 500);
     } catch (error: any) {
-      Toast.show({
-        type: "error",
-        text1: `Đăng nhập thất bại: ${
-          error.response?.data?.message || error.message
-        }`,
-        text1Style: { textAlign: "center", fontSize: 16 },
-        topOffset: insets.top + 10,
-      });
+      if (error.status) {
+        Toast.show({
+          type: "error",
+          text1: "Sai thông tin đăng nhập",
+          text2: "Vui lòng kiểm tra lại tên đăng nhập và mật khẩu",
+          topOffset: insets.top + 10,
+        });
+      } else {
+        Toast.show({
+          type: "error",
+          text1: "Đăng nhập thất bại",
+          text2: error.response?.data?.message || error.message,
+          topOffset: insets.top + 10,
+        });
+      }
     } finally {
       setIsLoading(false);
     }

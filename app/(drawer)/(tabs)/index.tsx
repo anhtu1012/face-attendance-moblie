@@ -1,6 +1,8 @@
 import TodayWidget from "@/components/Home/TodayWidget";
 import { motivationalQuotes } from "@/constants/homepage";
+import { useGetSubmittedForm } from "@/hooks/useGetSubmittedForm";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
+import { SubmittedFormItem } from "@/models/form/dtoSubmittedForm";
 import { cancelSubmittedForm, getSubmittedForm } from "@/services/form/api";
 import {
   AntDesign,
@@ -27,41 +29,23 @@ import {
   View,
 } from "react-native";
 
-export interface FormDetail {
-  id: string;
-  createdAt: string;
-  updatedAt: string;
-  reason: string;
-  response: string;
-  formCategoryId: string;
-  formCategoryTitle: string;
-  submittedBy: string;
-  submittedName: string;
-  approvedBy: string;
-  approvedName: string;
-  startTime: string;
-  endTime: string;
-  approvedTime: string;
-  file: string;
-  status: "PENDING" | "APPROVED" | "REJECTED" | "INACTIVE";
-}
-
 function HomePage() {
+  const isFocused = useIsFocused();
   const { userId, userProfile } = useGetUserProfile();
-  const [submittedForms, setSubmittedForms] = useState<FormDetail[]>([]);
+  const { submittedFormListData } = useGetSubmittedForm({
+    userId: userId || "",
+    enabled: isFocused,
+  });
+  const [submittedForms, setSubmittedForms] = useState<SubmittedFormItem[]>(
+    submittedFormListData?.data || [],
+  );
   const [refreshing, setRefreshing] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [isSubmittingCancel, setIsSubmittingCancel] = useState(false);
-  const isFocused = useIsFocused();
   const navigation = useNavigation();
-
-  useEffect(() => {
-    if (!isFocused) return;
-    handleGetSubmittedForm();
-  }, [isFocused, userId]);
 
   const handleGetSubmittedForm = async () => {
     try {
@@ -231,7 +215,7 @@ function HomePage() {
                         borderLeftColor:
                           form.status === "PENDING"
                             ? "#FF9800"
-                            : form.status === "APPROVED"
+                            : form.status === "ACCEPTED"
                               ? "#4CAF50"
                               : form.status === "INACTIVE"
                                 ? "#c3c3c3"
@@ -258,7 +242,7 @@ function HomePage() {
                             backgroundColor:
                               form.status === "PENDING"
                                 ? "#FF9800"
-                                : form.status === "APPROVED"
+                                : form.status === "ACCEPTED"
                                   ? "#4CAF50"
                                   : form.status === "INACTIVE"
                                     ? "#c3c3c3"
@@ -269,7 +253,7 @@ function HomePage() {
                         <Text style={styles.formStatusText}>
                           {form.status === "PENDING"
                             ? "Chờ duyệt"
-                            : form.status === "APPROVED"
+                            : form.status === "ACCEPTED"
                               ? "Đã duyệt"
                               : form.status === "INACTIVE"
                                 ? "Đã hủy"
