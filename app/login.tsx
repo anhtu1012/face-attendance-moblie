@@ -4,26 +4,26 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-    ActivityIndicator,
-    Dimensions,
-    Image,
-    Keyboard,
-    KeyboardAvoidingView,
-    Platform,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    TouchableWithoutFeedback,
-    View,
+  ActivityIndicator,
+  Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
 } from "react-native";
 import {
-    SafeAreaView,
-    useSafeAreaInsets,
+  SafeAreaView,
+  useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
 import { loginUser } from "@/api/auth";
 import { setToken } from "@/api/axios";
+import { CustomClock } from "@/components/Login/CustomClock";
 import { setAuthData } from "@/lib/features/loginSlice";
 import { LoginResponse } from "@/models/auth/login";
 import Toast from "react-native-toast-message";
@@ -108,11 +108,11 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      onKeyboardShow,
+      onKeyboardShow
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      onKeyboardHide,
+      onKeyboardHide
     );
 
     return () => {
@@ -222,7 +222,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       await AsyncStorage.setItem("token", loginResponse.accessToken);
       await AsyncStorage.setItem(
         "userProfile",
-        JSON.stringify(loginResponse.userProfile),
+        JSON.stringify(loginResponse.userProfile)
       );
       dispatch(setAuthData(loginResponse));
 
@@ -278,13 +278,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
               <View style={styles.contentContainer}>
                 {/* Illustration */}
                 <View style={styles.illustrationContainer}>
-                  <View style={styles.illustrationCircle}>
-                    <Image
-                      source={require("@/assets/images/app-logo.png")}
-                      style={styles.illustration}
-                      resizeMode="contain"
-                    />
-                  </View>
+                  <CustomClock />
                 </View>
 
                 {/* White Card Container */}
