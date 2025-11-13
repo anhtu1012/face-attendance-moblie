@@ -2,14 +2,14 @@ import { AlertModalProps, initialModalValue } from "@/components/ui/AlertModal";
 import { useIsFocused } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  Camera,
-  runAsync,
-  useFrameProcessor,
+    Camera,
+    runAsync,
+    useFrameProcessor,
 } from "react-native-vision-camera";
 import {
-  Face,
-  FaceDetectionOptions,
-  useFaceDetector,
+    Face,
+    FaceDetectionOptions,
+    useFaceDetector,
 } from "react-native-vision-camera-face-detector";
 import { Worklets } from "react-native-worklets-core";
 
@@ -125,9 +125,11 @@ export const useTimekeep = (options?: UseSingleFaceCaptureOptions) => {
   const frameProcessor = useFrameProcessor(
     (frame) => {
       "worklet";
+      // Detect faces synchronously - it's fast enough and prevents memory leaks
+      const faces = detectFaces(frame);
+      // Run the handler asynchronously on JS thread
       runAsync(frame, () => {
         "worklet";
-        const faces = detectFaces(frame);
         handleDetectedFaces(faces);
       });
     },

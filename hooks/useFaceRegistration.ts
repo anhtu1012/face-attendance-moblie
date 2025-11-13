@@ -289,9 +289,11 @@ export const useFaceRegistration = () => {
   const frameProcessor = useFrameProcessor(
     (frame) => {
       "worklet";
+      // Detect faces synchronously - it's fast enough and prevents memory leaks
+      const faces = detectFaces(frame);
+      // Run the handler asynchronously on JS thread
       runAsync(frame, () => {
         "worklet";
-        const faces = detectFaces(frame);
         handleDetectedFaces(faces);
       });
     },
