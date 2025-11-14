@@ -8,10 +8,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useIsFocused } from "@react-navigation/native";
 import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import {
-  Camera,
-  useFrameProcessor
-} from "react-native-vision-camera";
+import { Camera, useFrameProcessor } from "react-native-vision-camera";
 import {
   Face,
   FaceDetectionOptions,
@@ -33,6 +30,7 @@ export const useFaceRegistration = () => {
   const [cameraLayout, setCameraLayout] = useState({ width: 0, height: 0 });
   const [userFace, setUserFace] = useState<any>(null);
   const [currentPose, setCurrentPose] = useState<number | null>(null);
+  const [capturingPose, setCapturingPose] = useState<number | null>(null); // Track pose being captured
   const { detectFaces, stopListeners } = useFaceDetector(faceDetectionOptions);
   const isRegisteringRef = useRef(false);
   const registrationGeneration = useRef(0);
@@ -135,6 +133,13 @@ export const useFaceRegistration = () => {
     const currentGeneration = ++registrationGeneration.current;
     isRegisteringRef.current = true;
 
+    // IMPORTANT: Track which pose we're capturing for UI display
+    setCapturingPose(currentMissingPose);
+
+    // IMPORTANT: Immediately remove the pose from missing list BEFORE taking photo
+    // This prevents duplicate captures of the same pose due to frame processor continuing to run
+    setMissingPose((prev) => prev.slice(1));
+
     try {
       const photo = await cameraRef.current?.takePhoto();
 
@@ -145,6 +150,10 @@ export const useFaceRegistration = () => {
       }
 
       if (!photo?.path || !userProfile?.id) {
+        // Restore the pose if photo failed
+        console.error("Photo capture failed, restoring pose");
+        setMissingPose((prev) => [currentMissingPose, ...prev]);
+        setCapturingPose(null); // Clear capturing pose
         isRegisteringRef.current = false;
         return;
       }
@@ -168,11 +177,12 @@ export const useFaceRegistration = () => {
         currentGeneration !== registrationGeneration.current
       ) {
         isRegisteringRef.current = false;
+        setCapturingPose(null); // Clear capturing pose
         return;
       }
 
-      // delete already checked pose
-      setMissingPose((prev) => prev.slice(1));
+      // Clear capturing pose after successful capture
+      setCapturingPose(null);
 
       // Add haptic feed back when
       // await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
@@ -257,12 +267,25 @@ export const useFaceRegistration = () => {
           message: "Đăng ký khuôn mặt thành công",
           onClose: () => {
             setModal(initialModalValue);
-            router.navigate("/");
+            router.replace({
+              pathname: "/(drawer)/(tabs)",
+              params: {
+                refetchForms: "true",
+              },
+            });
           },
         }));
       }
     } catch (error: any) {
       console.error("Face registration error:", error);
+
+      // Restore the pose on error (only if not at final pose)
+      if (currentMissingPose !== 5) {
+        console.log("Restoring pose due to error:", currentMissingPose);
+        setMissingPose((prev) => [currentMissingPose, ...prev]);
+      }
+
+      setCapturingPose(null); // Clear capturing pose on error
 
       if (isMountedRef.current) {
         setIsPending(false);
@@ -296,16 +319,19 @@ export const useFaceRegistration = () => {
       try {
         const now = Date.now();
         // Skip frames if processing too fast or already processing
-        if (isProcessing.current || now - lastFrameTime.current < FRAME_SKIP_MS) {
+        if (
+          isProcessing.current ||
+          now - lastFrameTime.current < FRAME_SKIP_MS
+        ) {
           return;
         }
         isProcessing.current = true;
         lastFrameTime.current = now;
-        
+
         // Detect faces synchronously - plugin handles frame lifecycle
         const faces = detectFaces(frame);
         isProcessing.current = false;
-        
+
         // Call handler on JS thread (already wrapped with createRunOnJS)
         if (faces && faces.length > 0) {
           handleDetectedFaces(faces);
@@ -415,5 +441,6 @@ export const useFaceRegistration = () => {
     handleCameraLayout,
     userFace,
     currentPose,
+    capturingPose, // Export the currently capturing pose
   };
 };
