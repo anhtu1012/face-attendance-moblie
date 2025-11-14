@@ -11,7 +11,7 @@ import {
   MaterialCommunityIcons,
   Octicons,
 } from "@expo/vector-icons";
-import { DrawerActions, useIsFocused } from "@react-navigation/native";
+import { DrawerActions } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -31,7 +31,7 @@ import {
 
 function HomePage() {
   const { userId, userProfile } = useGetUserProfile();
-  const { refetchForms } = useLocalSearchParams();
+  const { refetchForms, refetchCurrentTimekeeping } = useLocalSearchParams();
   const { submittedFormListData, refetch: refetchGetSubmittedFormListData } =
     useGetSubmittedForm({
       userId: userId || "",
@@ -66,6 +66,8 @@ function HomePage() {
   useEffect(() => {
     if (refetchForms === "true") {
       refetchGetSubmittedFormListData();
+      // Clear the param by navigating without it
+      router.replace("/(drawer)/(tabs)");
     }
   }, [refetchForms]);
 
@@ -190,7 +192,10 @@ function HomePage() {
         </View>
 
         {/* Today Widget */}
-        <TodayWidget loadingSchedule={false} />
+        <TodayWidget
+          loadingSchedule={false}
+          refetchCurrentTimekeeping={refetchCurrentTimekeeping as string}
+        />
 
         {/* Forms Status */}
         {/* <FormsStatusWidget
