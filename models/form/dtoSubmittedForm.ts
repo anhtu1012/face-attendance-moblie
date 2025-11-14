@@ -1,5 +1,7 @@
 import { formCategory } from "@/constants/form";
 
+export type FormStatus = "INACTIVE" | "PENDING" | "ACCEPTED" | "REJECTED";
+
 export type SubmittedFormItem = {
   id: string;
   createdAt: string;
@@ -7,7 +9,7 @@ export type SubmittedFormItem = {
   reason: string;
   response: string | null;
   file: string;
-  status: "INACTIVE" | "PENDING" | "ACCEPTED" | "REJECTED";
+  status: FormStatus;
   startTime: string;
   endTime: string;
   approvedTime: string;

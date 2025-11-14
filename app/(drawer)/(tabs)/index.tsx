@@ -1,5 +1,6 @@
 import TodayWidget from "@/components/Home/TodayWidget";
 import { motivationalQuotes } from "@/constants/homepage";
+import { useSocket } from "@/contexts/SocketContext";
 import { useGetSubmittedForm } from "@/hooks/useGetSubmittedForm";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { SubmittedFormItem } from "@/models/form/dtoSubmittedForm";
@@ -47,6 +48,7 @@ function HomePage() {
   const [cancelReason, setCancelReason] = useState("");
   const [isSubmittingCancel, setIsSubmittingCancel] = useState(false);
   const navigation = useNavigation();
+  const socket = useSocket();
 
   const handleGetSubmittedForm = async () => {
     try {
@@ -57,6 +59,34 @@ function HomePage() {
       console.log(error);
     }
   };
+
+  // socket for forms data
+  useEffect(() => {
+    if (!socket) {
+      console.log("⚠️ Socket not available");
+      return;
+    }
+
+    console.log(
+      "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION",
+    );
+
+    const handleGetSocketData = (data: SubmittedFormItem) => {
+      console.log("📨 Socket message received:", data);
+
+      // update submittedForms
+      setSubmittedForms((prev) => [...prev, data]);
+    };
+
+    // Add listener
+    socket.on("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
+
+    // Cleanup listener on unmount
+    return () => {
+      console.log("🧹 Cleaning up socket listener");
+      socket.off("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
+    };
+  }, [socket]); // Add refetch to dependencies
 
   useEffect(() => {
     refetchGetSubmittedFormListData();
@@ -309,7 +339,7 @@ function HomePage() {
                         />
                         <Text style={styles.formInfoText}>
                           Ngày tạo:{" "}
-                          {new Date(form.createdAt).toLocaleDateString(
+                          {new Date(form.createdAt ?? "").toLocaleDateString(
                             "vi-VN",
                             {
                               day: "2-digit",

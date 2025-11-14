@@ -8,8 +8,8 @@ import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
 import {
-  useCameraDevice,
-  useCameraPermission,
+    useCameraDevice,
+    useCameraPermission,
 } from "react-native-vision-camera";
 import { styles } from "./camera.styles";
 
