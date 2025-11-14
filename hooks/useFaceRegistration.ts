@@ -10,8 +10,7 @@ import { router } from "expo-router";
 import { useEffect, useRef, useState } from "react";
 import {
   Camera,
-  runAsync,
-  useFrameProcessor,
+  useFrameProcessor
 } from "react-native-vision-camera";
 import {
   Face,
@@ -286,16 +285,35 @@ export const useFaceRegistration = () => {
     }
   });
 
+  // Frame skipping to prevent memory leaks
+  const lastFrameTime = useRef(0);
+  const isProcessing = useRef(false);
+  const FRAME_SKIP_MS = 500; // Process max 2 frames per second
+
   const frameProcessor = useFrameProcessor(
     (frame) => {
       "worklet";
-      // Detect faces synchronously - it's fast enough and prevents memory leaks
-      const faces = detectFaces(frame);
-      // Run the handler asynchronously on JS thread
-      runAsync(frame, () => {
-        "worklet";
-        handleDetectedFaces(faces);
-      });
+      try {
+        const now = Date.now();
+        // Skip frames if processing too fast or already processing
+        if (isProcessing.current || now - lastFrameTime.current < FRAME_SKIP_MS) {
+          return;
+        }
+        isProcessing.current = true;
+        lastFrameTime.current = now;
+        
+        // Detect faces synchronously - plugin handles frame lifecycle
+        const faces = detectFaces(frame);
+        isProcessing.current = false;
+        
+        // Call handler on JS thread (already wrapped with createRunOnJS)
+        if (faces && faces.length > 0) {
+          handleDetectedFaces(faces);
+        }
+      } catch (error) {
+        isProcessing.current = false;
+        console.error("[FrameProcessor] Error:", error);
+      }
     },
     [handleDetectedFaces],
   );
