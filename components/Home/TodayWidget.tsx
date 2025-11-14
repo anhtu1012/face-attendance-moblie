@@ -22,9 +22,13 @@ import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
 import CheckTimeBox from "../ui/CheckTimeBox";
 interface TodayWidgetProps {
   loadingSchedule: boolean;
+  refetchCurrentTimekeeping: string;
 }
 
-const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
+const TodayWidget = ({
+  loadingSchedule,
+  refetchCurrentTimekeeping,
+}: TodayWidgetProps) => {
   // Pulse animation for check-in button
   const pulse = useSharedValue(1);
   const { userId } = useGetUserProfile();
@@ -47,14 +51,25 @@ const TodayWidget = ({ loadingSchedule }: TodayWidgetProps) => {
     });
   const timekeepingId = timekeepingData?.data[0]?.timekeepingId;
 
-  const { detailTimekeepingData: todayTimekeepingData, isLoading } =
-    useGetDetailTimekeepingData({
-      timekeepingId: timekeepingId || "",
-      enabled: !!timekeepingId,
-    });
+  const {
+    detailTimekeepingData: todayTimekeepingData,
+    isLoading,
+    refetch: refetchTimekeepingData,
+  } = useGetDetailTimekeepingData({
+    timekeepingId: timekeepingId || "",
+    enabled: !!timekeepingId,
+  });
   useEffect(() => {
     pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
   }, []);
+
+  // refetch when navigate back from useTimekeeping
+  useEffect(() => {
+    if (refetchCurrentTimekeeping === "true") {
+      refetchTimekeepingData();
+      router.replace("/(drawer)/(tabs)");
+    }
+  }, [refetchCurrentTimekeeping]);
 
   const animatedButtonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],

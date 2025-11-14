@@ -39,7 +39,12 @@ const TimekeepCameraPage = () => {
               "Vui lòng cấp quyền truy cập camera để sử dụng tính năng này",
             onClose: () => {
               setModal((prev) => ({ ...prev, visible: false }));
-              router.back();
+              router.replace({
+                pathname: "/(drawer)/(tabs)",
+                params: {
+                  refetchCurrentTimekeeping: "true",
+                },
+              });
             },
           });
         }
@@ -82,7 +87,12 @@ const TimekeepCameraPage = () => {
                 : "Chấm công ra thành công!",
             onClose: () => {
               setModal((prev) => ({ ...prev, visible: false }));
-              router.back();
+              router.replace({
+                pathname: "/(drawer)/(tabs)",
+                params: {
+                  refetchCurrentTimekeeping: "true",
+                },
+              });
             },
           });
         } else {
@@ -95,7 +105,15 @@ const TimekeepCameraPage = () => {
           type: "error",
           title: "Lỗi",
           message: error?.message || "Có lỗi xảy ra khi chấm công",
-          onClose: () => setModal((prev) => ({ ...prev, visible: false })),
+          onClose: () => {
+            setModal((prev) => ({ ...prev, visible: false }));
+            router.replace({
+              pathname: "/(drawer)/(tabs)",
+              params: {
+                refetchCurrentTimekeeping: "true",
+              },
+            });
+          },
         });
       } finally {
         setIsPending(false);
