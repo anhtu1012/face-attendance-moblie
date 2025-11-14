@@ -1,11 +1,12 @@
 import { useSendOTPAppendix } from "@/hooks/useSendOTPAppendix";
 import { useSendOTPContract } from "@/hooks/useSendOTPContract";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
-  Alert,
   Dimensions,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -25,6 +26,8 @@ interface SignatureModalProps {
   userContractExtendedId?: string;
   userGmail: string;
   type?: SignatureType;
+  externalOtpError?: string;
+  onClearExternalError?: () => void;
 }
 
 const { height } = Dimensions.get("window");
@@ -38,15 +41,37 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   userContractExtendedId,
   userGmail,
   type = "contract",
+  externalOtpError = "",
+  onClearExternalError,
 }) => {
   const [step, setStep] = useState<"signature" | "otp">("signature");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
   const [signatureBase64, setSignatureBase64] = useState<string>("");
   const [isVerifying, setIsVerifying] = useState(false);
+  const [otpError, setOtpError] = useState<string>("");
+  const [resendSuccess, setResendSuccess] = useState(false);
+  const [countdown, setCountdown] = useState(60);
   const signatureRef = useRef<any>(null);
   const sendOTPContract = useSendOTPContract();
   const sendOTPAppendix = useSendOTPAppendix();
   const otpInputs = useRef<(TextInput | null)[]>([]);
+
+  // Reset isVerifying when external error comes
+  useEffect(() => {
+    if (externalOtpError) {
+      setIsVerifying(false);
+    }
+  }, [externalOtpError]);
+
+  // Countdown timer for OTP
+  useEffect(() => {
+    if (step === "otp" && countdown > 0) {
+      const timer = setInterval(() => {
+        setCountdown((prev) => prev - 1);
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [step, countdown]);
 
   // Signature style configuration
   const signatureStyle = `
@@ -85,12 +110,14 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
       });
     }
 
+    setCountdown(60);
     setStep("otp");
   };
 
   // Handle signature empty
   const handleSignatureEmpty = () => {
-    Alert.alert("Lỗi", "Vui lòng ký tên trước khi tiếp tục");
+    // Empty signature is already handled by the component
+    // User can't proceed without signing
   };
 
   // Clear signature
@@ -105,6 +132,14 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
 
   // Handle OTP input
   const handleOtpChange = (text: string, index: number) => {
+    // Clear error when user starts typing
+    if (otpError) {
+      setOtpError("");
+    }
+    if (externalOtpError && onClearExternalError) {
+      onClearExternalError();
+    }
+
     if (text.length > 1) {
       text = text.slice(-1);
     }
@@ -130,39 +165,65 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
   const handleVerifyOtp = async () => {
     const otpCode = otp.join("");
     if (otpCode.length !== 6) {
-      Alert.alert("Lỗi", "Vui lòng nhập đủ 6 chữ số OTP");
+      setOtpError("Vui lòng nhập đủ 6 chữ số OTP");
       return;
     }
     setIsVerifying(true);
-    // Simulate OTP verification
-    setTimeout(() => {
-      setIsVerifying(false);
-      onSignComplete(signatureBase64, otpCode);
-      handleClose();
-    }, 1500);
+    setOtpError("");
+
+    // Call onSignComplete - parent will handle success/error
+    onSignComplete(signatureBase64, otpCode);
   };
 
   // Resend OTP
   const handleResendOtp = () => {
-    Alert.alert(
-      "Thành công",
-      "Mã OTP mới đã được gửi đến số điện thoại của bạn"
-    );
+    setOtpError("");
+    if (onClearExternalError) {
+      onClearExternalError();
+    }
     setOtp(["", "", "", "", "", ""]);
     otpInputs.current[0]?.focus();
+
+    // Reset countdown and show success message
+    setCountdown(60);
+    setResendSuccess(true);
+    setTimeout(() => setResendSuccess(false), 3000);
+
+    // Resend OTP based on type
+    if (type === "appendix" && userContractExtendedId) {
+      sendOTPAppendix.mutate({
+        userContractExtendedId: userContractExtendedId,
+        userGmail: userGmail,
+      });
+    } else if (type === "contract" && userContractId) {
+      sendOTPContract.mutate({
+        userContractId: userContractId,
+        userGmail: userGmail,
+      });
+    }
   };
 
   // Back to signature from OTP
   const handleBackToSignature = () => {
     setStep("signature");
     setOtp(["", "", "", "", "", ""]);
+    setOtpError("");
+    setCountdown(60);
+    if (onClearExternalError) {
+      onClearExternalError();
+    }
   };
 
   // Close modal and reset
   const handleClose = () => {
     setStep("signature");
     setOtp(["", "", "", "", "", ""]);
+    setOtpError("");
+    setCountdown(60);
     setSignatureBase64("");
+    if (onClearExternalError) {
+      onClearExternalError();
+    }
     onClose();
   };
 
@@ -178,11 +239,17 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.headerLeft}>
-              <MaterialCommunityIcons
-                name="file-sign"
-                size={24}
-                color="#3674B5"
-              />
+              {step === "otp" ? (
+                <TouchableOpacity onPress={handleBackToSignature}>
+                  <Feather name="arrow-left" size={24} color="#3674B5" />
+                </TouchableOpacity>
+              ) : (
+                <MaterialCommunityIcons
+                  name="file-sign"
+                  size={24}
+                  color="#3674B5"
+                />
+              )}
               <Text style={styles.headerTitle}>
                 {step === "signature"
                   ? type === "appendix"
@@ -194,14 +261,6 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
             <TouchableOpacity onPress={handleClose} style={styles.closeButton}>
               <Feather name="x" size={24} color="#6B7280" />
             </TouchableOpacity>
-          </View>
-
-          {/* Contract/Appendix Info */}
-          <View style={styles.contractInfo}>
-            <Text style={styles.contractLabel}>
-              {type === "appendix" ? "Phụ lục hợp đồng" : "Hợp đồng"}
-            </Text>
-            <Text style={styles.contractNumberText}>{contractNumber}</Text>
           </View>
 
           {/* Signature Step */}
@@ -224,7 +283,8 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
                   autoClear={false}
                   imageType="image/png"
                   penColor="#1F2937"
-                  backgroundColor="#F9FAFB"
+                  backgroundColor="#FFFFFF"
+                  dataURL={signatureBase64}
                 />
               </View>
 
@@ -255,82 +315,85 @@ const SignatureModal: React.FC<SignatureModalProps> = ({
 
           {/* OTP Step */}
           {step === "otp" && (
-            <View style={styles.otpContainer}>
-              <View style={styles.otpIconContainer}>
-                <MaterialCommunityIcons
-                  name="shield-lock"
-                  size={48}
-                  color="#3674B5"
-                />
-              </View>
-
-              <Text style={styles.otpTitle}>Nhập mã OTP</Text>
-              <Text style={styles.otpDescription}>
-                Mã OTP đã được gửi đến gmail của bạn
-              </Text>
-
-              {/* Signature Preview */}
-              <View style={styles.signaturePreview}>
-                <Text style={styles.signaturePreviewLabel}>
-                  ✓ Chữ ký đã được tạo
+            <KeyboardAvoidingView
+              behavior={Platform.OS === "ios" ? "padding" : "height"}
+              style={styles.keyboardAvoidingView}
+            >
+              <View style={styles.otpContainer}>
+                {/* Title */}
+                <Text style={styles.otpTitle}>
+                  Mã OTP đã được gửi đến gmail của bạn
                 </Text>
-                <TouchableOpacity onPress={handleBackToSignature}>
-                  <Text style={styles.changeSignatureText}>
-                    Thay đổi chữ ký
+                <Text style={styles.otpSubtitle}>
+                  {countdown > 0
+                    ? `Mã có hiệu lực trong ${countdown}s`
+                    : "Vui lòng nhập mã hoặc gửi lại"}
+                </Text>
+
+                {/* OTP Inputs */}
+                <View style={styles.otpInputsContainer}>
+                  {otp.map((digit, index) => (
+                    <TextInput
+                      key={index}
+                      ref={(ref) => {
+                        otpInputs.current[index] = ref;
+                      }}
+                      style={styles.otpInput}
+                      value={digit}
+                      onChangeText={(text) => handleOtpChange(text, index)}
+                      onKeyPress={(e) => handleKeyPress(e, index)}
+                      keyboardType="number-pad"
+                      maxLength={1}
+                      selection={{ start: digit.length, end: digit.length }}
+                    />
+                  ))}
+                </View>
+
+                {/* Messages */}
+                {externalOtpError || otpError ? (
+                  <Text style={styles.errorText}>
+                    {externalOtpError || otpError}
                   </Text>
+                ) : resendSuccess ? (
+                  <Text style={styles.successText}>
+                    Mã đã được gửi lại gmail của bạn, vui lòng kiểm tra
+                  </Text>
+                ) : null}
+
+                {/* Resend OTP */}
+                <TouchableOpacity
+                  onPress={handleResendOtp}
+                  style={styles.resendButton}
+                >
+                  <Text style={styles.resendText}>Gửi lại mã OTP</Text>
+                </TouchableOpacity>
+
+                {/* Verify Button */}
+                <TouchableOpacity
+                  style={[
+                    styles.verifyButton,
+                    isVerifying && styles.verifyButtonDisabled,
+                  ]}
+                  onPress={handleVerifyOtp}
+                  disabled={isVerifying}
+                >
+                  {isVerifying ? (
+                    <Text style={styles.verifyButtonText}>
+                      Đang xác thực...
+                    </Text>
+                  ) : (
+                    <>
+                      <MaterialCommunityIcons
+                        name="check-circle"
+                        size={20}
+                        color="#FFFFFF"
+                      />
+                      <Text style={styles.verifyButtonText}>Xác nhận ký</Text>
+                    </>
+                  )}
                 </TouchableOpacity>
               </View>
-
-              {/* OTP Inputs */}
-              <View style={styles.otpInputsContainer}>
-                {otp.map((digit, index) => (
-                  <TextInput
-                    key={index}
-                    ref={(ref) => {
-                      otpInputs.current[index] = ref;
-                    }}
-                    style={[styles.otpInput, digit && styles.otpInputFilled]}
-                    value={digit}
-                    onChangeText={(text) => handleOtpChange(text, index)}
-                    onKeyPress={(e) => handleKeyPress(e, index)}
-                    keyboardType="number-pad"
-                    maxLength={1}
-                    selectTextOnFocus
-                  />
-                ))}
-              </View>
-
-              {/* Resend OTP */}
-              <TouchableOpacity
-                onPress={handleResendOtp}
-                style={styles.resendButton}
-              >
-                <Text style={styles.resendText}>Gửi lại mã OTP</Text>
-              </TouchableOpacity>
-
-              {/* Verify Button */}
-              <TouchableOpacity
-                style={[
-                  styles.verifyButton,
-                  isVerifying && styles.verifyButtonDisabled,
-                ]}
-                onPress={handleVerifyOtp}
-                disabled={isVerifying}
-              >
-                {isVerifying ? (
-                  <Text style={styles.verifyButtonText}>Đang xác thực...</Text>
-                ) : (
-                  <>
-                    <MaterialCommunityIcons
-                      name="check-circle"
-                      size={20}
-                      color="#FFFFFF"
-                    />
-                    <Text style={styles.verifyButtonText}>Xác nhận ký</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
+            </KeyboardAvoidingView>
           )}
         </View>
       </View>
@@ -349,7 +412,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingBottom: 40,
-    maxHeight: height * 0.9,
+    height: height * 0.95,
   },
   header: {
     flexDirection: "row",
@@ -372,24 +435,6 @@ const styles = StyleSheet.create({
   },
   closeButton: {
     padding: 4,
-  },
-  contractInfo: {
-    backgroundColor: "#F9FAFB",
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: "#E5E7EB",
-  },
-  contractLabel: {
-    fontSize: 12,
-    color: "#6B7280",
-    fontWeight: "500",
-    marginBottom: 4,
-  },
-  contractNumberText: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1F2937",
   },
 
   // Signature Styles
@@ -456,60 +501,31 @@ const styles = StyleSheet.create({
   },
 
   // OTP Styles
-  otpContainer: {
-    padding: 24,
-    alignItems: "center",
+  keyboardAvoidingView: {
+    flex: 1,
   },
-  otpIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: "#EFF6FF",
+  otpContainer: {
+    padding: 20,
     alignItems: "center",
-    justifyContent: "center",
-    marginBottom: 20,
   },
   otpTitle: {
-    fontSize: 22,
+    fontSize: 16,
     fontWeight: "700",
     color: "#1F2937",
-    marginBottom: 8,
-  },
-  otpDescription: {
-    fontSize: 14,
-    color: "#6B7280",
+    marginBottom: 4,
     textAlign: "center",
-    marginBottom: 20,
-    paddingHorizontal: 20,
   },
-  signaturePreview: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: "#ECFDF5",
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: 12,
-    marginBottom: 24,
-    width: "100%",
-    borderWidth: 1,
-    borderColor: "#A7F3D0",
-  },
-  signaturePreviewLabel: {
+  otpSubtitle: {
     fontSize: 14,
-    fontWeight: "600",
-    color: "#065F46",
-  },
-  changeSignatureText: {
-    fontSize: 13,
-    color: "#3674B5",
-    fontWeight: "600",
-    textDecorationLine: "underline",
+    fontWeight: "400",
+    color: "#6B7280",
+    marginBottom: 20,
+    textAlign: "center",
   },
   otpInputsContainer: {
     flexDirection: "row",
-    gap: 12,
-    marginBottom: 24,
+    gap: 10,
+    marginBottom: 16,
   },
   otpInput: {
     width: 48,
@@ -523,19 +539,30 @@ const styles = StyleSheet.create({
     color: "#1F2937",
     backgroundColor: "#FFFFFF",
   },
-  otpInputFilled: {
-    borderColor: "#3674B5",
-    backgroundColor: "#EFF6FF",
+  errorText: {
+    fontSize: 13,
+    color: "#EF4444",
+    marginTop: 8,
+    marginBottom: 8,
+    textAlign: "center",
+    fontWeight: "500",
+  },
+  successText: {
+    fontSize: 13,
+    color: "black",
+    marginTop: 8,
+    marginBottom: 8,
+    textAlign: "center",
+    fontWeight: "500",
   },
   resendButton: {
-    paddingVertical: 8,
+    paddingVertical: 6,
     marginBottom: 24,
   },
   resendText: {
     fontSize: 14,
     color: "#3674B5",
     fontWeight: "600",
-    textDecorationLine: "underline",
   },
   verifyButton: {
     flexDirection: "row",

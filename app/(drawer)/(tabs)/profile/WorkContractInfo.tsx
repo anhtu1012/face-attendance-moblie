@@ -2,7 +2,6 @@ import ContractHistoryModal from "@/components/Contract/ContractHistoryModal";
 import InfoRow from "@/components/Contract/InfoRow";
 import NoContractFound from "@/components/Contract/NoContractFound";
 import SignatureModal from "@/components/Contract/SignatureModal";
-import ErrorAlert from "@/components/ui/ErrorAlert";
 import PDFModal from "@/components/ui/PDFModal";
 import SuccessAlert from "@/components/ui/SuccessAlert";
 import { useConfirmOtp } from "@/hooks/useConfirmOtp";
@@ -29,8 +28,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
   const [signatureModalVisible, setSignatureModalVisible] = useState(false);
   const [pdfModalVisible, setPdfModalVisible] = useState(false);
   const [successAlertVisible, setSuccessAlertVisible] = useState(false);
-  const [errorAlertVisible, setErrorAlertVisible] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [signatureOtpError, setSignatureOtpError] = useState("");
   const [contractHistoryModalVisible, setContractHistoryModalVisible] =
     useState(false);
   const {
@@ -55,6 +53,39 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
 
   const formatCurrency = (value: string) => {
     return `${value} ₫`;
+  };
+
+  const calculateDuration = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return "--";
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // Tính số năm, tháng, ngày chênh lệch
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days = end.getDate() - start.getDate();
+
+    // Điều chỉnh nếu ngày âm
+    if (days < 0) {
+      months--;
+      const previousMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+      days += previousMonth.getDate();
+    }
+
+    // Điều chỉnh nếu tháng âm
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    // Tạo text hiển thị theo thứ tự: năm > tháng > ngày
+    const parts = [];
+    if (years > 0) parts.push(`${years} năm`);
+    if (months > 0) parts.push(`${months} tháng`);
+    if (days > 0) parts.push(`${days} ngày`);
+
+    return parts.length > 0 ? parts.join(" ") : "0 ngày";
   };
 
   const getStatusLabel = (status: string) => {
@@ -97,15 +128,15 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
       onSuccess: () => {
         refetch();
         setSignatureModalVisible(false);
+        setSignatureOtpError("");
         setSuccessAlertVisible(true);
       },
       onError: (error: any) => {
         const message =
           error?.response?.data?.message ||
           error?.message ||
-          "Không thể ký hợp đồng. Vui lòng thử lại!";
-        setErrorMessage(message);
-        setErrorAlertVisible(true);
+          "Mã OTP không chính xác. Vui lòng thử lại";
+        setSignatureOtpError(message);
       },
     });
   };
@@ -163,7 +194,10 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
                 label="Thời hạn"
                 value={
                   contractData?.endDate
-                    ? `${contractData?.duration} tháng`
+                    ? calculateDuration(
+                        contractData?.startDate ?? "",
+                        contractData?.endDate ?? ""
+                      )
                     : "Vô thời hạn"
                 }
                 iconColor="#8B5CF6"
@@ -283,11 +317,16 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
       {/* Signature Modal */}
       <SignatureModal
         visible={signatureModalVisible}
-        onClose={() => setSignatureModalVisible(false)}
+        onClose={() => {
+          setSignatureModalVisible(false);
+          setSignatureOtpError("");
+        }}
         onSignComplete={handleSignComplete}
         contractNumber={contractData?.contractNumber ?? ""}
         userContractId={contractData?.id.toString() ?? ""}
         userGmail={gmail ?? ""}
+        externalOtpError={signatureOtpError}
+        onClearExternalError={() => setSignatureOtpError("")}
       />
 
       {/* PDF Modal */}
@@ -307,21 +346,6 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
         confirmText="Tiếp tục"
         autoClose={false}
         autoCloseDuration={4000}
-      />
-
-      {/* Error Alert */}
-      <ErrorAlert
-        visible={errorAlertVisible}
-        title="Ký thất bại!"
-        message={errorMessage}
-        onClose={() => setErrorAlertVisible(false)}
-        onRetry={() => {
-          setErrorAlertVisible(false);
-          setSignatureModalVisible(true);
-        }}
-        showRetry={true}
-        retryText="Thử lại"
-        closeText="Đóng"
       />
 
       {/* Contract History Modal */}
@@ -569,6 +593,7 @@ const styles = StyleSheet.create({
     elevation: 5,
     gap: 8,
     position: "relative",
+    marginTop: 12,
   },
   signContractText: {
     fontSize: 16,
