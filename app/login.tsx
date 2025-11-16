@@ -108,11 +108,11 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
 
     const keyboardDidShowListener = Keyboard.addListener(
       "keyboardDidShow",
-      onKeyboardShow
+      onKeyboardShow,
     );
     const keyboardDidHideListener = Keyboard.addListener(
       "keyboardDidHide",
-      onKeyboardHide
+      onKeyboardHide,
     );
 
     return () => {
@@ -174,7 +174,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       // await resetPasswordAPI(userName, newPassword);
 
       // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      // await new Promise((resolve) => setTimeout(resolve, 1500));
 
       Toast.show({
         type: "success",
@@ -222,7 +222,7 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       await AsyncStorage.setItem("token", loginResponse.accessToken);
       await AsyncStorage.setItem(
         "userProfile",
-        JSON.stringify(loginResponse.userProfile)
+        JSON.stringify(loginResponse.userProfile),
       );
       dispatch(setAuthData(loginResponse));
 

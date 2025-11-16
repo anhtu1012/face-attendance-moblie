@@ -4,13 +4,7 @@ import { AntDesign, MaterialCommunityIcons } from "@expo/vector-icons";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React from "react";
-import {
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from "react-native";
+import { ScrollView, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "./choose-form.styles";
 
 export default function ChooseFormPage() {
@@ -18,15 +12,19 @@ export default function ChooseFormPage() {
     <View style={styles.container}>
       {/* header */}
       <CustomHeaders title="Chọn loại đơn" onBack={() => router.replace("/")} />
-      
-      <ScrollView 
+
+      <ScrollView
         style={[styles.scrollViewContainer]}
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.content}>
           {/* Header Description */}
           <View style={styles.headerDescription}>
-            <MaterialCommunityIcons name="file-document-edit" size={28} color="#3674B5" />
+            <MaterialCommunityIcons
+              name="file-document-edit"
+              size={28}
+              color="#3674B5"
+            />
             <View style={styles.headerTextContainer}>
               <Text style={styles.headerDescTitle}>Tạo đơn mới</Text>
               <Text style={styles.headerDescSubtitle}>
@@ -42,7 +40,7 @@ export default function ChooseFormPage() {
                 key={formType.id}
                 style={[
                   styles.formTypeCard,
-                  index === formTypes.length - 1 && styles.lastCard
+                  index === formTypes.length - 1 && styles.lastCard,
                 ]}
                 onPress={() =>
                   router.push({
@@ -59,9 +57,14 @@ export default function ChooseFormPage() {
                   end={{ x: 1, y: 1 }}
                   style={styles.cardAccent}
                 />
-                
+
                 {/* Icon Container */}
-                <View style={[styles.formTypeIconContainer, { backgroundColor: formType.color }]}>
+                <View
+                  style={[
+                    styles.formTypeIconContainer,
+                    { backgroundColor: formType.color },
+                  ]}
+                >
                   <LinearGradient
                     colors={formType.gradientColors}
                     start={{ x: 0, y: 0 }}
@@ -85,7 +88,12 @@ export default function ChooseFormPage() {
                 </View>
 
                 {/* Arrow Icon */}
-                <AntDesign name="right" size={20} color="#999" style={styles.arrowIcon} />
+                <AntDesign
+                  name="right"
+                  size={20}
+                  color="#999"
+                  style={styles.arrowIcon}
+                />
               </TouchableOpacity>
             ))}
           </View>

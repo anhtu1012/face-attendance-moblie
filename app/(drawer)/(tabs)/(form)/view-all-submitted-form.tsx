@@ -9,9 +9,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { FormDetail } from "..";
 
-const handleRenderFormStateModern = (form: FormDetail) => {
+const handleRenderFormStateModern = (form: any) => {
   if (form.status === "PENDING") {
     return (
       <View style={styles.modernStatusBadge}>
@@ -50,7 +49,7 @@ const handleRenderFormStateModern = (form: FormDetail) => {
 
 export default function ChooseFormPage() {
   const { submittedForms } = useLocalSearchParams();
-  const formList: FormDetail[] = JSON.parse(submittedForms as string);
+  const formList: any[] = JSON.parse(submittedForms as string);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<
     "ALL" | "PENDING" | "APPROVED" | "REJECTED"

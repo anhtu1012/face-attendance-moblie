@@ -2,8 +2,10 @@ import { CameraView } from "@/components/FaceRegistration/CameraView";
 import { FaceGuideOverlay } from "@/components/FaceRegistration/FaceGuideOverlay";
 import SpinnerOverlay from "@/components/SpinnerOverlay";
 import AlertModal from "@/components/ui/AlertModal";
+import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { useTimekeep } from "@/hooks/useTimekeep";
 import { dtoPutTimekeep } from "@/models/timesheet/dtoTimekeep";
+import { verifyFace } from "@/services/face/api";
 import { timkeep } from "@/services/timesheet/api";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
@@ -17,11 +19,11 @@ const TimekeepCameraPage = () => {
   const { hasPermission, requestPermission } = useCameraPermission();
   const device = useCameraDevice("front");
   const [isCheckingPermission, setIsCheckingPermission] = useState(true);
-
   const { mode, timekeepingId } = useLocalSearchParams<{
     mode: "check-in" | "check-out";
     timekeepingId: string;
   }>();
+  const { userId } = useGetUserProfile();
 
   // Check and request camera permission
   useEffect(() => {
@@ -73,10 +75,19 @@ const TimekeepCameraPage = () => {
           timekeepData.checkOutTime = currentTime;
         }
 
-        // Call timekeep API
-        const response = await timkeep(timekeepData, timekeepingId);
+        // Check for spoofing
+        const formData = new FormData();
+        formData.append("userId", userId ?? "");
+        formData.append("comparedImg", imagePath);
+        const verifyResultRes = await verifyFace(formData);
+        if (verifyResultRes.status !== 200 && verifyResultRes.status !== 201) {
+          throw new Error("Chấm công thất bại");
+        }
 
-        if (response.status === 200 || response.status === 201) {
+        // Call timekeep API
+        const timekeepRes = await timkeep(timekeepData, timekeepingId);
+
+        if (timekeepRes.status === 200 || timekeepRes.status === 201) {
           setModal({
             visible: true,
             type: "success",
@@ -135,6 +146,7 @@ const TimekeepCameraPage = () => {
     frameProcessor,
     handleCameraLayout,
     isDetectedFace,
+    imagePath,
   } = useTimekeep({
     onCapture: handleCaptureAndTimekeep,
     autoCapture: true, // Automatically capture when face is detected

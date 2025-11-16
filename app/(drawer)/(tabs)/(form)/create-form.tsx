@@ -161,7 +161,7 @@ export default function CreateFormPage() {
       {/* Modern Gradient Header */}
 
       <CustomHeaders
-        title="Tạo đơn mới"
+        title={`Tạo ${title.toString().toLowerCase()}`}
         onBack={() => router.navigate("/(drawer)/(tabs)/(form)/choose-form")}
       />
 
