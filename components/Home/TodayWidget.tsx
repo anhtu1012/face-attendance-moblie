@@ -31,7 +31,7 @@ const TodayWidget = ({
 }: TodayWidgetProps) => {
   // Pulse animation for check-in button
   const pulse = useSharedValue(1);
-  const { userId } = useGetUserProfile();
+  const { userId, userProfile } = useGetUserProfile();
   const isFocused = useIsFocused();
   const today = new Date();
   const yesterday = new Date(today);

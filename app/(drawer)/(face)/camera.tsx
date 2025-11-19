@@ -54,6 +54,7 @@ const CameraPage = () => {
                 pathname: "/(drawer)/(tabs)",
                 params: {
                   refetchForms: "true",
+                  refetchUserData: "true",
                 },
               });
             },

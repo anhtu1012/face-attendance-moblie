@@ -36,5 +36,6 @@ export const verifyFace = (values: FormData) => {
     headers: {
       "Content-Type": "multipart/form-data",
     },
+    timeout: 10000,
   });
 };

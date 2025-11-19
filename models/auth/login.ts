@@ -35,5 +35,6 @@ export type LoginResponse = {
     status?: string | null;
     isActive: boolean;
   };
+  isAlreadyRegisteredFace: boolean;
   permissions: any[];
 };

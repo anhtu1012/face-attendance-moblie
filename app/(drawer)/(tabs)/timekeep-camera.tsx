@@ -78,7 +78,11 @@ const TimekeepCameraPage = () => {
         // Check for spoofing
         const formData = new FormData();
         formData.append("userId", userId ?? "");
-        formData.append("comparedImg", imagePath);
+        formData.append("comparedImg", {
+          uri: imagePath,
+          type: "application/jpeg",
+          name: "face.jpg",
+        } as any);
         const verifyResultRes = await verifyFace(formData);
         if (verifyResultRes.status !== 200 && verifyResultRes.status !== 201) {
           throw new Error("Chấm công thất bại");
@@ -110,7 +114,7 @@ const TimekeepCameraPage = () => {
           throw new Error("Chấm công thất bại");
         }
       } catch (error: any) {
-        console.error("Timekeep error:", error);
+        console.error("Timekeep error:", error.data);
         setModal({
           visible: true,
           type: "error",

@@ -32,6 +32,7 @@ export interface dtoGetUser {
   status: string | null;
   isActive: boolean;
   userPushToken: string | null;
+  isRegisterFace: boolean;
   dependent: dtoDependent[];
 }
 // UPDATE USER

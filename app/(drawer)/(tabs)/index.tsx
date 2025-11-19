@@ -31,8 +31,13 @@ import {
 } from "react-native";
 
 function HomePage() {
-  const { userId, userProfile } = useGetUserProfile();
-  const { refetchForms, refetchCurrentTimekeeping } = useLocalSearchParams();
+  const {
+    userId,
+    userProfile,
+    refetch: handleRefetchUserData,
+  } = useGetUserProfile();
+  const { refetchForms, refetchUserData, refetchCurrentTimekeeping } =
+    useLocalSearchParams();
   const { submittedFormListData, refetch: refetchGetSubmittedFormListData } =
     useGetSubmittedForm({
       userId: userId || "",
@@ -92,7 +97,7 @@ function HomePage() {
     refetchGetSubmittedFormListData();
   }, []);
 
-  // Refetch when redirected from create-form
+  // Refetch form data
   useEffect(() => {
     if (refetchForms === "true") {
       refetchGetSubmittedFormListData();
@@ -100,6 +105,15 @@ function HomePage() {
       router.replace("/(drawer)/(tabs)");
     }
   }, [refetchForms]);
+
+  // Refetch user data
+  useEffect(() => {
+    if (refetchUserData === "true") {
+      handleRefetchUserData();
+      // Clear the param by navigating without it
+      router.replace("/(drawer)/(tabs)");
+    }
+  }, [refetchUserData]);
 
   // Update local state when data changes
   useEffect(() => {
@@ -196,36 +210,40 @@ function HomePage() {
         }
       >
         {/* Register face widget */}
-        <View style={styles.widgetContainer}>
-          <View style={styles.faceRegisterHeader}>
-            <View style={styles.faceIconContainer}>
-              <MaterialCommunityIcons
-                name="face-recognition"
-                size={32}
-                color="#3674B5"
-              />
+        {userProfile?.isRegisterFace ?? (
+          <View style={styles.widgetContainer}>
+            <View style={styles.faceRegisterHeader}>
+              <View style={styles.faceIconContainer}>
+                <MaterialCommunityIcons
+                  name="face-recognition"
+                  size={32}
+                  color="#3674B5"
+                />
+              </View>
+              <View style={styles.faceRegisterContent}>
+                <Text style={styles.faceRegisterTitle}>Đăng ký khuôn mặt</Text>
+                <Text style={styles.faceRegisterSubtitle}>
+                  Vui lòng thiết lập nhận diện khuôn mặt để có thể chấm công!
+                </Text>
+              </View>
             </View>
-            <View style={styles.faceRegisterContent}>
-              <Text style={styles.faceRegisterTitle}>Đăng ký khuôn mặt</Text>
-              <Text style={styles.faceRegisterSubtitle}>
-                Vui lòng thiết lập nhận diện khuôn mặt để có thể chấm công!
-              </Text>
-            </View>
+            <TouchableOpacity
+              style={styles.faceRegisterButton}
+              onPress={() => router.replace("/(drawer)/(face)/face-register")}
+            >
+              <Text style={styles.faceRegisterButtonText}>Đăng ký ngay</Text>
+              <AntDesign name="account-book" size={16} color="#fff" />
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            style={styles.faceRegisterButton}
-            onPress={() => router.replace("/(drawer)/(face)/face-register")}
-          >
-            <Text style={styles.faceRegisterButtonText}>Đăng ký ngay</Text>
-            <AntDesign name="account-book" size={16} color="#fff" />
-          </TouchableOpacity>
-        </View>
+        )}
 
         {/* Today Widget */}
-        <TodayWidget
-          loadingSchedule={false}
-          refetchCurrentTimekeeping={refetchCurrentTimekeeping as string}
-        />
+        {userProfile?.isRegisterFace ?? (
+          <TodayWidget
+            loadingSchedule={false}
+            refetchCurrentTimekeeping={refetchCurrentTimekeeping as string}
+          />
+        )}
 
         {/* Forms Status */}
         {/* <FormsStatusWidget
