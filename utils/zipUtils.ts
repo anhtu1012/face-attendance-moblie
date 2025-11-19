@@ -2,6 +2,21 @@ import { zip } from "react-native-zip-archive";
 import { Directory, File, Paths } from "expo-file-system";
 import { copyAsync } from "expo-file-system/legacy";
 
+export const downloadZip = async (filePath: string) => {
+  try {
+    const tempDir = new Directory(Paths.cache, "images_zip_temp");
+    if (tempDir.exists) {
+      console.log("tempDir already exists");
+      tempDir.delete();
+    }
+    tempDir.create();
+    const downloadedZipFile = await File.downloadFileAsync(filePath, tempDir);
+    console.log("Downloaded File: ", downloadedZipFile.uri);
+  } catch (error) {
+    console.log(error);
+  }
+};
+
 export const createZip = async (imagePaths: string[]) => {
   try {
     const tempDir = new Directory(Paths.cache, "faces_zip_temp");

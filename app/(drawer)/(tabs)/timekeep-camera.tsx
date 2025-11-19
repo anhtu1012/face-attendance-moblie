@@ -114,12 +114,12 @@ const TimekeepCameraPage = () => {
           throw new Error("Chấm công thất bại");
         }
       } catch (error: any) {
-        console.error("Timekeep error:", error.data);
         setModal({
           visible: true,
           type: "error",
           title: "Lỗi",
-          message: error?.message || "Có lỗi xảy ra khi chấm công",
+          message:
+            error?.response.data.message || "Có lỗi xảy ra khi chấm công",
           onClose: () => {
             setModal((prev) => ({ ...prev, visible: false }));
             router.replace({

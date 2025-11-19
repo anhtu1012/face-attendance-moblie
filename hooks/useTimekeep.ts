@@ -1,10 +1,7 @@
 import { AlertModalProps, initialModalValue } from "@/components/ui/AlertModal";
 import { useIsFocused } from "@react-navigation/native";
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  Camera,
-  useFrameProcessor
-} from "react-native-vision-camera";
+import { Camera, useFrameProcessor } from "react-native-vision-camera";
 import {
   Face,
   FaceDetectionOptions,
@@ -132,18 +129,21 @@ export const useTimekeep = (options?: UseSingleFaceCaptureOptions) => {
       try {
         const now = Date.now();
         // Skip frames if processing too fast or already processing
-        if (isProcessing.current || now - lastFrameTime.current < FRAME_SKIP_MS) {
+        if (
+          isProcessing.current ||
+          now - lastFrameTime.current < FRAME_SKIP_MS
+        ) {
           return;
         }
         isProcessing.current = true;
         lastFrameTime.current = now;
-        
+
         // Detect faces synchronously - plugin handles frame lifecycle
         const faces = detectFaces(frame);
         isProcessing.current = false;
-        
+
         // Call handler on JS thread (already wrapped with createRunOnJS)
-        if (faces && faces.length > 0) {
+        if (faces && faces.length === 1) {
           handleDetectedFaces(faces);
         }
       } catch (error) {
