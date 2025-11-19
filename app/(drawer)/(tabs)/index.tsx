@@ -38,7 +38,7 @@ function HomePage() {
   } = useGetUserProfile();
   const { refetchForms, refetchUserData, refetchCurrentTimekeeping } =
     useLocalSearchParams();
-  const { submittedFormListData, refetch: refetchGetSubmittedFormListData } =
+  const { submittedFormListData, refetch: handleRefetchSubmittedFormData } =
     useGetSubmittedForm({
       userId: userId || "",
       enabled: false,
@@ -54,6 +54,8 @@ function HomePage() {
   const [isSubmittingCancel, setIsSubmittingCancel] = useState(false);
   const navigation = useNavigation();
   const socket = useSocket();
+
+  console.log("isRegisterFace: ", userProfile?.isRegisterFace);
 
   const handleGetSubmittedForm = async () => {
     try {
@@ -94,13 +96,13 @@ function HomePage() {
   }, [socket]); // Add refetch to dependencies
 
   useEffect(() => {
-    refetchGetSubmittedFormListData();
+    handleRefetchSubmittedFormData();
   }, []);
 
   // Refetch form data
   useEffect(() => {
     if (refetchForms === "true") {
-      refetchGetSubmittedFormListData();
+      handleRefetchSubmittedFormData();
       // Clear the param by navigating without it
       router.replace("/(drawer)/(tabs)");
     }
@@ -175,6 +177,11 @@ function HomePage() {
     }
   };
 
+  const handleRefresh = () => {
+    handleRefetchUserData();
+    handleRefetchSubmittedFormData();
+  };
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.header}>
@@ -206,11 +213,11 @@ function HomePage() {
         style={styles.container}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => {}} />
+          <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
         {/* Register face widget */}
-        {userProfile?.isRegisterFace ?? (
+        {!userProfile?.isRegisterFace ? (
           <View style={styles.widgetContainer}>
             <View style={styles.faceRegisterHeader}>
               <View style={styles.faceIconContainer}>
@@ -235,23 +242,20 @@ function HomePage() {
               <AntDesign name="account-book" size={16} color="#fff" />
             </TouchableOpacity>
           </View>
+        ) : (
+          <></>
         )}
 
         {/* Today Widget */}
-        {userProfile?.isRegisterFace ?? (
+        {userProfile?.isRegisterFace ? (
           <TodayWidget
             loadingSchedule={false}
             refetchCurrentTimekeeping={refetchCurrentTimekeeping as string}
+            isRefresh={refreshing}
           />
+        ) : (
+          <></>
         )}
-
-        {/* Forms Status */}
-        {/* <FormsStatusWidget
-          forms={forms}
-          loading={loading}
-          formatDate={formatDate}
-          onFormUpdate={fetchForms}
-        /> */}
 
         {/* Form section - New Design */}
         <View style={styles.formSectionContainer}>

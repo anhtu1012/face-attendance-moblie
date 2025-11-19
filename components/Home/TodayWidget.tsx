@@ -23,11 +23,13 @@ import CheckTimeBox from "../ui/CheckTimeBox";
 interface TodayWidgetProps {
   loadingSchedule: boolean;
   refetchCurrentTimekeeping: string;
+  isRefresh: boolean;
 }
 
 const TodayWidget = ({
   loadingSchedule,
   refetchCurrentTimekeeping,
+  isRefresh,
 }: TodayWidgetProps) => {
   // Pulse animation for check-in button
   const pulse = useSharedValue(1);

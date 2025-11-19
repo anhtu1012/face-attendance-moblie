@@ -26,38 +26,38 @@ const CheckTimeBox = ({
   const isCheckinOntime = checkinStatus === CheckinStatus.START_ONTIME;
   const isCheckoutOntime = checkoutStatus === CheckoutStatus.END_ONTIME;
   const handleRenderCardBackground = (
-    type: CheckTimeBoxProps["type"]
+    type: CheckTimeBoxProps["type"],
   ): StyleProp<ViewStyle> => {
     if (type === "in") {
-      if (!checkinStatus) return { backgroundColor: "#C3C3C3" };
+      if (!checkinStatus) return { backgroundColor: "#FFF4E0" };
       if (isCheckinOntime) return { backgroundColor: "#E9F7EF" };
       return { backgroundColor: "#FFE8E8" };
     }
-    if (!checkoutStatus) return { backgroundColor: "#C3C3C3" };
+    if (!checkoutStatus) return { backgroundColor: "#FFF4E0" };
     if (isCheckoutOntime) return { backgroundColor: "#E9F7EF" };
     return { backgroundColor: "#FFE8E8" };
   };
 
   const handleRenderCardColor = (
-    type: CheckTimeBoxProps["type"]
+    type: CheckTimeBoxProps["type"],
   ): StyleProp<TextStyle> => {
     if (type === "in") {
-      if (!checkinStatus) return { color: "#7A7A7A" };
+      if (!checkinStatus) return { color: "#F59E0B" };
       if (isCheckinOntime) return { color: "#2ECC71" };
       return { color: "#E74C3C" };
     }
-    if (!checkoutStatus) return { color: "#7A7A7A" };
+    if (!checkoutStatus) return { color: "#F59E0B" };
     if (isCheckoutOntime) return { color: "#2ECC71" };
     return { color: "#E74C3C" };
   };
 
   const handleRenderCardIcon = (type: CheckTimeBoxProps["type"]) => {
     if (type === "in") {
-      if (!checkinStatus) return <CircleAlert color="#7A7A7A" size={18} />;
+      if (!checkinStatus) return <CircleAlert color="#F59E0B" size={18} />;
       if (isCheckinOntime) return <CheckCircle color="#2ECC71" size={18} />;
       return <XCircle color="#E74C3C" size={18} />;
     }
-    if (!checkoutStatus) return <CircleAlert color="#7A7A7A" size={18} />;
+    if (!checkoutStatus) return <CircleAlert color="#F59E0B" size={18} />;
     if (isCheckoutOntime) return <CheckCircle color="#2ECC71" size={18} />;
     return <XCircle color="#E74C3C" size={18} />;
   };
