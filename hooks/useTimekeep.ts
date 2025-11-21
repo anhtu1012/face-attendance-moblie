@@ -44,7 +44,7 @@ export const useTimekeep = (options?: UseSingleFaceCaptureOptions) => {
     width: 0,
     height: 0,
   });
-  const [userFace, setUserFace] = useState<Face | null>(null);
+  const [userFace, setUserFace] = useState<Face[] | null>(null);
   const [imagePath, setImagePath] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [modal, setModal] = useState<AlertModalProps>({
@@ -107,8 +107,7 @@ export const useTimekeep = (options?: UseSingleFaceCaptureOptions) => {
       return;
     }
 
-    const face = faces[0];
-    setUserFace(face);
+    setUserFace(faces);
 
     // Auto-capture if enabled
     if (autoCapture && !hasCapturedRef.current) {
@@ -140,10 +139,18 @@ export const useTimekeep = (options?: UseSingleFaceCaptureOptions) => {
 
         // Detect faces synchronously - plugin handles frame lifecycle
         const faces = detectFaces(frame);
+
+        console.log("Faces result: ", faces);
+
         isProcessing.current = false;
 
         // Call handler on JS thread (already wrapped with createRunOnJS)
-        if (faces && faces.length === 1) {
+        if (
+          faces &&
+          faces.length === 1 &&
+          faces[0].bounds.width <= 150 &&
+          faces[0].bounds.height <= 150
+        ) {
           handleDetectedFaces(faces);
         }
       } catch (error) {

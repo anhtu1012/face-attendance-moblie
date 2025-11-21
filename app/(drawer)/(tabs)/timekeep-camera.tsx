@@ -156,6 +156,24 @@ const TimekeepCameraPage = () => {
     autoCapture: true, // Automatically capture when face is detected
   });
 
+  const handleShowTitle = () => {
+    if (!isDetectedFace && !userFace) {
+      return "Vui lòng đưa khuôn mặt ra xa camera để bắt đầu chấm công";
+    } else if (isDetectedFace && userFace && userFace.length === 1) {
+      return "Đã phát hiện khuôn mặt! Đang xử lý...";
+    } else if (isDetectedFace && userFace && userFace.length > 1) {
+      return "Không thể có nhiều khuôn mặt trong một khung hình";
+    } else if (
+      isDetectedFace &&
+      userFace &&
+      userFace.length === 1 &&
+      userFace[0].bounds.height > 135 &&
+      userFace[0].bounds.width > 135
+    ) {
+      return "Hãy để camera ra xa hơn nữa";
+    }
+  };
+
   return (
     <View style={styles.cameraWrapper} onLayout={() => setReady(true)}>
       {/* Loading overlay */}
@@ -204,15 +222,9 @@ const TimekeepCameraPage = () => {
           />
           {/* Instruction Text */}
           <View style={styles.textContainer}>
-            {!isDetectedFace ? (
-              <Text style={styles.modernInstructionText}>
-                Vui lòng đưa khuôn mặt vào khung hình
-              </Text>
-            ) : (
-              <Text style={styles.modernInstructionText}>
-                Đã phát hiện khuôn mặt! Đang xử lý...
-              </Text>
-            )}
+            <Text style={styles.modernInstructionText}>
+              {handleShowTitle()}
+            </Text>
           </View>
         </>
       )}

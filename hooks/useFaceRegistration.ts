@@ -44,37 +44,12 @@ export const useFaceRegistration = () => {
     onClose: () => setModal(initialModalValue),
   });
   const [isPending, setIsPending] = useState(false);
-  missingPoseRef.current = missingPose;
-
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     let previousBrightness: number;
-  //
-  //     Brightness.getSystemBrightnessAsync().then((value) => {
-  //       previousBrightness = value;
-  //       Brightness.setSystemBrightnessAsync(1); // set to max when focused
-  //     });
-  //
-  //     return () => {
-  //       if (previousBrightness !== undefined) {
-  //         Brightness.setSystemBrightnessAsync(previousBrightness);
-  //       } else {
-  //         Brightness.restoreSystemBrightnessAsync(); // fallback
-  //       }
-  //     };
-  //   }, []),
-  // );
-  //
-
-  // useEffect(() => {
-  //   missingPoseRef.current = missingPose;
-  // }, [missingPose]);
 
   useEffect(() => {
-    // // load brightness
-    // (async () => {
-    //   await Brightness.requestPermissionsAsync();
-    // })();
+    missingPoseRef.current = missingPose;
+  }, [missingPose]);
+
+  useEffect(() => {
     isMountedRef.current = true;
 
     return () => {
@@ -226,9 +201,6 @@ export const useFaceRegistration = () => {
           type: "application/zip",
           name: "faces.zip",
         } as any);
-
-        // Register face in python
-        // await registerFace(faceFormData);
 
         // Create face register form's form data
         const formData = new FormData();

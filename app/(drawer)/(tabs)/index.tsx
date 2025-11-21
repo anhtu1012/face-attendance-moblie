@@ -55,8 +55,6 @@ function HomePage() {
   const navigation = useNavigation();
   const socket = useSocket();
 
-  console.log("isRegisterFace: ", userProfile?.isRegisterFace);
-
   const handleGetSubmittedForm = async () => {
     try {
       if (!userId) return;

@@ -4,22 +4,27 @@ import {
   MaterialCommunityIcons,
   Octicons,
 } from "@expo/vector-icons";
+import { useIsFocused } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useState } from "react";
 import {
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
+  Linking,
 } from "react-native";
-import { FormDetail } from "..";
-import { useIsFocused } from "@react-navigation/native";
+import { Image } from "expo-image";
 
 export default function FormDetailScreen() {
   const params = useLocalSearchParams();
-  const formData = params as unknown as FormDetail;
+  const formData = params as unknown as any;
   const isFocused = useIsFocused();
+  const [imageStates, setImageStates] = useState<{
+    [key: number]: "loading" | "loaded" | "error";
+  }>({});
 
   const getStatusConfig = () => {
     if (formData.status === "PENDING") {
@@ -57,6 +62,8 @@ export default function FormDetailScreen() {
   };
 
   const statusConfig = getStatusConfig();
+
+  console.log("formData: ", formData.file.split(",")[0]);
 
   return (
     <View style={styles.container}>
@@ -250,18 +257,115 @@ export default function FormDetailScreen() {
               <Feather name="paperclip" size={20} color="#3674B5" />
               <Text style={styles.cardTitle}>Tệp đính kèm</Text>
             </View>
-            <TouchableOpacity style={styles.fileItem} activeOpacity={0.7}>
-              <View style={styles.fileIconContainer}>
-                <Feather name="file-text" size={20} color="#3674B5" />
-              </View>
-              <View style={styles.fileInfo}>
-                <Text style={styles.fileName} numberOfLines={1}>
-                  {formData.file}
-                </Text>
-                <Text style={styles.fileAction}>Nhấn để xem</Text>
-              </View>
-              <AntDesign name="right" size={16} color="#ccc" />
-            </TouchableOpacity>
+            <View
+              style={{
+                flexDirection: "row",
+                flexWrap: "wrap",
+                gap: 12,
+                marginTop: 8,
+              }}
+            >
+              {formData.file
+                .split(",")
+                .map((imagePath: string, index: number) => {
+                  // Clean and potentially fix the URL
+                  let cleanPath = imagePath.trim();
+                  
+                  // Convert HTTP to HTTPS if needed
+                  if (cleanPath.startsWith("http://")) {
+                    cleanPath = cleanPath.replace("http://", "https://");
+                    console.log(`� Converted to HTTPS: ${cleanPath}`);
+                  }
+                  
+                  console.log(`�🖼️ Loading image ${index}:`, cleanPath);
+                  
+                  return (
+                    <TouchableOpacity
+                      key={index}
+                      style={{
+                        width: "30%",
+                        aspectRatio: 1,
+                        borderRadius: 8,
+                        overflow: "hidden",
+                        backgroundColor: "#f0f0f0",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }}
+                      onPress={() => {
+                        Linking.openURL(cleanPath).catch((err) => {
+                          console.error("Failed to open URL:", err);
+                        });
+                      }}
+                      activeOpacity={0.7}
+                    >
+                      <Image
+                        source={{ uri: cleanPath }}
+                        style={{ width: "100%", height: "100%" }}
+                        contentFit="cover"
+                        transition={200}
+                        cachePolicy="none"
+                        onLoadStart={() => {
+                          console.log(`⏳ Image ${index} loading started`);
+                          setImageStates((prev) => ({
+                            ...prev,
+                            [index]: "loading",
+                          }));
+                        }}
+                        onLoad={() => {
+                          console.log(`✅ Image ${index} loaded successfully`);
+                          setImageStates((prev) => ({
+                            ...prev,
+                            [index]: "loaded",
+                          }));
+                        }}
+                        onError={(error) => {
+                          console.error(`❌ Image ${index} error:`, error);
+                          console.error(`URL was:`, cleanPath);
+                          setImageStates((prev) => ({
+                            ...prev,
+                            [index]: "error",
+                          }));
+                        }}
+                      />
+                      {imageStates[index] === "loading" && (
+                        <View
+                          style={{
+                            position: "absolute",
+                            width: "100%",
+                            height: "100%",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            backgroundColor: "rgba(0,0,0,0.1)",
+                          }}
+                        >
+                          <ActivityIndicator size="small" color="#3674B5" />
+                        </View>
+                      )}
+                      {imageStates[index] === "error" && (
+                        <View
+                          style={{
+                            position: "absolute",
+                            width: "100%",
+                            height: "100%",
+                            justifyContent: "center",
+                            alignItems: "center",
+                            backgroundColor: "#ffe0e0",
+                            padding: 8,
+                          }}
+                        >
+                          <Feather name="alert-circle" size={20} color="#F44336" />
+                          <Text style={{ fontSize: 9, color: "#F44336", marginTop: 4, textAlign: "center" }}>
+                            404
+                          </Text>
+                          <Text style={{ fontSize: 8, color: "#666", marginTop: 2, textAlign: "center" }}>
+                            Tap to open
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  );
+                })}
+            </View>
           </View>
         )}
 
