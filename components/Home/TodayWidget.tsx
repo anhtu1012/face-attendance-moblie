@@ -181,12 +181,14 @@ const TodayWidget = ({
           time={todayTimekeepingData.checkinTime!}
           checkinStatus={todayTimekeepingData.checkInStatus!}
           checkoutStatus={todayTimekeepingData.checkOutStatus!}
+          timekeepingStatus={todayTimekeepingData.status}
         />
         <CheckTimeBox
           type="out"
           time={todayTimekeepingData.checkOutTime!}
           checkinStatus={todayTimekeepingData.checkInStatus!}
           checkoutStatus={todayTimekeepingData.checkOutStatus!}
+          timekeepingStatus={todayTimekeepingData.status}
         />
         <TimesheetTotalHourBox
           totalWorkHour={todayTimekeepingData.totalWorkHour}

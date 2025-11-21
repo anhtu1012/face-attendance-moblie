@@ -1,4 +1,8 @@
-import { CheckinStatus, CheckoutStatus } from "@/models/timesheet/timekeeping";
+import {
+  CheckinStatus,
+  CheckoutStatus,
+  TimekeepingStatus,
+} from "@/models/timesheet/timekeeping";
 import { CheckCircle, CircleAlert, XCircle } from "lucide-react-native";
 import React from "react";
 import {
@@ -15,6 +19,7 @@ interface CheckTimeBoxProps {
   time: string;
   checkinStatus?: CheckinStatus | string;
   checkoutStatus?: CheckoutStatus | string;
+  timekeepingStatus?: TimekeepingStatus | string;
 }
 
 const CheckTimeBox = ({
@@ -22,12 +27,17 @@ const CheckTimeBox = ({
   time,
   checkinStatus,
   checkoutStatus,
+  timekeepingStatus,
 }: CheckTimeBoxProps) => {
   const isCheckinOntime = checkinStatus === CheckinStatus.START_ONTIME;
   const isCheckoutOntime = checkoutStatus === CheckoutStatus.END_ONTIME;
   const handleRenderCardBackground = (
     type: CheckTimeBoxProps["type"],
   ): StyleProp<ViewStyle> => {
+    // Render if status is not work
+    if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
+      return { backgroundColor: "#FFE8E8" };
+
     if (type === "in") {
       if (!checkinStatus) return { backgroundColor: "#FFF4E0" };
       if (isCheckinOntime) return { backgroundColor: "#E9F7EF" };
@@ -41,6 +51,10 @@ const CheckTimeBox = ({
   const handleRenderCardColor = (
     type: CheckTimeBoxProps["type"],
   ): StyleProp<TextStyle> => {
+    // Render if status is not work
+    if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
+      return { color: "#E74C3C" };
+
     if (type === "in") {
       if (!checkinStatus) return { color: "#F59E0B" };
       if (isCheckinOntime) return { color: "#2ECC71" };
@@ -52,6 +66,10 @@ const CheckTimeBox = ({
   };
 
   const handleRenderCardIcon = (type: CheckTimeBoxProps["type"]) => {
+    // Render if status is not work
+    if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
+      return <XCircle color="#E74C3C" size={18} />;
+
     if (type === "in") {
       if (!checkinStatus) return <CircleAlert color="#F59E0B" size={18} />;
       if (isCheckinOntime) return <CheckCircle color="#2ECC71" size={18} />;
@@ -63,6 +81,10 @@ const CheckTimeBox = ({
   };
 
   const handleRenderContent = (type: CheckTimeBoxProps["type"]) => {
+    // Render if status is not work
+    if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
+      return "Không làm hôm nay!";
+
     if (type === "in") {
       if (!checkinStatus) return "Chưa check-in";
       if (isCheckinOntime) return "Đến đúng giờ";
