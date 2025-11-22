@@ -5,18 +5,18 @@ import {
   Octicons,
 } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
+  ActivityIndicator,
+  Linking,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  ActivityIndicator,
-  Linking,
 } from "react-native";
-import { Image } from "expo-image";
 
 export default function FormDetailScreen() {
   const params = useLocalSearchParams();
