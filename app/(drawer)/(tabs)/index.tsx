@@ -176,8 +176,11 @@ function HomePage() {
   };
 
   const handleRefresh = () => {
-    handleRefetchUserData();
-    handleRefetchSubmittedFormData();
+    setRefreshing(true);
+    Promise.all([
+      handleRefetchUserData(),
+      handleRefetchSubmittedFormData(),
+    ]).then((_) => setRefreshing(false));
   };
 
   return (

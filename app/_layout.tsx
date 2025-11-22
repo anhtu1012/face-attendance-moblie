@@ -66,6 +66,7 @@ function AppContent() {
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
+      <SystemBars style="dark" />
       <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
         <SafeAreaView
           style={{ flex: 1, backgroundColor: "#ffffff" }}
@@ -135,7 +136,6 @@ export default function RootLayout() {
   return (
     <>
       <SafeAreaProvider>
-        <SystemBars style="dark" />
         {/*
       <ErrorBoundary>
       */}

@@ -1,3 +1,4 @@
+import { updateUserImage } from "@/api/user";
 import AlertModal from "@/components/ui/AlertModal";
 import CustomHeaders from "@/components/ui/CustomHeaders";
 import CustomTabs from "@/components/ui/CustomTabs";
@@ -6,12 +7,14 @@ import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { useUpdateUser } from "@/hooks/useUpdateUser";
 import { MILITARY_STATUS_OPTIONS } from "@/models/data/militaryStatus";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as ImagePicker from "expo-image-picker";
 import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import { useFormik } from "formik";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Image,
   ScrollView,
   StyleSheet,
@@ -25,11 +28,12 @@ import { dtoUpdateUser } from "../../../models/auth/dtoUser";
 import AppendixTab from "./profile/AppendixTab";
 import DependentInfo from "./profile/DependentInfo";
 import GeneralInfo from "./profile/GeneralInfo";
+import ResetPassword from "./profile/ResetPassword";
 import ResumeInfo from "./profile/ResumeInfo";
 import WorkContractInfo from "./profile/WorkContractInfo";
-import ResetPassword from "./profile/ResetPassword";
 export default function ProfilePage() {
   const [isEditing, setIsEditing] = useState(false);
+  const [isUploadingAvatar, setIsUploadingAvatar] = useState(false);
   const insets = useSafeAreaInsets();
   const [activeTab, setActiveTab] = useState(0);
   const {
@@ -209,6 +213,90 @@ export default function ProfilePage() {
     formik.resetForm();
     setIsEditing(false);
   };
+
+  const handleAvatarPress = async () => {
+    try {
+      // Request permissions
+      const permissionResult =
+        await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+      if (permissionResult.status !== "granted") {
+        Alert.alert(
+          "Quyền truy cập",
+          "Vui lòng cấp quyền truy cập thư viện ảnh để thay đổi ảnh đại diện",
+          [{ text: "OK" }],
+        );
+        return;
+      }
+
+      // Launch image picker
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets[0]) {
+        const selectedImage = result.assets[0];
+        await uploadAvatar(selectedImage.uri);
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Lỗi", "Không thể chọn ảnh. Vui lòng thử lại.");
+    }
+  };
+
+  const uploadAvatar = async (imageUri: string) => {
+    if (!userId) return;
+
+    setIsUploadingAvatar(true);
+
+    try {
+      // Create form data
+      const formData = new FormData();
+
+      // Get file extension
+      const fileExtension = imageUri.split(".").pop() || "jpg";
+      const fileName = `avatar_${userId}.${fileExtension}`;
+
+      // Append userId to form data
+      formData.append("userId", userId);
+
+      // Append image to form data
+      formData.append("faceImg", {
+        uri: imageUri,
+        type: `image/${fileExtension}`,
+        name: fileName,
+      } as any);
+
+      // Call API to update avatar
+      await updateUserImage(formData as any);
+
+      // Refetch user data to get updated avatar
+      await refetch();
+
+      setShowAlertModal({
+        visible: true,
+        message: "Cập nhật ảnh đại diện thành công!",
+        type: "success",
+        title: "Thành công",
+      });
+    } catch (error: any) {
+      console.error("Error uploading avatar:", error);
+      setShowAlertModal({
+        visible: true,
+        message:
+          error.response?.data?.message ||
+          "Không thể cập nhật ảnh đại diện. Vui lòng thử lại.",
+        type: "error",
+        title: "Lỗi",
+      });
+    } finally {
+      setIsUploadingAvatar(false);
+    }
+  };
+
   const formik = useFormik({
     initialValues,
     validate,
@@ -293,7 +381,12 @@ export default function ProfilePage() {
         {/* Horizontal Layout: Avatar + Info */}
         <View style={styles.profileContent}>
           {/* Avatar */}
-          <View style={styles.avatarWrapper}>
+          <TouchableOpacity
+            style={styles.avatarWrapper}
+            onPress={isEditing ? handleAvatarPress : undefined}
+            activeOpacity={isEditing ? 0.7 : 1}
+            disabled={isUploadingAvatar}
+          >
             <Image
               source={
                 userData?.faceImg
@@ -302,7 +395,16 @@ export default function ProfilePage() {
               }
               style={styles.avatarImage}
             />
-          </View>
+            {isEditing && (
+              <View style={styles.avatarEditOverlay}>
+                {isUploadingAvatar ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <MaterialIcons name="photo-camera" size={20} color="#fff" />
+                )}
+              </View>
+            )}
+          </TouchableOpacity>
 
           {/* Profile Info */}
           <View style={styles.profileInfo}>
@@ -561,5 +663,16 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingBottom: 80,
     flexGrow: 1,
+  },
+  avatarEditOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    borderRadius: 29,
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

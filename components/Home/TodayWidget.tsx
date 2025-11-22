@@ -4,7 +4,7 @@ import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { AntDesign } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
 import { router } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -20,6 +20,7 @@ import Animated, {
 } from "react-native-reanimated";
 import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
 import CheckTimeBox from "../ui/CheckTimeBox";
+import { TimekeepingStatus } from "@/models/timesheet/timekeeping";
 interface TodayWidgetProps {
   loadingSchedule: boolean;
   refetchCurrentTimekeeping: string;
@@ -45,12 +46,15 @@ const TodayWidget = ({
   // set Today
   today.setUTCHours(23, 59, 59, 0);
 
-  const { timekeepingData, isLoading: isLoadingTimekeeping } =
-    useGetTimekeepingData({
-      startTime: yesterday.toISOString(),
-      endTime: today.toISOString(),
-      userId: userId || "",
-    });
+  const {
+    timekeepingData,
+    isLoading: isLoadingTimekeeping,
+    refetch: refetchTodayTimekeepingData,
+  } = useGetTimekeepingData({
+    startTime: yesterday.toISOString(),
+    endTime: today.toISOString(),
+    userId: userId || "",
+  });
   const timekeepingId = timekeepingData?.data[0]?.timekeepingId;
 
   const {
@@ -67,11 +71,12 @@ const TodayWidget = ({
 
   // refetch when navigate back from useTimekeeping
   useEffect(() => {
-    if (refetchCurrentTimekeeping === "true") {
-      refetchTimekeepingData();
+    if (refetchCurrentTimekeeping === "true" || isRefresh) {
+      refetchTodayTimekeepingData();
+      if (timekeepingId) refetchTimekeepingData();
       router.replace("/(drawer)/(tabs)");
     }
-  }, [refetchCurrentTimekeeping]);
+  }, [refetchCurrentTimekeeping, isRefresh]);
 
   const animatedButtonStyle = useAnimatedStyle(() => ({
     transform: [{ scale: pulse.value }],
@@ -113,8 +118,6 @@ const TodayWidget = ({
   // Sử dụng phương thức getCurrentDateString để lấy ngày hiện tại
   const currentDateString = getCurrentDateString();
   // Xác định trạng thái check-in
-  let checkInButtonText = "Chấm công";
-  let checkInButtonDisabled = false;
   let checkInButtonColor = "#3674B5";
   let checkInTime = null;
   let checkOutTime = null;
@@ -153,7 +156,9 @@ const TodayWidget = ({
                 styles.checkinButton,
                 { backgroundColor: checkInButtonColor },
               ]}
-              disabled={checkInButtonDisabled}
+              disabled={
+                todayTimekeepingData.status !== TimekeepingStatus.PENDING
+              }
               onPress={() =>
                 router.push({
                   pathname: "/(drawer)/(tabs)/timekeep-camera",
@@ -168,7 +173,7 @@ const TodayWidget = ({
               }
               activeOpacity={0.8}
             >
-              <Text style={styles.checkinText}>{checkInButtonText}</Text>
+              <Text style={styles.checkinText}>Chấm công</Text>
             </TouchableOpacity>
           </Animated.View>
         </View>

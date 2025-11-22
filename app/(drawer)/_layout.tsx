@@ -29,13 +29,6 @@ export default function DrawerLayout() {
           }}
         />
         <Drawer.Screen
-          name="chat"
-          options={{
-            drawerLabel: "Chat App",
-            title: "Chat App",
-          }}
-        />
-        <Drawer.Screen
           name="(face)/face-register"
           options={{
             drawerLabel: "Đăng ký khuôn mặt",

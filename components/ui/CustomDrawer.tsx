@@ -91,11 +91,6 @@ const CustomDrawer = ({ navigation, state }: DrawerContentComponentProps) => {
           route: "/(drawer)/(tabs)",
         },
         {
-          label: "Chat App",
-          icon: <Ionicons name="chatbubble-outline" size={24} color="#fff" />,
-          route: "/(drawer)/chat",
-        },
-        {
           label: "Thông tin nhân sự",
           icon: <Feather name="user" size={24} color="#fff" />,
           route: "/(drawer)/(tabs)/profile",

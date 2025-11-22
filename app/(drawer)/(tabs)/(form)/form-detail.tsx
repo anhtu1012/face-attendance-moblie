@@ -270,15 +270,15 @@ export default function FormDetailScreen() {
                 .map((imagePath: string, index: number) => {
                   // Clean and potentially fix the URL
                   let cleanPath = imagePath.trim();
-                  
+
                   // Convert HTTP to HTTPS if needed
                   if (cleanPath.startsWith("http://")) {
                     cleanPath = cleanPath.replace("http://", "https://");
                     console.log(`� Converted to HTTPS: ${cleanPath}`);
                   }
-                  
+
                   console.log(`�🖼️ Loading image ${index}:`, cleanPath);
-                  
+
                   return (
                     <TouchableOpacity
                       key={index}
@@ -353,11 +353,29 @@ export default function FormDetailScreen() {
                             padding: 8,
                           }}
                         >
-                          <Feather name="alert-circle" size={20} color="#F44336" />
-                          <Text style={{ fontSize: 9, color: "#F44336", marginTop: 4, textAlign: "center" }}>
+                          <Feather
+                            name="alert-circle"
+                            size={20}
+                            color="#F44336"
+                          />
+                          <Text
+                            style={{
+                              fontSize: 9,
+                              color: "#F44336",
+                              marginTop: 4,
+                              textAlign: "center",
+                            }}
+                          >
                             404
                           </Text>
-                          <Text style={{ fontSize: 8, color: "#666", marginTop: 2, textAlign: "center" }}>
+                          <Text
+                            style={{
+                              fontSize: 8,
+                              color: "#666",
+                              marginTop: 2,
+                              textAlign: "center",
+                            }}
+                          >
                             Tap to open
                           </Text>
                         </View>
