@@ -7,6 +7,7 @@ import weekOfYear from "dayjs/plugin/weekOfYear";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import React, { useMemo, useState } from "react";
 import {
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -23,6 +24,7 @@ const TimesheetWeek = () => {
   const userId = useSelector((state: RootState) => state.auth.userProfile.id);
   const [currentWeek, setCurrentWeek] = useState(dayjs());
   const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
+  const [refreshing, setRefreshing] = useState(false);
   const { timekeepingData: timekeepingDataList, refetch } =
     useGetTimekeepingData({
       userId: userId!,
@@ -104,6 +106,15 @@ const TimesheetWeek = () => {
   const handlePrevWeek = () => setCurrentWeek(currentWeek.subtract(1, "week"));
   const handleNextWeek = () => setCurrentWeek(currentWeek.add(1, "week"));
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       {/* Header */}
@@ -120,7 +131,18 @@ const TimesheetWeek = () => {
       </View>
 
       {/* Week List */}
-      <ScrollView style={styles.scrollView}>
+      <ScrollView
+        style={styles.scrollView}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={["#3674B5"]}
+            tintColor="#3674B5"
+          />
+        }
+        showsVerticalScrollIndicator={false}
+      >
         {weekData.map((item, index) => (
           <TimesheetWeekCard
             key={index}

@@ -17,7 +17,6 @@ export const styles = StyleSheet.create({
   },
   scrollViewContainer: {
     flex: 1,
-    paddingBottom: 400,
   },
   content: {
     flex: 1,

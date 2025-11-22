@@ -1,7 +1,13 @@
 import React from "react";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-const TimesheetWeekCard = ({ item, setSelectedTimekeepingId }: { item: any, setSelectedTimekeepingId: (timekeepingId: number) => void }) => {
+const TimesheetWeekCard = ({
+  item,
+  setSelectedTimekeepingId,
+}: {
+  item: any;
+  setSelectedTimekeepingId: (timekeepingId: number) => void;
+}) => {
   return (
     <TouchableOpacity
       style={[styles.dayCard, item.isPending && styles.activeCard]}

@@ -6,7 +6,7 @@ import CustomTabs from "@/components/ui/CustomTabs";
 import { tabs } from "@/constants/timesheet";
 import { router } from "expo-router";
 import React, { useState } from "react";
-import { ScrollView, View } from "react-native";
+import { View } from "react-native";
 import { styles } from "./timesheet-tab.styles";
 export default function TimesheetTabPlaceholder() {
   const [activeTab, setActiveTab] = useState(0);
@@ -36,9 +36,7 @@ export default function TimesheetTabPlaceholder() {
         setActiveTab={setActiveTab}
         inactiveColor="#6B7280"
       />
-      <ScrollView style={styles.scrollViewContainer}>
-        <View style={styles.content}>{renderTabContent()}</View>
-      </ScrollView>
+      <View style={styles.scrollViewContainer}>{renderTabContent()}</View>
     </View>
   );
 }

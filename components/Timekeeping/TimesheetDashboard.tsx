@@ -6,7 +6,13 @@ import {
   MaterialIcons,
 } from "@expo/vector-icons";
 import React, { useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import {
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from "react-native";
 import { useSelector } from "react-redux";
 import MonthPickerButton from "../ui/MonthPickerButton";
 import MonthPickerModal from "../ui/MonthPickerModal";
@@ -19,6 +25,7 @@ const TimesheetDashboard: React.FC = () => {
     currentDate.getMonth() + 1
   );
   const [showMonthPicker, setShowMonthPicker] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
   const userId = useSelector((state: RootState) => state.auth.userProfile.id);
   const { timekeepingDashboardData, refetch } = useGetTimekeepingDashboardData(
     userId!,
@@ -36,8 +43,28 @@ const TimesheetDashboard: React.FC = () => {
     return `T${selectedMonth}, ${selectedYear}`;
   };
 
+  const onRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await refetch();
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      style={styles.container}
+      showsVerticalScrollIndicator={false}
+      refreshControl={
+        <RefreshControl
+          refreshing={refreshing}
+          onRefresh={onRefresh}
+          colors={["#3674B5"]}
+          tintColor="#3674B5"
+        />
+      }
+    >
       {/* Header with Month Selector */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Thống kê {getMonthYearText()}</Text>
@@ -127,8 +154,10 @@ const TimesheetDashboard: React.FC = () => {
             icon="alert-circle"
             color="#EF4444"
             highlight={
-              timekeepingDashboardData?.lateNumber &&
-              timekeepingDashboardData?.lateNumber > 0
+              !!(
+                timekeepingDashboardData?.lateNumber &&
+                timekeepingDashboardData?.lateNumber > 0
+              )
             }
           />
           <StatItem
@@ -137,8 +166,10 @@ const TimesheetDashboard: React.FC = () => {
             icon="alert-circle"
             color="#F59E0B"
             highlight={
-              timekeepingDashboardData?.earlyNumber &&
-              timekeepingDashboardData?.earlyNumber > 0
+              !!(
+                timekeepingDashboardData?.earlyNumber &&
+                timekeepingDashboardData?.earlyNumber > 0
+              )
             }
           />
           <StatItem
@@ -147,8 +178,10 @@ const TimesheetDashboard: React.FC = () => {
             icon="x-circle"
             color="#EF4444"
             highlight={
-              timekeepingDashboardData?.offWorkNumber &&
-              timekeepingDashboardData?.offWorkNumber > 0
+              !!(
+                timekeepingDashboardData?.offWorkNumber &&
+                timekeepingDashboardData?.offWorkNumber > 0
+              )
             }
           />
           <StatItem
@@ -157,8 +190,10 @@ const TimesheetDashboard: React.FC = () => {
             icon="alert-triangle"
             color="#F59E0B"
             highlight={
-              timekeepingDashboardData?.forgetLogNumber &&
-              timekeepingDashboardData?.forgetLogNumber > 0
+              !!(
+                timekeepingDashboardData?.forgetLogNumber &&
+                timekeepingDashboardData?.forgetLogNumber > 0
+              )
             }
           />
         </View>
