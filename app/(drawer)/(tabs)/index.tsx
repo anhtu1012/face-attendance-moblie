@@ -1,8 +1,8 @@
 import TodayWidget from "@/components/Home/TodayWidget";
 import { motivationalQuotes } from "@/constants/homepage";
-import { useSocket } from "@/contexts/SocketContext";
 import { useGetSubmittedForm } from "@/hooks/useGetSubmittedForm";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
+import useSocket from "@/hooks/useSocket";
 import { SubmittedFormItem } from "@/models/form/dtoSubmittedForm";
 import { cancelSubmittedForm, getSubmittedForm } from "@/services/form/api";
 import {
@@ -44,7 +44,7 @@ function HomePage() {
       enabled: false,
     });
   const [submittedForms, setSubmittedForms] = useState<SubmittedFormItem[]>(
-    submittedFormListData?.data || [],
+    submittedFormListData?.data || []
   );
   const [refreshing, setRefreshing] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -73,7 +73,7 @@ function HomePage() {
     }
 
     console.log(
-      "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION",
+      "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION"
     );
 
     const handleGetSocketData = (data: SubmittedFormItem) => {
@@ -126,7 +126,7 @@ function HomePage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuoteIndex(
-        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length,
+        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length
       );
     }, 5000);
 
@@ -293,10 +293,10 @@ function HomePage() {
                           form.status === "PENDING"
                             ? "#FF9800"
                             : form.status === "ACCEPTED"
-                              ? "#4CAF50"
-                              : form.status === "INACTIVE"
-                                ? "#c3c3c3"
-                                : "#F44336",
+                            ? "#4CAF50"
+                            : form.status === "INACTIVE"
+                            ? "#c3c3c3"
+                            : "#F44336",
                       },
                     ]}
                     onPress={() =>
@@ -320,10 +320,10 @@ function HomePage() {
                               form.status === "PENDING"
                                 ? "#FF9800"
                                 : form.status === "ACCEPTED"
-                                  ? "#4CAF50"
-                                  : form.status === "INACTIVE"
-                                    ? "#c3c3c3"
-                                    : "#F44336",
+                                ? "#4CAF50"
+                                : form.status === "INACTIVE"
+                                ? "#c3c3c3"
+                                : "#F44336",
                           },
                         ]}
                       >
@@ -331,10 +331,10 @@ function HomePage() {
                           {form.status === "PENDING"
                             ? "Chờ duyệt"
                             : form.status === "ACCEPTED"
-                              ? "Đã duyệt"
-                              : form.status === "INACTIVE"
-                                ? "Đã hủy"
-                                : "Từ chối"}
+                            ? "Đã duyệt"
+                            : form.status === "INACTIVE"
+                            ? "Đã hủy"
+                            : "Từ chối"}
                         </Text>
                       </View>
                       <TouchableOpacity style={styles.formCardMenu}>
@@ -368,7 +368,7 @@ function HomePage() {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
-                            },
+                            }
                           )}
                         </Text>
                       </View>

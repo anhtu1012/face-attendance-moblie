@@ -21,7 +21,7 @@ import { usePushNotifications } from "../hooks/usePushNotifications";
 import { persistor, store } from "../lib/store";
 // import { NotificationProvider } from '@/contexts/NotificationContext';
 import { toastConfig } from "@/components/CustomToast";
-import { SocketProvider, useSocket } from "@/contexts/SocketContext";
+import useSocket from "@/hooks/useSocket";
 import { dtoSocketNotification } from "@/models/socket/dtoSocketNotification";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { LogBox } from "react-native";
@@ -142,9 +142,7 @@ export default function RootLayout() {
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
             <QueryClientProvider client={queryClient}>
-              <SocketProvider>
-                <AppContent />
-              </SocketProvider>
+              <AppContent />
             </QueryClientProvider>
           </PersistGate>
         </Provider>

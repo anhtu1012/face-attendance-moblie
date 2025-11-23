@@ -1,97 +1,106 @@
 import { store } from "@/lib/store";
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
+import { socketRoomManager } from "./socketRoomManager";
 
-// Singleton socket instance
 let socketInstance: Socket | null = null;
-let currentToken: string | null = null;
+let isInitialized = false;
 
-const createSocket = (token: string): Socket => {
-  // If socket exists and token hasn't changed, return existing socket
-  if (socketInstance && currentToken === token && socketInstance.connected) {
+const createSocketInstance = (): Socket => {
+  if (socketInstance) {
     return socketInstance;
   }
 
-  // Disconnect old socket if it exists
-  if (socketInstance) {
-    console.log("Disconnecting old socket instance");
-    socketInstance.removeAllListeners();
-    socketInstance.disconnect();
-  }
+  const token = store.getState().auth.accessToken;
+  console.log(
+    "process.env.EXPO_PUBLIC_SOCKET_URL",
+    process.env.EXPO_PUBLIC_SOCKET_URL
+  );
 
-  // Create new socket
-  console.log("Creating new socket instance");
-  currentToken = token;
-
-  const socket = io("https://faceattendance.dev", {
+  const s = io(process.env.EXPO_PUBLIC_SOCKET_URL, {
     transports: ["websocket"],
     reconnection: true,
     reconnectionAttempts: 5,
-    reconnectionDelay: 1000,
-    reconnectionDelayMax: 5000,
-    timeout: 20000,
+    reconnectionDelay: 3000,
     query: { provider: "face" },
     auth: {
-      token: token,
+      token: `${token}`,
     },
   });
 
-  socket.on("connect", () => {
-    console.log("✅ WebSocket connected:", socket.id);
+  // Khởi tạo Socket Room Manager CHỈ MỘT LẦN
+
+  if (!isInitialized) {
+    socketRoomManager.initialize(s);
+    isInitialized = true;
+  }
+
+  s.on("connect_error", (error) => {
+    console.error(" [useSocket] WebSocket connection error:", error.message);
   });
 
-  socket.on("connect_error", (error) => {
-    console.error("❌ WebSocket connection error:", error.message);
+  s.on("disconnect", (reason) => {
+    console.warn(" [useSocket] WebSocket disconnected:", reason);
   });
 
-  socket.on("disconnect", (reason) => {
-    console.warn("🔌 WebSocket disconnected:", reason);
+  s.on("reconnect_attempt", (attempt) => {
+    console.log(` [useSocket] WebSocket reconnect attempt ${attempt}`);
   });
 
-  socket.on("reconnect_attempt", (attempt) => {
-    console.log(`🔄 WebSocket reconnect attempt ${attempt}`);
+  s.on("reconnect", () => {
+    console.log(" [useSocket] WebSocket reconnected successfully");
   });
 
-  socket.on("reconnect", () => {
-    console.log("✅ WebSocket reconnected successfully");
-  });
-
-  socketInstance = socket;
-  return socket;
+  socketInstance = s;
+  return s;
 };
 
-const useSocket = (): Socket | null => {
-  const [socket, setSocket] = useState<Socket | null>(null);
-  const token = store.getState().auth.accessToken;
+const useSocket = (): Socket => {
+  const [socket] = useState<Socket>(() => createSocketInstance());
 
   useEffect(() => {
-    if (!token) {
-      console.log("⚠️ No token available for socket connection");
-      return;
-    }
-
-    // Create or get existing socket
-    const newSocket = createSocket(token);
-    setSocket(newSocket);
-
-    // Cleanup function - DON'T disconnect, just remove local reference
+    // Cleanup on unmount (chỉ khi component cuối cùng unmount)
     return () => {
-      console.log("Component unmounting, but keeping socket alive");
+      // Không disconnect socket vì có thể components khác vẫn đang dùng
+      // Socket sẽ được cleanup khi logout hoặc page unload
     };
-  }, [token]);
+  }, []);
 
   return socket;
-};
-
-// Export function to manually disconnect socket (e.g., on logout)
-export const disconnectSocket = () => {
-  if (socketInstance) {
-    console.log("🔌 Manually disconnecting socket");
-    socketInstance.removeAllListeners();
-    socketInstance.disconnect();
-    socketInstance = null;
-    currentToken = null;
-  }
 };
 
 export default useSocket;
+
+// Reconnect socket với token mới (sau khi login)
+export const reconnectSocketWithNewToken = () => {
+  if (socketInstance) {
+    console.log("[useSocket] Reconnecting socket with new token...");
+
+    // Disconnect socket hiện tại
+    socketRoomManager.cleanup();
+    socketInstance.disconnect();
+    socketInstance = null;
+    isInitialized = false;
+
+    // Tạo lại socket instance với token mới
+    const newSocket = createSocketInstance();
+
+    console.log("[useSocket] Socket reconnected with new token");
+    return newSocket;
+  } else {
+    console.log("[useSocket] Creating new socket instance with token...");
+    return createSocketInstance();
+  }
+};
+
+// Cleanup function để gọi khi logout
+export const disconnectSocket = () => {
+  if (socketInstance) {
+    console.log("[useSocket] Disconnecting socket...");
+    socketRoomManager.cleanup();
+    socketInstance.disconnect();
+    socketInstance = null;
+    isInitialized = false;
+    console.log("[useSocket] Socket disconnected and cleaned up");
+  }
+};
