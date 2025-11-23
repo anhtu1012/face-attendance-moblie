@@ -8,9 +8,13 @@ export const submitForm = (values: FormData) => {
   });
 };
 
-export const getSubmittedForm = (submitterId: string) => {
+export const getSubmittedForm = (
+  submitterId: string,
+  offset = 0,
+  limit = 10,
+) => {
   return api.get(
-    `form/quan-li-don/danh-sach-don-nguoi-gui?submitterId=${submitterId}`,
+    `form/quan-li-don/danh-sach-don-nguoi-gui?submitterId=${submitterId}&offset=${offset.toString()}&limit=${limit.toString()}`,
   );
 };
 

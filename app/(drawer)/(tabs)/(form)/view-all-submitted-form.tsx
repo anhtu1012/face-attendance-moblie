@@ -1,6 +1,14 @@
+import { useGetSubmittedForm } from "@/hooks/useGetSubmittedForm";
+import { store } from "@/lib/store";
 import { AntDesign, FontAwesome, Octicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useMemo, useState } from "react";
+import { router } from "expo-router";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   ScrollView,
   StyleSheet,
@@ -48,34 +56,157 @@ const handleRenderFormStateModern = (form: any) => {
 };
 
 export default function ChooseFormPage() {
-  const { submittedForms } = useLocalSearchParams();
-  const formList: any[] = JSON.parse(submittedForms as string);
+  const state = store.getState();
+  const userProfile = state.auth?.userProfile;
+  const userId = userProfile?.id;
+
+  // State management
+  const [allSubmittedFormList, setAllSubmittedFormList] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterStatus, setFilterStatus] = useState<
-    "ALL" | "PENDING" | "APPROVED" | "REJECTED"
+    "ALL" | "PENDING" | "ACCEPTED" | "REJECTED"
   >("ALL");
+  const [page, setPage] = useState(0);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+
+  // Refs
+  const scrollYRef = useRef(0);
+  const hasLoadedInitial = useRef(false);
+
+  // Fetch data with current page
+  const { submittedFormListData, refetch } = useGetSubmittedForm({
+    userId: userId || "",
+    offset: page * 10,
+    enabled: true,
+  });
+
+  // Initial load - only runs once when component mounts
+  useEffect(() => {
+    if (!hasLoadedInitial.current && submittedFormListData?.data) {
+      console.log("Initial data loaded:", submittedFormListData.data);
+      console.log(
+        "Sample form statuses:",
+        submittedFormListData.data.map((f: any) => f.status),
+      );
+      setAllSubmittedFormList(submittedFormListData.data);
+      hasLoadedInitial.current = true;
+    }
+  }, [submittedFormListData]);
+
+  // Load more data when page changes (excluding initial load)
+  const loadMoreData = useCallback(async () => {
+    if (isLoadingMore || page === 0) return;
+
+    setIsLoadingMore(true);
+    try {
+      const result = await refetch();
+      if (result?.data?.data && Array.isArray(result.data.data)) {
+        const newData = result.data.data;
+
+        // Only append if we got new data
+        if (newData.length > 0) {
+          setAllSubmittedFormList((prev) => {
+            // Filter out duplicates based on ID
+            const existingIds = new Set(prev.map((item) => item.id));
+            const uniqueNewData = newData.filter(
+              (item: any) => !existingIds.has(item.id),
+            );
+            return [...prev, ...uniqueNewData];
+          });
+        }
+      }
+    } catch (error) {
+      console.error("Error loading more data:", error);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [page, isLoadingMore, refetch]);
+
+  // Trigger load more when page changes
+  useEffect(() => {
+    if (page > 0 && hasLoadedInitial.current) {
+      loadMoreData();
+    }
+  }, [page]);
+
+  // Handle scroll end - only when scrolling down
+  const handleScrollEnd = useCallback(
+    ({ nativeEvent }: any) => {
+      const { layoutMeasurement, contentOffset, contentSize } = nativeEvent;
+      const currentScrollY = contentOffset.y;
+      const paddingToBottom = 20;
+
+      // Check if scrolling down
+      const isScrollingDown = currentScrollY > scrollYRef.current;
+
+      // Check if at bottom
+      const isAtBottom =
+        layoutMeasurement.height + contentOffset.y >=
+        contentSize.height - paddingToBottom;
+
+      // Only trigger when scrolling down AND at bottom AND not already loading
+      if (isScrollingDown && isAtBottom && !isLoadingMore) {
+        console.log("Scrolled down to the bottom! Loading more...");
+        setPage((prev) => prev + 1);
+      }
+
+      // Update previous scroll position
+      scrollYRef.current = currentScrollY;
+    },
+    [isLoadingMore],
+  );
+
+  const formList: any[] = Array.isArray(allSubmittedFormList)
+    ? allSubmittedFormList
+    : [];
 
   // Filter and search forms
   const filteredForms = useMemo(() => {
+    if (!formList.length) return [];
+
     return formList.filter((form) => {
       const matchesSearch =
-        form.formCategoryTitle
-          .toLowerCase()
+        form?.formCategoryTitle
+          ?.toLowerCase()
           .includes(searchQuery.toLowerCase()) ||
-        form.reason?.toLowerCase().includes(searchQuery.toLowerCase());
+        form?.reason?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        false;
+
+      // Normalize status for comparison (handle case sensitivity and trim whitespace)
+      const formStatus = (form?.status || "").toString().toUpperCase().trim();
       const matchesStatus =
-        filterStatus === "ALL" || form.status === filterStatus;
+        filterStatus === "ALL" ||
+        formStatus === filterStatus.toUpperCase().trim();
+
       return matchesSearch && matchesStatus;
     });
   }, [formList, searchQuery, filterStatus]);
 
   // Count by status
   const statusCounts = useMemo(() => {
+    if (!formList.length) {
+      return {
+        all: 0,
+        pending: 0,
+        accpeted: 0,
+        rejected: 0,
+      };
+    }
+
     return {
       all: formList.length,
-      pending: formList.filter((f) => f.status === "PENDING").length,
-      approved: formList.filter((f) => f.status === "APPROVED").length,
-      rejected: formList.filter((f) => f.status === "REJECTED").length,
+      pending: formList.filter((f) => {
+        const status = (f?.status || "").toString().toUpperCase().trim();
+        return status === "PENDING";
+      }).length,
+      accepted: formList.filter((f) => {
+        const status = (f?.status || "").toString().toUpperCase().trim();
+        return status === "ACCEPTED";
+      }).length,
+      rejected: formList.filter((f) => {
+        const status = (f?.status || "").toString().toUpperCase().trim();
+        return status === "REJECTED";
+      }).length,
     };
   }, [formList]);
 
@@ -83,7 +214,7 @@ export default function ChooseFormPage() {
   const renderStatus = useCallback((status: any) => {
     if (status === "PENDING") {
       return "Chờ duyệt";
-    } else if (status === "APPROVED") {
+    } else if (status === "ACCEPTED") {
       return "Đã duyệt";
     } else if (status === "REJECTED") {
       return "Từ chối";
@@ -180,9 +311,9 @@ export default function ChooseFormPage() {
           <TouchableOpacity
             style={[
               styles.filterChip,
-              filterStatus === "APPROVED" && styles.filterChipActive,
+              filterStatus === "ACCEPTED" && styles.filterChipActive,
             ]}
-            onPress={() => setFilterStatus("APPROVED")}
+            onPress={() => setFilterStatus("ACCEPTED")}
           >
             <View
               style={[styles.filterChipDot, { backgroundColor: "#4CAF50" }]}
@@ -190,10 +321,10 @@ export default function ChooseFormPage() {
             <Text
               style={[
                 styles.filterChipText,
-                filterStatus === "APPROVED" && styles.filterChipTextActive,
+                filterStatus === "ACCEPTED" && styles.filterChipTextActive,
               ]}
             >
-              Đã duyệt ({statusCounts.approved})
+              Đã duyệt ({statusCounts.accpeted})
             </Text>
           </TouchableOpacity>
 
@@ -223,6 +354,7 @@ export default function ChooseFormPage() {
       <ScrollView
         style={styles.scrollViewContainer}
         showsVerticalScrollIndicator={false}
+        onMomentumScrollEnd={handleScrollEnd}
       >
         <View style={styles.content}>
           {filteredForms.length > 0 ? (
@@ -250,7 +382,7 @@ export default function ChooseFormPage() {
                         backgroundColor:
                           form.status === "PENDING"
                             ? "#FFF4E6"
-                            : form.status === "APPROVED"
+                            : form.status === "ACCEPTED"
                               ? "#E8F5E9"
                               : "#FFEBEE",
                       },
@@ -262,7 +394,7 @@ export default function ChooseFormPage() {
                       color={
                         form.status === "PENDING"
                           ? "#FF9800"
-                          : form.status === "APPROVED"
+                          : form.status === "ACCEPTED"
                             ? "#4CAF50"
                             : "#F44336"
                       }

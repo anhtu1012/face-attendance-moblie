@@ -157,7 +157,9 @@ const TodayWidget = ({
                 { backgroundColor: checkInButtonColor },
               ]}
               disabled={
-                todayTimekeepingData.status !== TimekeepingStatus.PENDING
+                todayTimekeepingData.status !== TimekeepingStatus.PENDING &&
+                todayTimekeepingData.status !== TimekeepingStatus.START_LATE &&
+                todayTimekeepingData.status !== TimekeepingStatus.START_ONTIME
               }
               onPress={() =>
                 router.push({

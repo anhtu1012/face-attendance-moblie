@@ -41,10 +41,11 @@ function HomePage() {
   const { submittedFormListData, refetch: handleRefetchSubmittedFormData } =
     useGetSubmittedForm({
       userId: userId || "",
+      // limit: 3,
       enabled: false,
     });
   const [submittedForms, setSubmittedForms] = useState<SubmittedFormItem[]>(
-    submittedFormListData?.data || []
+    submittedFormListData?.data || [],
   );
   const [refreshing, setRefreshing] = useState(false);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
@@ -73,23 +74,31 @@ function HomePage() {
     }
 
     console.log(
-      "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION"
+      // "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION",
+      "🔌 Setting up socket listener for CREATE_FORM_NOTIFICATION",
     );
 
     const handleGetSocketData = (data: SubmittedFormItem) => {
       console.log("📨 Socket message received:", data);
 
       // update submittedForms
-      setSubmittedForms((prev) => [...prev, data]);
+      setSubmittedForms((prev) => {
+        return prev.map((form) => {
+          if (form.id !== data.id) return form;
+          return data;
+        });
+      });
     };
 
     // Add listener
-    socket.on("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
+    // socket.on("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
+    socket.on("CREATE_FORM_NOTIFICATION", handleGetSocketData);
 
     // Cleanup listener on unmount
     return () => {
       console.log("🧹 Cleaning up socket listener");
-      socket.off("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
+      // socket.off("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
+      socket.off("CREATE_FORM_NOTIFICATION", handleGetSocketData);
     };
   }, [socket]); // Add refetch to dependencies
 
@@ -126,7 +135,7 @@ function HomePage() {
   useEffect(() => {
     const interval = setInterval(() => {
       setCurrentQuoteIndex(
-        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length
+        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length,
       );
     }, 5000);
 
@@ -293,10 +302,10 @@ function HomePage() {
                           form.status === "PENDING"
                             ? "#FF9800"
                             : form.status === "ACCEPTED"
-                            ? "#4CAF50"
-                            : form.status === "INACTIVE"
-                            ? "#c3c3c3"
-                            : "#F44336",
+                              ? "#4CAF50"
+                              : form.status === "INACTIVE"
+                                ? "#c3c3c3"
+                                : "#F44336",
                       },
                     ]}
                     onPress={() =>
@@ -320,10 +329,10 @@ function HomePage() {
                               form.status === "PENDING"
                                 ? "#FF9800"
                                 : form.status === "ACCEPTED"
-                                ? "#4CAF50"
-                                : form.status === "INACTIVE"
-                                ? "#c3c3c3"
-                                : "#F44336",
+                                  ? "#4CAF50"
+                                  : form.status === "INACTIVE"
+                                    ? "#c3c3c3"
+                                    : "#F44336",
                           },
                         ]}
                       >
@@ -331,10 +340,10 @@ function HomePage() {
                           {form.status === "PENDING"
                             ? "Chờ duyệt"
                             : form.status === "ACCEPTED"
-                            ? "Đã duyệt"
-                            : form.status === "INACTIVE"
-                            ? "Đã hủy"
-                            : "Từ chối"}
+                              ? "Đã duyệt"
+                              : form.status === "INACTIVE"
+                                ? "Đã hủy"
+                                : "Từ chối"}
                         </Text>
                       </View>
                       <TouchableOpacity style={styles.formCardMenu}>
@@ -368,7 +377,7 @@ function HomePage() {
                               day: "2-digit",
                               month: "2-digit",
                               year: "numeric",
-                            }
+                            },
                           )}
                         </Text>
                       </View>
