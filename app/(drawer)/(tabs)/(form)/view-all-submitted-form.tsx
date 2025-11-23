@@ -10,6 +10,8 @@ import React, {
   useState,
 } from "react";
 import {
+  ActivityIndicator,
+  RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
@@ -68,13 +70,14 @@ export default function ChooseFormPage() {
   >("ALL");
   const [page, setPage] = useState(0);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [isRefresh, setIsRefresh] = useState(false);
 
   // Refs
   const scrollYRef = useRef(0);
   const hasLoadedInitial = useRef(false);
 
   // Fetch data with current page
-  const { submittedFormListData, refetch } = useGetSubmittedForm({
+  const { submittedFormListData, refetch, isFetching } = useGetSubmittedForm({
     userId: userId || "",
     offset: page * 10,
     enabled: true,
@@ -128,6 +131,32 @@ export default function ChooseFormPage() {
       loadMoreData();
     }
   }, [page]);
+
+  const handleRefresh = useCallback(async () => {
+    if (isRefresh) return;
+
+    setIsRefresh(true);
+    try {
+      // Reset pagination and internal flags
+      hasLoadedInitial.current = false;
+      
+      // Reset to page 0 first
+      setPage(0);
+      
+      // Refetch with explicit offset=0 to get fresh data from the beginning
+      const result = await refetch();
+      if (result?.data?.data && Array.isArray(result.data.data)) {
+        setAllSubmittedFormList(result.data.data);
+        hasLoadedInitial.current = true;
+      } else {
+        setAllSubmittedFormList([]);
+      }
+    } catch (error) {
+      console.error("Error refreshing submitted forms:", error);
+    } finally {
+      setIsRefresh(false);
+    }
+  }, [isRefresh, refetch]);
 
   // Handle scroll end - only when scrolling down
   const handleScrollEnd = useCallback(
@@ -188,7 +217,7 @@ export default function ChooseFormPage() {
       return {
         all: 0,
         pending: 0,
-        accpeted: 0,
+        accepted: 0,
         rejected: 0,
       };
     }
@@ -324,7 +353,7 @@ export default function ChooseFormPage() {
                 filterStatus === "ACCEPTED" && styles.filterChipTextActive,
               ]}
             >
-              Đã duyệt ({statusCounts.accpeted})
+              Đã duyệt ({statusCounts.accepted})
             </Text>
           </TouchableOpacity>
 
@@ -355,81 +384,97 @@ export default function ChooseFormPage() {
         style={styles.scrollViewContainer}
         showsVerticalScrollIndicator={false}
         onMomentumScrollEnd={handleScrollEnd}
+        refreshControl={
+          <RefreshControl refreshing={isRefresh} onRefresh={handleRefresh} />
+        }
       >
         <View style={styles.content}>
           {filteredForms.length > 0 ? (
-            filteredForms.map((form, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.modernFormItem,
-                  index !== filteredForms.length - 1 && styles.formItemBorder,
-                ]}
-                onPress={() =>
-                  router.push({
-                    pathname: "/(drawer)/(tabs)/(form)/form-detail",
-                    params: { ...form },
-                  })
-                }
-                activeOpacity={0.7}
-              >
-                {/* Left Side - Icon and Info */}
-                <View style={styles.formItemLeft}>
-                  <View
-                    style={[
-                      styles.modernFormIcon,
-                      {
-                        backgroundColor:
+            <>
+              {filteredForms.map((form, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.modernFormItem,
+                    index !== filteredForms.length - 1 && styles.formItemBorder,
+                  ]}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(drawer)/(tabs)/(form)/form-detail",
+                      params: { ...form },
+                    })
+                  }
+                  activeOpacity={0.7}
+                >
+                  {/* Left Side - Icon and Info */}
+                  <View style={styles.formItemLeft}>
+                    <View
+                      style={[
+                        styles.modernFormIcon,
+                        {
+                          backgroundColor:
+                            form.status === "PENDING"
+                              ? "#FFF4E6"
+                              : form.status === "ACCEPTED"
+                                ? "#E8F5E9"
+                                : "#FFEBEE",
+                        },
+                      ]}
+                    >
+                      <Octicons
+                        name="file"
+                        size={20}
+                        color={
                           form.status === "PENDING"
-                            ? "#FFF4E6"
+                            ? "#FF9800"
                             : form.status === "ACCEPTED"
-                              ? "#E8F5E9"
-                              : "#FFEBEE",
-                      },
-                    ]}
-                  >
-                    <Octicons
-                      name="file"
-                      size={20}
-                      color={
-                        form.status === "PENDING"
-                          ? "#FF9800"
-                          : form.status === "ACCEPTED"
-                            ? "#4CAF50"
-                            : "#F44336"
-                      }
-                    />
-                  </View>
+                              ? "#4CAF50"
+                              : "#F44336"
+                        }
+                      />
+                    </View>
 
-                  <View style={styles.formItemContent}>
-                    <Text style={styles.modernFormTitle} numberOfLines={1}>
-                      {form.formCategoryTitle}
-                    </Text>
-                    <View style={styles.formDateContainer}>
-                      <AntDesign name="clock-circle" size={12} color="#999" />
-                      <Text style={styles.modernFormDate}>
-                        {new Date(form.createdAt).toLocaleDateString("vi-VN", {
-                          day: "2-digit",
-                          month: "short",
-                          year: "numeric",
-                        })}
+                    <View style={styles.formItemContent}>
+                      <Text style={styles.modernFormTitle} numberOfLines={1}>
+                        {form.formCategoryTitle}
                       </Text>
+                      <View style={styles.formDateContainer}>
+                        <AntDesign name="clock-circle" size={12} color="#999" />
+                        <Text style={styles.modernFormDate}>
+                          {new Date(form.createdAt).toLocaleDateString(
+                            "vi-VN",
+                            {
+                              day: "2-digit",
+                              month: "short",
+                              year: "numeric",
+                            },
+                          )}
+                        </Text>
+                      </View>
                     </View>
                   </View>
-                </View>
 
-                {/* Right Side - Status Badge */}
-                <View style={styles.formItemRight}>
-                  {handleRenderFormStateModern(form)}
-                  <AntDesign
-                    name="right"
-                    size={16}
-                    color="#ccc"
-                    style={styles.formArrow}
-                  />
+                  {/* Right Side - Status Badge */}
+                  <View style={styles.formItemRight}>
+                    {handleRenderFormStateModern(form)}
+                    <AntDesign
+                      name="right"
+                      size={16}
+                      color="#ccc"
+                      style={styles.formArrow}
+                    />
+                  </View>
+                </TouchableOpacity>
+              ))}
+              {isFetching && (
+                <View style={styles.loadingMoreContainer}>
+                  <ActivityIndicator size="small" color="#3674B5" />
+                  <Text style={styles.loadingMoreText}>
+                    Đang tải thêm đơn...
+                  </Text>
                 </View>
-              </TouchableOpacity>
-            ))
+              )}
+            </>
           ) : (
             <View style={styles.emptyStateContainer}>
               <View style={styles.emptyIconContainer}>
@@ -554,6 +599,7 @@ const styles = StyleSheet.create({
   content: {
     backgroundColor: "#fff",
     margin: 16,
+    marginBottom: 80,
     borderRadius: 12,
     overflow: "hidden",
     shadowColor: "#000",
@@ -656,5 +702,19 @@ const styles = StyleSheet.create({
     color: "#999",
     textAlign: "center",
     lineHeight: 20,
+  },
+  loadingMoreContainer: {
+    paddingVertical: 16,
+    alignItems: "center",
+    justifyContent: "center",
+    borderTopWidth: 1,
+    borderTopColor: "#f5f5f5",
+    flexDirection: "row",
+    gap: 8,
+  },
+  loadingMoreText: {
+    fontSize: 13,
+    color: "#666",
+    marginLeft: 6,
   },
 });

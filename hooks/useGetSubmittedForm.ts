@@ -17,7 +17,7 @@ export const useGetSubmittedForm = ({
 }: UseGetSubmittedFormParams) => {
   const { data, isLoading, error, refetch, isFetching } =
     useQuery<dtoSubmittedForm>({
-      queryKey: ["submittedForm", userId],
+      queryKey: ["submittedForm", userId, offset, limit],
       queryFn: async () => {
         const res = await getSubmittedForm(userId, offset, limit);
         return res.data;

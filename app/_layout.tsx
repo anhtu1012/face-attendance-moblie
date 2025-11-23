@@ -86,33 +86,6 @@ function AppContent() {
                 gestureEnabled: false,
               }}
             />
-            <Stack.Screen
-              name="timesheet"
-              options={{
-                headerShown: false,
-                presentation: "modal",
-              }}
-            />
-            <Stack.Screen
-              name="form-detail"
-              options={{
-                headerShown: false,
-                presentation: "modal",
-              }}
-            />
-            <Stack.Screen
-              name="form-list"
-              options={{
-                headerShown: false,
-              }}
-            />
-            <Stack.Screen
-              name="form-detail-view"
-              options={{
-                headerShown: false,
-                presentation: "modal",
-              }}
-            />
           </Stack>
         </SafeAreaView>
         <StatusBar style="dark" />
