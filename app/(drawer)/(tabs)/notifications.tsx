@@ -43,7 +43,9 @@ const NotificationsScreen = () => {
       return;
     }
 
-    console.log("🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION");
+    console.log(
+      "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION",
+    );
 
     const handleGetSocketData = (data: any) => {
       console.log("📨 Socket message received:", data);
@@ -255,7 +257,10 @@ const NotificationsScreen = () => {
   return (
     <View style={styles.container}>
       {/* Header */}
-      <CustomHeaders title="Thông báo" onBack={() => router.back()} />
+      <CustomHeaders
+        title="Thông báo"
+        onBack={() => router.back()}
+      />
       <View style={styles.header}>
         <View style={styles.headerContent}>
           <View style={styles.headerLeft}>

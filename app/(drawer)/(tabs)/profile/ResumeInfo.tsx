@@ -115,7 +115,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({ formik, isEditing }) => {
         const date = new Date(
           parseInt(year),
           parseInt(month) - 1,
-          parseInt(day)
+          parseInt(day),
         );
         if (isNaN(date.getTime())) {
           throw new Error("Invalid date");
@@ -157,6 +157,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({ formik, isEditing }) => {
       birthday: parsedData.dateOfBirth,
       gender: formattedGender,
       permanentAddress: parsedData.permanentAddress,
+      nationality: NATIONALITY_OPTIONS[0].value,
+      nation: NATION_OPTIONS[0].value,
       issueDate: parsedData.issueDate,
       issueAt: DEFAULT_ISSUE_AT,
     });
@@ -179,9 +181,9 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({ formik, isEditing }) => {
       const filteredOptions = React.useMemo(
         () =>
           options.filter((option: any) =>
-            option.label.toLowerCase().includes(searchValue.toLowerCase())
+            option.label.toLowerCase().includes(searchValue.toLowerCase()),
           ),
-        [options, searchValue]
+        [options, searchValue],
       );
 
       return (
@@ -253,7 +255,7 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({ formik, isEditing }) => {
           </TouchableOpacity>
         </Modal>
       );
-    }
+    },
   );
 
   return (
@@ -377,8 +379,8 @@ const ResumeInfo: React.FC<ResumeInfoProps> = ({ formik, isEditing }) => {
                   {formik.values.gender === "M"
                     ? "Nam"
                     : formik.values.gender === "F"
-                    ? "Nữ"
-                    : "Không xác định"}
+                      ? "Nữ"
+                      : "Không xác định"}
                 </Text>
               )}
             </View>

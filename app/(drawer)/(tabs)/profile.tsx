@@ -90,7 +90,7 @@ export default function ProfilePage() {
       ),
     phone: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
-      .matches(/^[0-9]{10,11}$/, "Số điện thoại không hợp lệ")
+      .matches(/^[0-9]{10}$/, "Số điện thoại không hợp lệ")
       .required("Số điện thoại là bắt buộc"),
     marriedStatus: Yup.string().required("Tình trạng hôn nhân là bắt buộc"),
     bankingAccountNo: Yup.string()
@@ -126,12 +126,8 @@ export default function ProfilePage() {
       .trim("Không được chứa khoảng trắng thừa")
       .required("Nơi cấp là bắt buộc"),
 
-    nationality: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Quốc tịch là bắt buộc"),
-    nation: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Dân tộc là bắt buộc"),
+    nationality: Yup.string().required("Quốc tịch là bắt buộc"),
+    nation: Yup.string().required("Dân tộc là bắt buộc"),
     permanentAddress: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
       .required("Địa chỉ thường trú là bắt buộc"),
@@ -150,7 +146,7 @@ export default function ProfilePage() {
     try {
       validateSchema.validateSync(values, { abortEarly: false });
     } catch (validationError: any) {
-      validationError.inner.forEach((error: any) => {
+      validationError.inner?.forEach((error: any) => {
         errors[error.path] = error.message;
       });
     }
@@ -172,8 +168,8 @@ export default function ProfilePage() {
       taxCode: values.taxCode.trim(),
       militaryStatus: values.militaryStatus,
       citizenIdentityCard: values.citizenIdentityCard.trim(),
-      nationality: values.nationality.trim(),
-      nation: values.nation.trim(),
+      nationality: values.nationality,
+      nation: values.nation,
       permanentAddress: values.permanentAddress.trim(),
       currentAddress: values.currentAddress.trim(),
       issueDate: values.issueDate,
@@ -182,6 +178,7 @@ export default function ProfilePage() {
       gender: values.gender,
       issueAt: DEFAULT_ISSUE_AT,
     };
+
     const onboardData = { ...userData, ...trimmedValues } as dtoUpdateUser;
     updateUser.mutate(
       {
@@ -413,7 +410,9 @@ export default function ProfilePage() {
             </Text>
             <View style={styles.profileMetaRow}>
               <MaterialIcons name="badge" size={14} color="#666" />
-              <Text style={styles.profileMeta}>Mã: {userData?.id || ""}</Text>
+              <Text style={styles.profileMeta}>
+                Mã: {userData?.userCode || ""}
+              </Text>
             </View>
             <View style={styles.profileMetaRow}>
               <MaterialIcons name="work-outline" size={14} color="#666" />

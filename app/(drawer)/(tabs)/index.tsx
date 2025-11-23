@@ -74,8 +74,7 @@ function HomePage() {
     }
 
     console.log(
-      // "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION",
-      "🔌 Setting up socket listener for CREATE_FORM_NOTIFICATION",
+      "🔌 Setting up socket listener for UPDATE_FORM_STATUS_NOTIFICATION",
     );
 
     const handleGetSocketData = (data: SubmittedFormItem) => {
@@ -91,14 +90,12 @@ function HomePage() {
     };
 
     // Add listener
-    // socket.on("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
-    socket.on("CREATE_FORM_NOTIFICATION", handleGetSocketData);
+    socket.on("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
 
     // Cleanup listener on unmount
     return () => {
       console.log("🧹 Cleaning up socket listener");
-      // socket.off("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
-      socket.off("CREATE_FORM_NOTIFICATION", handleGetSocketData);
+      socket.off("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
     };
   }, [socket]); // Add refetch to dependencies
 

@@ -30,7 +30,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
 
   const { data, isLoading, refetch } = useGetSalarySummary(
     userId,
-    selectedMonth
+    selectedMonth,
   );
 
   // Reset showSalary to false when screen loses focus
@@ -117,7 +117,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
             <Text style={styles.totalLabel}>Tổng lương hiện tại</Text>
             <View style={styles.totalAmountContainer}>
               <Text style={styles.totalAmount}>
-                {formatCurrency(data?.totalSalary || 0)}
+                {formatCurrency(data?.totalDailySalary || 0)}
               </Text>
               <TouchableOpacity
                 onPress={() => setShowSalary(!showSalary)}
@@ -171,8 +171,8 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
                   {item.amount < 0 || item.label === "Lương cơ bản"
                     ? ""
                     : item.label === "Tiền phạt"
-                    ? ""
-                    : ""}
+                      ? ""
+                      : ""}
                   {formatCurrency(item.amount)}
                 </Text>
               </View>

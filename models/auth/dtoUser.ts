@@ -4,6 +4,7 @@ export interface dtoGetUser {
   createdAt: Date;
   updatedAt: Date;
   userName: string;
+  userCode: string;
   roleId: string;
   fullName: string;
   email: string;

@@ -11,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  Image,
 } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -111,7 +112,16 @@ const TodayWidget = ({
   if (!todayTimekeepingData) {
     return (
       <View style={styles.emptyContainer}>
-        <Text style={styles.emptyText}>Không có lịch làm việc cho hôm nay</Text>
+        <Image
+          source={require("../../assets/images/day-off.jpg")}
+          style={{
+            width: 150,
+            height: 150,
+          }}
+        />
+        <Text style={styles.emptyText}>
+          Bạn không có lịch làm việc ngày hôm nay
+        </Text>
       </View>
     );
   }
