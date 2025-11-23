@@ -67,7 +67,7 @@ export default function TimesheetCalendar() {
 
       const dateString = date.format("YYYY-MM-DD");
       const timekeeping = timekeepingDataList?.data.find(
-        (t: any) => t.date === dateString
+        (t: any) => t.date === dateString,
       );
       const isNotCurrentMonth = date.month() !== currentMonth.month();
       const today = dayjs().startOf("day");
@@ -188,7 +188,7 @@ export default function TimesheetCalendar() {
                 onPress={(timekeepingId) => {
                   setSelectedTimekeepingId(timekeepingId);
                   const dateString = new Date(
-                    dayData?.dateString ?? ""
+                    dayData?.dateString ?? "",
                   ).toLocaleDateString("vi-VN");
                   setOffDateString(dateString);
                   setVisibleModal(true);
