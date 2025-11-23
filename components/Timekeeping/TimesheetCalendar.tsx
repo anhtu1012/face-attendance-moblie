@@ -27,6 +27,8 @@ dayjs.locale("vi");
 export default function TimesheetCalendar() {
   const userId = useSelector((state: RootState) => state.auth.userProfile.id);
   const [currentMonth, setCurrentMonth] = useState(dayjs());
+  const [visibleModal, setVisibleModal] = useState(false);
+  const [offDateString, setOffDateString] = useState<string>("");
   const {
     timekeepingData: timekeepingDataList,
     isLoading: isLoadingTimekeeping,
@@ -104,9 +106,21 @@ export default function TimesheetCalendar() {
         displayValue = timekeeping?.totalWorkHour ?? "0";
       }
       if (timekeeping?.status === LegacyTimekeepingStatus.NOT_WORK) {
-        displayValue = "N";
+        backgroundColor = "#FFE5E5";
+        totalWorkHourColor = "#E74C3C";
+        displayValue = timekeeping?.totalWorkHour ?? "0";
       }
       if (timekeeping?.status === LegacyTimekeepingStatus.END_LATE) {
+        backgroundColor = "#C5F0DD";
+        totalWorkHourColor = "#E74C3C";
+        displayValue = timekeeping?.totalWorkHour ?? "0";
+      }
+      if (timekeeping?.status === LegacyTimekeepingStatus.END_EARLY) {
+        backgroundColor = "#C5F0DD";
+        totalWorkHourColor = "#E74C3C";
+        displayValue = timekeeping?.totalWorkHour ?? "0";
+      }
+      if (timekeeping?.status === LegacyTimekeepingStatus.START_ONTIME) {
         backgroundColor = "#C5F0DD";
         totalWorkHourColor = "#E74C3C";
         displayValue = timekeeping?.totalWorkHour ?? "0";
@@ -172,10 +186,12 @@ export default function TimesheetCalendar() {
               <TimekeepingBox
                 dayData={dayData}
                 onPress={(timekeepingId) => {
-                  if (timekeepingId === 0) {
-                    return;
-                  }
                   setSelectedTimekeepingId(timekeepingId);
+                  const dateString = new Date(
+                    dayData?.dateString ?? ""
+                  ).toLocaleDateString("vi-VN");
+                  setOffDateString(dateString);
+                  setVisibleModal(true);
                 }}
               />
             ) : (
@@ -185,9 +201,10 @@ export default function TimesheetCalendar() {
         ))}
       </View>
       <TimekeepingModal
-        visible={selectedTimekeepingId !== 0}
-        onClose={() => setSelectedTimekeepingId(0)}
+        visible={visibleModal}
+        onClose={() => setVisibleModal(false)}
         selectedTimekeepingId={selectedTimekeepingId}
+        offDateString={offDateString}
       />
       <TimesheetNotes />
     </ScrollView>

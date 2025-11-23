@@ -37,8 +37,7 @@ export const unstable_settings = {
 function AppContent() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
-  const { expoPushToken, notification, isTokenRegistered } =
-    usePushNotifications();
+  usePushNotifications();
   const socket = useSocket();
 
   // Socket listener effect

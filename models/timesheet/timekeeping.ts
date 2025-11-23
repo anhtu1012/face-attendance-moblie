@@ -29,6 +29,7 @@ export enum LegacyTimekeepingStatus {
   END_EARLY = "END_EARLY",
   FORGET_LOG = "FORGET_LOG",
   END_LATE = "END_LATE",
+  START_ONTIME = "START_ONTIME",
 }
 
 export interface Timekeeping {

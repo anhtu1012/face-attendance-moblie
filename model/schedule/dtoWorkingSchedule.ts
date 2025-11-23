@@ -39,7 +39,7 @@ export interface dtoDetailTimekeeping {
   totalTimekeepingNumber: number; // e.g. 1.00625
   totalWorkHour: number; // Includes OT
   shiftInfor: ShiftInfo;
-  otInfo?: OTInfo;
+  otInfor?: OTInfo;
   checkInStatus?: CheckinStatus;
   checkOutStatus?: CheckoutStatus;
   isFromOt?: boolean; // default false

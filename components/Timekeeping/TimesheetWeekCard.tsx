@@ -4,9 +4,11 @@ import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 const TimesheetWeekCard = ({
   item,
   setSelectedTimekeepingId,
+  onPress,
 }: {
   item: any;
   setSelectedTimekeepingId: (timekeepingId: number) => void;
+  onPress: () => void;
 }) => {
   return (
     <TouchableOpacity
@@ -15,6 +17,7 @@ const TimesheetWeekCard = ({
         if (item.timekeepingId !== 0) {
           setSelectedTimekeepingId(item.timekeepingId);
         }
+        onPress();
       }}
     >
       {/* Left: Day & Date */}

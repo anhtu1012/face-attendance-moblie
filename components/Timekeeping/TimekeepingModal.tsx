@@ -1,8 +1,5 @@
 import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
-import {
-  CheckinStatus,
-  TimekeepingStatus,
-} from "@/models/timesheet/timekeeping";
+import { CheckinStatus } from "@/models/timesheet/timekeeping";
 import React from "react";
 import { Modal, ScrollView, StyleSheet, View } from "react-native";
 import CheckTimeBox from "../ui/CheckTimeBox";
@@ -12,16 +9,39 @@ import TimesheetModalHeader from "./TimesheetModalHeader";
 import TimesheetTotalHourBox from "./TimesheetTotalHourBox";
 
 interface Props {
-  visible: boolean;
   onClose: () => void;
   selectedTimekeepingId: number;
+  visible: boolean;
+  offDateString: string;
 }
 
 export default function TimekeepingModal({
   visible,
   onClose,
   selectedTimekeepingId,
+  offDateString,
 }: Props) {
+  if (selectedTimekeepingId === 0)
+    return (
+      <Modal
+        animationType="slide"
+        transparent
+        onRequestClose={onClose}
+        visible={visible}
+      >
+        <View style={styles.overlay}>
+          <View style={styles.modal}>
+            <TimesheetModalHeader
+              dateString={offDateString}
+              onClose={onClose}
+            />
+            <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
+              <NotWorkNotification />
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+    );
   const { detailTimekeepingData: timekeeping } = useGetDetailTimekeepingData({
     timekeepingId: selectedTimekeepingId.toString(),
   });
@@ -32,102 +52,91 @@ export default function TimekeepingModal({
   return (
     <Modal
       animationType="slide"
-      visible={visible}
       transparent
       onRequestClose={onClose}
+      visible={visible}
     >
       <View style={styles.overlay}>
         <View style={styles.modal}>
           <TimesheetModalHeader dateString={dateString} onClose={onClose} />
           <ScrollView contentContainerStyle={{ paddingBottom: 20 }}>
-            {timekeeping?.status === TimekeepingStatus.NOT_WORK ? (
-              <NotWorkNotification />
-            ) : (
-              <>
-                <View style={styles.row}>
-                  <CheckTimeBox
-                    type="in"
-                    time={timekeeping?.checkinTime ?? ""}
-                    checkinStatus={
-                      timekeeping?.checkInStatus ?? CheckinStatus.START_ONTIME
-                    }
-                  />
-                  <CheckTimeBox
-                    type="out"
-                    time={timekeeping?.checkOutTime ?? ""}
-                    checkoutStatus={
-                      timekeeping?.checkOutTime
-                        ? timekeeping?.checkOutStatus
-                        : undefined
-                    }
-                  />
-                  <TimesheetTotalHourBox
-                    totalWorkHour={timekeeping?.totalWorkHour ?? 0}
-                    totalTimekeepingNumber={
-                      timekeeping?.totalTimekeepingNumber ?? 0
-                    }
-                  />
-                </View>
-                {!timekeeping?.isFromOt && (
-                  <TimeDetailBox
-                    title="Ca làm việc"
-                    data={[
-                      {
-                        label: "Thời gian",
-                        value: `${timekeeping?.shiftInfor?.shiftStartTime} - ${timekeeping?.shiftInfor?.shiftEndTime}`,
-                      },
-                      {
-                        label: "Số giờ",
-                        value: timekeeping?.shiftInfor?.shiftWorkHour ?? "--",
-                      },
-                      {
-                        label: "Số công",
-                        value:
-                          timekeeping?.shiftInfor?.shiftTimekeepingNumber ??
-                          "--",
-                      },
-                    ]}
-                  />
-                )}
-
-                {timekeeping?.otInfo && (
-                  <TimeDetailBox
-                    title="Làm thêm giờ"
-                    data={[
-                      {
-                        label: "Thời gian",
-                        value: `${timekeeping?.otInfo?.otStartTime} - ${timekeeping?.otInfo?.otEndTime}`,
-                      },
-                      {
-                        label: "Số giờ",
-                        value: timekeeping?.otInfo?.otWorkHour ?? "--",
-                      },
-                      {
-                        label: "Số công",
-                        value: timekeeping?.otInfo?.otTimekeepingNumber ?? "--",
-                      },
-                    ]}
-                  />
-                )}
-                <TimeDetailBox
-                  title="Chốt gương mặt trong ngày"
-                  data={[
-                    {
-                      label: `${
-                        timekeeping?.checkinTime ?? "--"
-                      }, ${dateString}`,
-                      value: timekeeping?.checkInStatus ?? "--",
-                    },
-                    {
-                      label: `${
-                        timekeeping?.checkOutTime ?? "--"
-                      }, ${dateString}`,
-                      value: timekeeping?.checkOutStatus ?? "--",
-                    },
-                  ]}
-                />
-              </>
+            <View style={styles.row}>
+              <CheckTimeBox
+                type="in"
+                time={timekeeping?.checkinTime ?? ""}
+                checkinStatus={
+                  timekeeping?.checkInStatus ?? CheckinStatus.START_ONTIME
+                }
+              />
+              <CheckTimeBox
+                type="out"
+                time={timekeeping?.checkOutTime ?? ""}
+                checkoutStatus={
+                  timekeeping?.checkOutTime
+                    ? timekeeping?.checkOutStatus
+                    : undefined
+                }
+              />
+              <TimesheetTotalHourBox
+                totalWorkHour={timekeeping?.totalWorkHour ?? 0}
+                totalTimekeepingNumber={
+                  timekeeping?.totalTimekeepingNumber ?? 0
+                }
+              />
+            </View>
+            {!timekeeping?.isFromOt && (
+              <TimeDetailBox
+                title="Ca làm việc"
+                data={[
+                  {
+                    label: "Thời gian",
+                    value: `${timekeeping?.shiftInfor?.shiftStartTime} - ${timekeeping?.shiftInfor?.shiftEndTime}`,
+                  },
+                  {
+                    label: "Số giờ",
+                    value: timekeeping?.shiftInfor?.shiftWorkHour ?? "--",
+                  },
+                  {
+                    label: "Số công",
+                    value:
+                      timekeeping?.shiftInfor?.shiftTimekeepingNumber ?? "--",
+                  },
+                ]}
+              />
             )}
+
+            {timekeeping?.otInfor?.otWorkHour && (
+              <TimeDetailBox
+                title="Làm thêm giờ"
+                data={[
+                  {
+                    label: "Thời gian",
+                    value: `${timekeeping?.otInfor?.otStartTime} - ${timekeeping?.otInfor?.otEndTime}`,
+                  },
+                  {
+                    label: "Số giờ",
+                    value: timekeeping?.otInfor?.otWorkHour ?? "--",
+                  },
+                  {
+                    label: "Số công",
+                    value: timekeeping?.otInfor?.otTimekeepingNumber ?? "--",
+                  },
+                ]}
+              />
+            )}
+            <TimeDetailBox
+              title="Chốt gương mặt trong ngày"
+              data={[
+                {
+                  label: `${timekeeping?.checkinTime ?? "--"}, ${dateString}`,
+                  value: timekeeping?.checkInStatus ?? "--",
+                },
+                {
+                  label: `${timekeeping?.checkOutTime ?? "--"}, ${dateString}`,
+                  value: timekeeping?.checkOutStatus ?? "--",
+                },
+              ]}
+            />
           </ScrollView>
         </View>
       </View>

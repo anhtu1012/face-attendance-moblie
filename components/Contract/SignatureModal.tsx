@@ -6,7 +6,7 @@ import {
   Dimensions,
   KeyboardAvoidingView,
   Modal,
-  Platform,
+  Platform, 
   StyleSheet,
   Text,
   TextInput,

@@ -25,6 +25,8 @@ const TimesheetWeek = () => {
   const [currentWeek, setCurrentWeek] = useState(dayjs());
   const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
   const [refreshing, setRefreshing] = useState(false);
+  const [visibleModal, setVisibleModal] = useState(false);
+  const [offDateString, setOffDateString] = useState<string>("");
   const { timekeepingData: timekeepingDataList, refetch } =
     useGetTimekeepingData({
       userId: userId!,
@@ -72,11 +74,19 @@ const TimesheetWeek = () => {
           statusDisplay = timekeeping.totalWorkHour;
           statusColor = "#00A854";
         } else if (timekeeping.status === LegacyTimekeepingStatus.NOT_WORK) {
-          statusDisplay = "N";
-          statusColor = "#8C8F92";
+          statusDisplay = timekeeping.totalWorkHour;
+          statusColor = "#E74C3C";
         } else if (timekeeping.status === LegacyTimekeepingStatus.END_LATE) {
           statusDisplay = timekeeping.totalWorkHour;
-          statusColor = "#00A854";
+          statusColor = "#E74C3C";
+        } else if (timekeeping.status === LegacyTimekeepingStatus.END_EARLY) {
+          statusDisplay = timekeeping.totalWorkHour;
+          statusColor = "#E74C3C";
+        } else if (
+          timekeeping.status === LegacyTimekeepingStatus.START_ONTIME
+        ) {
+          statusDisplay = timekeeping.totalWorkHour;
+          statusColor = "#E74C3C";
         }
       } else if (isFutureDate) {
         statusDisplay = "0";
@@ -148,13 +158,21 @@ const TimesheetWeek = () => {
             key={index}
             item={item}
             setSelectedTimekeepingId={setSelectedTimekeepingId}
+            onPress={() => {
+              const dateString = new Date(item.date ?? "").toLocaleDateString(
+                "vi-VN"
+              );
+              setOffDateString(dateString);
+              setVisibleModal(true);
+            }}
           />
         ))}
       </ScrollView>
       <TimekeepingModal
-        visible={selectedTimekeepingId !== 0}
-        onClose={() => setSelectedTimekeepingId(0)}
+        visible={visibleModal}
+        onClose={() => setVisibleModal(false)}
         selectedTimekeepingId={selectedTimekeepingId}
+        offDateString={offDateString}
       />
     </View>
   );
@@ -193,6 +211,6 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingTop: 8,
-    paddingBottom: 100,
+    paddingBottom: 300,
   },
 });
