@@ -47,6 +47,8 @@ const ContractHistoryModal: React.FC<ContractHistoryModalProps> = ({
         return "Chờ ký hợp đồng";
       case "DIRECTOR_SIGNED":
         return "Chờ giám đốc ký";
+      case "ACTIVE_EXTENDED":
+        return "Có phụ lục hợp đồng";
       default:
         return status;
     }
@@ -61,6 +63,7 @@ const ContractHistoryModal: React.FC<ContractHistoryModalProps> = ({
       case "INACTIVE":
         return "#6B7280";
       case "USER_SIGNED":
+        return "#F59E0B";
       case "DIRECTOR_SIGNED":
         return "#F59E0B";
       default:

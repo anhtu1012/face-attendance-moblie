@@ -70,7 +70,8 @@ const TimesheetNotes = () => {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
         <View
           style={{
-            width: 10,
+            backgroundColor: "#FFE5E5",
+            width: 20,
             height: 20,
             borderRadius: 4,
             justifyContent: "center",
@@ -79,12 +80,12 @@ const TimesheetNotes = () => {
         >
           <Text
             style={{
-              color: "#8C8F92",
+              color: "#E74C3C",
               fontSize: 12,
               fontWeight: "600",
             }}
           >
-            N
+            0
           </Text>
         </View>
         <Text style={{ color: "#666", fontSize: 13 }}>Nghỉ làm</Text>

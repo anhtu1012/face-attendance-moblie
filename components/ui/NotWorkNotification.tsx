@@ -9,7 +9,7 @@ const NotWorkNotification = () => {
         style={styles.notWorkImage}
       />
       <Text style={styles.notWorkDescription}>
-        Bạn đã không làm việc vào ngày này
+        Bạn không có lịch chấm công vào ngày này
       </Text>
       <Text style={styles.notWorkSubText}>
         Không có dữ liệu chấm công để hiển thị

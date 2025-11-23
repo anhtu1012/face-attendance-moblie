@@ -95,7 +95,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
       case "EXPIRED":
         return "Hết hạn";
       case "ACTIVE_EXTENDED":
-        return "Hợp đồng có đính kèm";
+        return "Có phụ lục hợp đồng";
       case "INACTIVE":
         return "Ngừng có hiệu lực";
       case "USER_SIGNED":

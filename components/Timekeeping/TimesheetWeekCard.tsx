@@ -14,9 +14,7 @@ const TimesheetWeekCard = ({
     <TouchableOpacity
       style={[styles.dayCard, item.isPending && styles.activeCard]}
       onPress={() => {
-        if (item.timekeepingId !== 0) {
-          setSelectedTimekeepingId(item.timekeepingId);
-        }
+        setSelectedTimekeepingId(item.timekeepingId);
         onPress();
       }}
     >

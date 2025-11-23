@@ -57,7 +57,7 @@ const TimesheetWeek = () => {
       const timekeeping = timekeepingDataList?.data.find(
         (t: any) => t.date === dateString
       );
-
+      const fullDateString = day.format("DD/MM/YYYY");
       // Determine status display based on timekeeping status
       let statusDisplay: string | number = "N";
       let statusColor = "#8C8F92";
@@ -109,6 +109,7 @@ const TimesheetWeek = () => {
             : undefined,
         hasOT: timekeeping?.hasOT,
         isPending: isPending,
+        fullDateString: fullDateString,
       };
     });
   }, [weekDays]);
@@ -159,10 +160,7 @@ const TimesheetWeek = () => {
             item={item}
             setSelectedTimekeepingId={setSelectedTimekeepingId}
             onPress={() => {
-              const dateString = new Date(item.date ?? "").toLocaleDateString(
-                "vi-VN"
-              );
-              setOffDateString(dateString);
+              setOffDateString(item.fullDateString);
               setVisibleModal(true);
             }}
           />

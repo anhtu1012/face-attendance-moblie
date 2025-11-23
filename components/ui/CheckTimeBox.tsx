@@ -32,7 +32,7 @@ const CheckTimeBox = ({
   const isCheckinOntime = checkinStatus === CheckinStatus.START_ONTIME;
   const isCheckoutOntime = checkoutStatus === CheckoutStatus.END_ONTIME;
   const handleRenderCardBackground = (
-    type: CheckTimeBoxProps["type"],
+    type: CheckTimeBoxProps["type"]
   ): StyleProp<ViewStyle> => {
     // Render if status is not work
     if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
@@ -49,7 +49,7 @@ const CheckTimeBox = ({
   };
 
   const handleRenderCardColor = (
-    type: CheckTimeBoxProps["type"],
+    type: CheckTimeBoxProps["type"]
   ): StyleProp<TextStyle> => {
     // Render if status is not work
     if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
@@ -83,7 +83,7 @@ const CheckTimeBox = ({
   const handleRenderContent = (type: CheckTimeBoxProps["type"]) => {
     // Render if status is not work
     if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
-      return "Không làm hôm nay!";
+      return "Không làm việc";
 
     if (type === "in") {
       if (!checkinStatus) return "Chưa check-in";

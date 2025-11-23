@@ -1,5 +1,5 @@
 import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
-import { CheckinStatus } from "@/models/timesheet/timekeeping";
+import { TimekeepingStatus } from "@/models/timesheet/timekeeping";
 import React from "react";
 import { Modal, ScrollView, StyleSheet, View } from "react-native";
 import CheckTimeBox from "../ui/CheckTimeBox";
@@ -64,18 +64,14 @@ export default function TimekeepingModal({
               <CheckTimeBox
                 type="in"
                 time={timekeeping?.checkinTime ?? ""}
-                checkinStatus={
-                  timekeeping?.checkInStatus ?? CheckinStatus.START_ONTIME
-                }
+                checkinStatus={timekeeping?.checkInStatus ?? ""}
+                timekeepingStatus={timekeeping?.status ?? ""}
               />
               <CheckTimeBox
                 type="out"
                 time={timekeeping?.checkOutTime ?? ""}
-                checkoutStatus={
-                  timekeeping?.checkOutTime
-                    ? timekeeping?.checkOutStatus
-                    : undefined
-                }
+                checkoutStatus={timekeeping?.checkOutStatus ?? ""}
+                timekeepingStatus={timekeeping?.status ?? ""}
               />
               <TimesheetTotalHourBox
                 totalWorkHour={timekeeping?.totalWorkHour ?? 0}
@@ -124,19 +120,26 @@ export default function TimekeepingModal({
                 ]}
               />
             )}
-            <TimeDetailBox
-              title="Chốt gương mặt trong ngày"
-              data={[
-                {
-                  label: `${timekeeping?.checkinTime ?? "--"}, ${dateString}`,
-                  value: timekeeping?.checkInStatus ?? "--",
-                },
-                {
-                  label: `${timekeeping?.checkOutTime ?? "--"}, ${dateString}`,
-                  value: timekeeping?.checkOutStatus ?? "--",
-                },
-              ]}
-            />
+            {timekeeping?.status !== TimekeepingStatus.NOT_WORK &&
+              !timekeeping?.isFromOt && (
+                <TimeDetailBox
+                  title="Chốt gương mặt trong ngày"
+                  data={[
+                    {
+                      label: `${
+                        timekeeping?.checkinTime ?? "--"
+                      }, ${dateString}`,
+                      value: timekeeping?.checkInStatus ?? "--",
+                    },
+                    {
+                      label: timekeeping?.checkOutTime
+                        ? `${timekeeping?.checkOutTime}, ${dateString}`
+                        : "Chưa check out",
+                      value: timekeeping?.checkOutStatus ?? "",
+                    },
+                  ]}
+                />
+              )}
           </ScrollView>
         </View>
       </View>

@@ -114,7 +114,7 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
                 color="#3674B5"
               />
             </View>
-            <Text style={styles.totalLabel}>Tổng lương thực nhận</Text>
+            <Text style={styles.totalLabel}>Tổng lương hiện tại</Text>
             <View style={styles.totalAmountContainer}>
               <Text style={styles.totalAmount}>
                 {formatCurrency(data?.totalSalary || 0)}
