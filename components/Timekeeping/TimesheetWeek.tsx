@@ -55,7 +55,7 @@ const TimesheetWeek = () => {
     return weekDays.map((day, index) => {
       const dateString = day.format("YYYY-MM-DD");
       const timekeeping = timekeepingDataList?.data.find(
-        (t: any) => t.date === dateString
+        (t: any) => t.date === dateString,
       );
       const fullDateString = day.format("DD/MM/YYYY");
       // Determine status display based on timekeeping status
@@ -105,8 +105,8 @@ const TimesheetWeek = () => {
           timekeeping?.checkinTime && timekeeping?.checkoutTime
             ? `${timekeeping.checkinTime} - ${timekeeping.checkoutTime}`
             : timekeeping?.checkinTime
-            ? `${timekeeping.checkinTime} - _ _:_ _`
-            : undefined,
+              ? `${timekeeping.checkinTime} - _ _:_ _`
+              : undefined,
         hasOT: timekeeping?.hasOT,
         isPending: isPending,
         fullDateString: fullDateString,
@@ -209,6 +209,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
     paddingTop: 8,
-    paddingBottom: 300,
+    marginBottom: 70,
+    // paddingBottom: 300,
   },
 });

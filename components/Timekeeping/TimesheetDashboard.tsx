@@ -22,14 +22,14 @@ const TimesheetDashboard: React.FC = () => {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(
-    currentDate.getMonth() + 1
+    currentDate.getMonth() + 1,
   );
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const userId = useSelector((state: RootState) => state.auth.userProfile.id);
   const { timekeepingDashboardData, refetch } = useGetTimekeepingDashboardData(
     userId!,
-    selectedMonth
+    selectedMonth,
   );
 
   const handleMonthSelect = (year: number, month: number) => {
@@ -298,7 +298,7 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#fff",
     marginTop: 15,
-    paddingBottom: 100,
+    marginBottom: 80,
   },
   header: {
     flexDirection: "row",

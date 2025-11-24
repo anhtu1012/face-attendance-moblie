@@ -146,7 +146,7 @@ const TodayWidget = ({
           <AntDesign name="calendar" size={24} color="#3674B5" />
           <View>
             <Text style={styles.currentDate}>
-              {formatDateWithDay(currentDateString)}
+              {formatDateWithDay(todayTimekeepingData.date)}
             </Text>
             <Text style={styles.shiftTime}>
               {todayTimekeepingData?.shiftInfor?.shiftStartTime

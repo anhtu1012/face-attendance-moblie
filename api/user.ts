@@ -19,7 +19,7 @@ export const updateUserImage = async (formData: FormData) => {
 };
 
 export const getUserById = async (userId: string | bigint) => {
-  const response = await axios.get<dtoGetUser>(`/sa/user/${userId}`);
+  const response = await api.get<dtoGetUser>(`/sa/user/${userId}`);
   return response.data;
 };
 

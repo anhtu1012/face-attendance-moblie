@@ -36,12 +36,13 @@ function HomePage() {
     userProfile,
     refetch: handleRefetchUserData,
   } = useGetUserProfile();
+
   const { refetchForms, refetchUserData, refetchCurrentTimekeeping } =
     useLocalSearchParams();
   const { submittedFormListData, refetch: handleRefetchSubmittedFormData } =
     useGetSubmittedForm({
       userId: userId || "",
-      // limit: 3,
+      limit: 5,
       enabled: false,
     });
   const [submittedForms, setSubmittedForms] = useState<SubmittedFormItem[]>(
@@ -286,148 +287,142 @@ function HomePage() {
           {/* Form Cards */}
           {submittedForms.length > 0 ? (
             <View style={styles.formCardsContainer}>
-              {submittedForms
-                .toReversed()
-                .slice(0, 3)
-                .map((form, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.formCard,
-                      {
-                        borderLeftColor:
-                          form.status === "PENDING"
-                            ? "#FF9800"
-                            : form.status === "ACCEPTED"
-                              ? "#4CAF50"
-                              : form.status === "INACTIVE"
-                                ? "#c3c3c3"
-                                : "#F44336",
-                      },
-                    ]}
-                    onPress={() =>
-                      router.push({
-                        pathname: "/(drawer)/(tabs)/(form)/form-detail",
-                        params: { ...form },
-                      })
-                    }
-                    activeOpacity={0.7}
-                  >
-                    {/* Card Header with Title and Status */}
-                    <View style={styles.formCardHeader}>
-                      <Text style={styles.formCardTitle} numberOfLines={1}>
-                        {form.formCategoryTitle}
-                      </Text>
-                      <View
-                        style={[
-                          styles.formStatusPill,
-                          {
-                            backgroundColor:
-                              form.status === "PENDING"
-                                ? "#FF9800"
-                                : form.status === "ACCEPTED"
-                                  ? "#4CAF50"
-                                  : form.status === "INACTIVE"
-                                    ? "#c3c3c3"
-                                    : "#F44336",
-                          },
-                        ]}
-                      >
-                        <Text style={styles.formStatusText}>
-                          {form.status === "PENDING"
-                            ? "Chờ duyệt"
-                            : form.status === "ACCEPTED"
-                              ? "Đã duyệt"
-                              : form.status === "INACTIVE"
-                                ? "Đã hủy"
-                                : "Từ chối"}
-                        </Text>
-                      </View>
-                      <TouchableOpacity style={styles.formCardMenu}>
-                        <Entypo
-                          name="dots-three-vertical"
-                          size={16}
-                          color="#999"
-                        />
-                      </TouchableOpacity>
-                    </View>
-
-                    {/* Reason */}
-                    <Text style={styles.formCardReason} numberOfLines={1}>
-                      {form.reason || "Không có lý do"}
+              {submittedForms.slice(0, 3).map((form, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.formCard,
+                    {
+                      borderLeftColor:
+                        form.status === "PENDING"
+                          ? "#FF9800"
+                          : form.status === "ACCEPTED"
+                            ? "#4CAF50"
+                            : form.status === "INACTIVE"
+                              ? "#c3c3c3"
+                              : "#F44336",
+                    },
+                  ]}
+                  onPress={() =>
+                    router.push({
+                      pathname: "/(drawer)/(tabs)/(form)/form-detail",
+                      params: { ...form },
+                    })
+                  }
+                  activeOpacity={0.7}
+                >
+                  {/* Card Header with Title and Status */}
+                  <View style={styles.formCardHeader}>
+                    <Text style={styles.formCardTitle} numberOfLines={1}>
+                      {form.formCategoryTitle}
                     </Text>
-
-                    {/* Date and Approver Info */}
-                    <View style={styles.formCardInfo}>
-                      <View style={styles.formInfoRow}>
-                        <AntDesign
-                          name="calendar"
-                          size={14}
-                          color="#666"
-                          style={styles.formInfoIcon}
-                        />
-                        <Text style={styles.formInfoText}>
-                          Ngày tạo:{" "}
-                          {new Date(form.createdAt ?? "").toLocaleDateString(
-                            "vi-VN",
-                            {
-                              day: "2-digit",
-                              month: "2-digit",
-                              year: "numeric",
-                            },
-                          )}
-                        </Text>
-                      </View>
-                      <View style={styles.formInfoRow}>
-                        <AntDesign
-                          name="user"
-                          size={14}
-                          color="#666"
-                          style={styles.formInfoIcon}
-                        />
-                        <Text style={styles.formInfoText} numberOfLines={1}>
-                          Người duyệt:{" "}
-                          {form.approvedName || "Chưa có thông tin"}
-                        </Text>
-                      </View>
+                    <View
+                      style={[
+                        styles.formStatusPill,
+                        {
+                          backgroundColor:
+                            form.status === "PENDING"
+                              ? "#FF9800"
+                              : form.status === "ACCEPTED"
+                                ? "#4CAF50"
+                                : form.status === "INACTIVE"
+                                  ? "#c3c3c3"
+                                  : "#F44336",
+                        },
+                      ]}
+                    >
+                      <Text style={styles.formStatusText}>
+                        {form.status === "PENDING"
+                          ? "Chờ duyệt"
+                          : form.status === "ACCEPTED"
+                            ? "Đã duyệt"
+                            : form.status === "INACTIVE"
+                              ? "Đã hủy"
+                              : "Từ chối"}
+                      </Text>
                     </View>
+                    <TouchableOpacity style={styles.formCardMenu}>
+                      <Entypo
+                        name="dots-three-vertical"
+                        size={16}
+                        color="#999"
+                      />
+                    </TouchableOpacity>
+                  </View>
 
-                    {/* Action Buttons */}
-                    <View style={styles.formCardActions}>
+                  {/* Reason */}
+                  <Text style={styles.formCardReason} numberOfLines={1}>
+                    {form.reason || "Không có lý do"}
+                  </Text>
+
+                  {/* Date and Approver Info */}
+                  <View style={styles.formCardInfo}>
+                    <View style={styles.formInfoRow}>
+                      <AntDesign
+                        name="calendar"
+                        size={14}
+                        color="#666"
+                        style={styles.formInfoIcon}
+                      />
+                      <Text style={styles.formInfoText}>
+                        Ngày tạo:{" "}
+                        {new Date(form.createdAt ?? "").toLocaleDateString(
+                          "vi-VN",
+                          {
+                            day: "2-digit",
+                            month: "2-digit",
+                            year: "numeric",
+                          },
+                        )}
+                      </Text>
+                    </View>
+                    <View style={styles.formInfoRow}>
+                      <AntDesign
+                        name="user"
+                        size={14}
+                        color="#666"
+                        style={styles.formInfoIcon}
+                      />
+                      <Text style={styles.formInfoText} numberOfLines={1}>
+                        Người duyệt: {form.approvedName || "Chưa có thông tin"}
+                      </Text>
+                    </View>
+                  </View>
+
+                  {/* Action Buttons */}
+                  <View style={styles.formCardActions}>
+                    <TouchableOpacity
+                      style={styles.formActionButton}
+                      onPress={() =>
+                        router.push({
+                          pathname: "/(drawer)/(tabs)/(form)/form-detail",
+                          params: { ...form },
+                        })
+                      }
+                    >
+                      <Text style={styles.formActionButtonText}>Chi tiết</Text>
+                    </TouchableOpacity>
+                    {form.status === "PENDING" && (
                       <TouchableOpacity
-                        style={styles.formActionButton}
-                        onPress={() =>
-                          router.push({
-                            pathname: "/(drawer)/(tabs)/(form)/form-detail",
-                            params: { ...form },
-                          })
-                        }
+                        style={[
+                          styles.formActionButton,
+                          styles.formActionButtonDanger,
+                        ]}
+                        onPress={() => handleOpenCancelModal(form.id)}
                       >
-                        <Text style={styles.formActionButtonText}>
-                          Chi tiết
+                        <Text
+                          style={[
+                            styles.formActionButtonText,
+                            styles.formActionButtonDangerText,
+                          ]}
+                        >
+                          Hủy đơn
                         </Text>
                       </TouchableOpacity>
-                      {form.status === "PENDING" && (
-                        <TouchableOpacity
-                          style={[
-                            styles.formActionButton,
-                            styles.formActionButtonDanger,
-                          ]}
-                          onPress={() => handleOpenCancelModal(form.id)}
-                        >
-                          <Text
-                            style={[
-                              styles.formActionButtonText,
-                              styles.formActionButtonDangerText,
-                            ]}
-                          >
-                            Hủy đơn
-                          </Text>
-                        </TouchableOpacity>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                ))}
+                    )}
+                  </View>
+                </TouchableOpacity>
+              ))}
             </View>
           ) : (
             <View style={styles.emptyStateContainer}>

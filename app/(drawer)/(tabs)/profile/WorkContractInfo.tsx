@@ -39,7 +39,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
   const confirmOtp = useConfirmOtp();
   const contractData = contractList?.find(
     (contract) =>
-      contract.status !== "INACTIVE" && contract.status !== "EXPIRED"
+      contract.status !== "INACTIVE" && contract.status !== "EXPIRED",
   );
   const formatDate = (dateString: string | null) => {
     if (!dateString) return "--";
@@ -52,7 +52,10 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
   };
 
   const formatCurrency = (value: string) => {
-    return `${value} ₫`;
+    return new Intl.NumberFormat("vi-VN", {
+      style: "currency",
+      currency: "VND",
+    }).format(Number(value));
   };
 
   const calculateDuration = (startDate: string, endDate: string) => {
@@ -98,6 +101,8 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
         return "Có phụ lục hợp đồng";
       case "INACTIVE":
         return "Ngừng có hiệu lực";
+      case "PENDING":
+        return "Đang chờ";
       case "USER_SIGNED":
         return "Chờ ký hợp đồng";
       case "DIRECTOR_SIGNED":
@@ -196,7 +201,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
                   contractData?.endDate
                     ? calculateDuration(
                         contractData?.startDate ?? "",
-                        contractData?.endDate ?? ""
+                        contractData?.endDate ?? "",
                       )
                     : "Vô thời hạn"
                 }
@@ -306,7 +311,7 @@ const WorkContractInfo: React.FC<WorkContractInfoProps> = ({
               <Text style={styles.footerText}>
                 Cập nhật lần cuối:{" "}
                 {new Date(contractData?.updatedAt ?? "").toLocaleString(
-                  "vi-VN"
+                  "vi-VN",
                 )}
               </Text>
             </View>

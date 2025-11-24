@@ -15,7 +15,7 @@ export const useGetNotificationList = (enabled = true) => {
   }
 
   const { data, isLoading, error, refetch } = useQuery<dtoNotification>({
-    queryKey: ["user", userId],
+    queryKey: ["notifications", userId],
     queryFn: async () => {
       const res = await getNotificationList(userId || "");
       return res.data;
