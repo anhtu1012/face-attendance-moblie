@@ -21,7 +21,7 @@ export default function SalaryPage() {
   );
   const tabs = [
     { id: 0, title: "Tổng quan", icon: "pie-chart" },
-    { id: 1, title: "Lịch sử", icon: "bar-chart" },
+    { id: 1, title: "Theo tháng", icon: "bar-chart" },
     { id: 2, title: "Theo năm", icon: "calendar" },
   ];
   const handleMonthSelect = (year: number, month: number) => {
