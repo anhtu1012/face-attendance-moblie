@@ -128,7 +128,7 @@ const TodayWidget = ({
   // Sử dụng phương thức getCurrentDateString để lấy ngày hiện tại
   const currentDateString = getCurrentDateString();
   // Xác định trạng thái check-in
-  let checkInButtonColor = "#3674B5";
+  let checkInButtonColor = "#1e86e3";
   let checkInTime = null;
   let checkOutTime = null;
   if (todayTimekeepingData.checkinTime) {
@@ -143,7 +143,7 @@ const TodayWidget = ({
     <View style={styles.todayContainer}>
       <View style={styles.todayHeader}>
         <View style={{ flexDirection: "row", gap: "10%" }}>
-          <AntDesign name="calendar" size={24} color="#3674B5" />
+          <AntDesign name="calendar" size={24} color="#1e86e3" />
           <View>
             <Text style={styles.currentDate}>
               {formatDateWithDay(todayTimekeepingData.date)}
@@ -165,6 +165,12 @@ const TodayWidget = ({
               style={[
                 styles.checkinButton,
                 { backgroundColor: checkInButtonColor },
+
+                todayTimekeepingData.status !== TimekeepingStatus.PENDING &&
+                todayTimekeepingData.status !== TimekeepingStatus.START_LATE &&
+                todayTimekeepingData.status !== TimekeepingStatus.START_ONTIME
+                  ? { opacity: 0.7 }
+                  : null,
               ]}
               disabled={
                 todayTimekeepingData.status !== TimekeepingStatus.PENDING &&
@@ -254,6 +260,7 @@ const styles = StyleSheet.create({
   },
   checkinButton: {
     backgroundColor: "#3674B5",
+    // backgroundColor: "#1e86e3",
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,

@@ -1,8 +1,10 @@
 import TodayWidget from "@/components/Home/TodayWidget";
-import { motivationalQuotes } from "@/constants/homepage";
+import { formCategory } from "@/constants/form";
 import { useGetSubmittedForm } from "@/hooks/useGetSubmittedForm";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import useSocket from "@/hooks/useSocket";
+import { setUser } from "@/lib/features/loginSlice";
+import { RootState } from "@/lib/store";
 import { SubmittedFormItem } from "@/models/form/dtoSubmittedForm";
 import { cancelSubmittedForm, getSubmittedForm } from "@/services/form/api";
 import {
@@ -29,16 +31,20 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useDispatch, useSelector } from "react-redux";
 
 function HomePage() {
+  const dispatch = useDispatch();
+  const userProfileLocal = useSelector(
+    (state: RootState) => state.auth.userProfile,
+  );
+  const { refetchForms, refetchUserData, refetchCurrentTimekeeping } =
+    useLocalSearchParams();
   const {
     userId,
     userProfile,
     refetch: handleRefetchUserData,
-  } = useGetUserProfile();
-
-  const { refetchForms, refetchUserData, refetchCurrentTimekeeping } =
-    useLocalSearchParams();
+  } = useGetUserProfile({ enabled: false });
   const { submittedFormListData, refetch: handleRefetchSubmittedFormData } =
     useGetSubmittedForm({
       userId: userId || "",
@@ -49,7 +55,6 @@ function HomePage() {
     submittedFormListData?.data || [],
   );
   const [refreshing, setRefreshing] = useState(false);
-  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
@@ -88,6 +93,11 @@ function HomePage() {
           return data;
         });
       });
+
+      // update isRegisterFace when face register form gets accepted
+      if (Number(data.formCategoryId) !== formCategory.FACE_REGISTER) return;
+      if (data.status !== "ACCEPTED") return;
+      dispatch(setUser({ ...userProfileLocal, isRegisterFace: true }));
     };
 
     // Add listener
@@ -102,6 +112,7 @@ function HomePage() {
 
   useEffect(() => {
     handleRefetchSubmittedFormData();
+    handleRefetchUserData();
   }, []);
 
   // Refetch form data
@@ -129,16 +140,12 @@ function HomePage() {
     }
   }, [submittedFormListData]);
 
-  // Auto-rotate quotes every 5 seconds
+  // Update Redux store when userProfile changes
   useEffect(() => {
-    const interval = setInterval(() => {
-      setCurrentQuoteIndex(
-        (prevIndex) => (prevIndex + 1) % motivationalQuotes.length,
-      );
-    }, 5000);
-
-    return () => clearInterval(interval);
-  }, []);
+    if (userProfile) {
+      dispatch(setUser(userProfile));
+    }
+  }, [userProfile, dispatch]);
 
   const handleOpenCancelModal = (formId: string) => {
     setSelectedFormId(formId);
@@ -206,9 +213,9 @@ function HomePage() {
         >
           <Image
             source={
-              userProfile?.faceImg
+              userProfileLocal?.faceImg
                 ? {
-                    uri: userProfile?.faceImg,
+                    uri: userProfileLocal?.faceImg,
                   }
                 : require("@/assets/images/empty-avatar.png")
             }
@@ -225,7 +232,7 @@ function HomePage() {
         }
       >
         {/* Register face widget */}
-        {!userProfile?.isRegisterFace ? (
+        {!userProfileLocal?.isRegisterFace ? (
           <View style={styles.widgetContainer}>
             <View style={styles.faceRegisterHeader}>
               <View style={styles.faceIconContainer}>
@@ -255,7 +262,7 @@ function HomePage() {
         )}
 
         {/* Today Widget */}
-        {userProfile?.isRegisterFace ? (
+        {userProfileLocal?.isRegisterFace ? (
           <TodayWidget
             loadingSchedule={false}
             refetchCurrentTimekeeping={refetchCurrentTimekeeping as string}
@@ -436,51 +443,6 @@ function HomePage() {
             </View>
           )}
         </View>
-        {/* Quick Actions 
-        <View style={styles.quickActionsContainer}>
-          <Text style={styles.sectionTitle}>Truy cập nhanh</Text>
-          <View style={styles.quickActionsGrid}>
-            <TouchableOpacity style={styles.quickActionItem}>
-              <View
-                style={[styles.quickActionIcon, { backgroundColor: "#E3F2FD" }]}
-              >
-                <AntDesign name="calendar" size={24} color="#2196F3" />
-              </View>
-              <Text style={styles.quickActionText}>Bảng công</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.quickActionItem}>
-              <View
-                style={[styles.quickActionIcon, { backgroundColor: "#E8F5E9" }]}
-              >
-                <MaterialCommunityIcons
-                  name="currency-usd"
-                  size={24}
-                  color="#4CAF50"
-                />
-              </View>
-              <Text style={styles.quickActionText}>Lương</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.quickActionItem}>
-              <View
-                style={[styles.quickActionIcon, { backgroundColor: "#FFF3E0" }]}
-              >
-                <AntDesign name="form" size={24} color="#FF9800" />
-              </View>
-              <Text style={styles.quickActionText}>Tạo đơn</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity style={styles.quickActionItem}>
-              <View
-                style={[styles.quickActionIcon, { backgroundColor: "#FCE4EC" }]}
-              >
-                <AntDesign name="user" size={24} color="#E91E63" />
-              </View>
-              <Text style={styles.quickActionText}>Cá nhân</Text>
-            </TouchableOpacity>
-          </View>
-        </View>*/}
 
         {/* Bottom space */}
         <View style={styles.bottomSpace} />

@@ -1,4 +1,4 @@
-import { dtoDetailTimekeeping } from "@/model/schedule/dtoWorkingSchedule";
+import { dtoDetailTimekeeping } from "@/models/schedule/dtoWorkingSchedule";
 import { getDetailTimekeepingData } from "@/services/timesheet/api";
 import { useQuery } from "@tanstack/react-query";
 

@@ -1,13 +1,13 @@
 // redux/authSlice.js
 
 import { RootState } from "@/lib/store";
-import { dtoUserInfor } from "@/model/auth/dtoUser";
+import { dtoGetUser } from "@/models/auth/dtoUser";
 import { createSlice } from "@reduxjs/toolkit";
 
 const initialState = {
   accessToken: "",
   refreshToken: "",
-  userProfile: {} as dtoUserInfor,
+  userProfile: {} as dtoGetUser,
 };
 
 const authSlice = createSlice({

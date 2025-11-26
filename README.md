@@ -20,6 +20,16 @@
 
 ### Building
 
+#### Local APK Build (After Changing Assets)
+```bash
+# Khi bạn thay đổi images/assets và cần build lại
+npm run rebuild:assets
+
+# Hoặc build và cài luôn
+npm run rebuild:assets:install
+```
+> ⚠️ **Important:** Khi thay đổi assets (images, icons, splash), phải dùng `rebuild:assets` để đảm bảo native modules (camera, face detector) vẫn hoạt động!
+
 #### Preview Build (Internal Testing)
 ```bash
 # Kiểm tra environment trước
@@ -45,6 +55,7 @@ npm run build:production:ios
 
 - 🔧 **[BUILD_CONFIGURATION_CHANGES.md](./BUILD_CONFIGURATION_CHANGES.md)** - Tổng quan về cấu hình build
 - 📖 **[BUILD_GUIDE.md](./BUILD_GUIDE.md)** - Hướng dẫn build chi tiết
+- 🔄 **[REBUILD_GUIDE.md](./REBUILD_GUIDE.md)** - **Hướng dẫn rebuild sau khi thay đổi assets**
 - ✅ **[PRE_BUILD_CHECKLIST.md](./PRE_BUILD_CHECKLIST.md)** - Checklist trước khi build
 
 ## 🛠️ Tech Stack

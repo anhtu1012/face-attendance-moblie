@@ -4,7 +4,13 @@ import { dtoGetUser } from "@/models/auth/dtoUser";
 import { useQuery } from "@tanstack/react-query";
 import { useSelector } from "react-redux";
 
-export const useGetUserProfile = () => {
+interface UseGetUserProfileParams {
+  enabled?: boolean;
+}
+
+export const useGetUserProfile = ({
+  enabled = true,
+}: UseGetUserProfileParams = {}) => {
   let userId: string | undefined;
 
   try {
@@ -17,7 +23,7 @@ export const useGetUserProfile = () => {
   const { data, isLoading, error, refetch } = useQuery<dtoGetUser>({
     queryKey: ["user", userId],
     queryFn: () => getUserById(userId || ""),
-    enabled: !!userId,
+    enabled: !!userId && enabled,
     staleTime: 0,
     gcTime: 0,
     refetchOnMount: true,

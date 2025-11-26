@@ -18,6 +18,8 @@
     "build:production:ios": "eas build --profile production --platform ios",
     "build:apk:local": "cd android && ./gradlew assembleRelease",
     "install:apk:local": "adb install -r android/app/build/outputs/apk/release/app-release.apk",
+    "rebuild:assets": "bash ./scripts/rebuild-assets.sh",
+    "rebuild:assets:install": "bash ./scripts/rebuild-assets.sh && adb install -r android/app/build/outputs/apk/release/app-release.apk",
     "check-build": "bash ./scripts/check-build-env.sh",
     "verify-firebase": "bash ./scripts/verify-firebase-config.sh",
     "prebuild": "npx expo prebuild",

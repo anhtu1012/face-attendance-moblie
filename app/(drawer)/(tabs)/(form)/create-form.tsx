@@ -106,7 +106,11 @@ export default function CreateFormPage() {
       "endTime",
       new Date(date.endDate + "T" + date.endTime).toISOString(),
     );
-    formData.append("date", new Date().toISOString());
+    // formData.append("date", new Date().toISOString());
+    formData.append(
+      "date",
+      new Date(date.startDate + "T" + date.startTime).toISOString(),
+    );
 
     try {
       // Set loading state

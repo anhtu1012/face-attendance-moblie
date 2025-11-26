@@ -1,10 +1,10 @@
-import { dtoTimekeepingDashboard } from "@/model/schedule/dtoWorkingSchedule";
+import { dtoTimekeepingDashboard } from "@/models/schedule/dtoWorkingSchedule";
 import { getTimekeepingDashboardData } from "@/services/timesheet/api";
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetTimekeepingDashboardData = (
   userId: string,
-  month: number
+  month: number,
 ) => {
   const { data, isLoading, error, refetch, isFetching } =
     useQuery<dtoTimekeepingDashboard>({
@@ -15,5 +15,11 @@ export const useGetTimekeepingDashboardData = (
       },
       enabled: !!userId && !!month,
     });
-  return { timekeepingDashboardData: data, isLoading, timekeepingDashboardError: error, refetch, isFetching };
+  return {
+    timekeepingDashboardData: data,
+    isLoading,
+    timekeepingDashboardError: error,
+    refetch,
+    isFetching,
+  };
 };

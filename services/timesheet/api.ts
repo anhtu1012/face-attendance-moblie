@@ -1,5 +1,5 @@
 import api from "@/config/axios";
-import { dtoTimekeepingDashboard } from "@/model/schedule/dtoWorkingSchedule";
+import { dtoTimekeepingDashboard } from "@/models/schedule/dtoWorkingSchedule";
 import { dtoPutTimekeep } from "@/models/timesheet/dtoTimekeep";
 
 export const timkeep = async (data: dtoPutTimekeep, timekeepingId: string) => {
@@ -54,4 +54,3 @@ export const getTimekeepingDashboardData = async (
     },
   });
 };
-

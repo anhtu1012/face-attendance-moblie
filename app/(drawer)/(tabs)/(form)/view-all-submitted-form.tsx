@@ -139,10 +139,10 @@ export default function ChooseFormPage() {
     try {
       // Reset pagination and internal flags
       hasLoadedInitial.current = false;
-      
+
       // Reset to page 0 first
       setPage(0);
-      
+
       // Refetch with explicit offset=0 to get fresh data from the beginning
       const result = await refetch();
       if (result?.data?.data && Array.isArray(result.data.data)) {

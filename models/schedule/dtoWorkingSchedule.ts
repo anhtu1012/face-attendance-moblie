@@ -16,7 +16,7 @@ export interface dtoTimekeeping {
       totalWorkHour: number;
       hasOT: boolean;
       status: string;
-    }
+    },
   ];
   limit: number;
   page: number;
