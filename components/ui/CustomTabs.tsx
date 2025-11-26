@@ -20,12 +20,13 @@ interface TabProps {
   inactiveColor?: string; // Màu cho tab inactive
   isBorderedBottom?: boolean;
 }
+
 const CustomTabs = ({
   tabs,
   activeTab,
   setActiveTab,
   activeColor = "#3674B5", // Default màu xanh dương
-  inactiveColor = "#666", // Default màu xám
+  inactiveColor = "#6B7280", // Default màu xám
   isBorderedBottom = true,
 }: TabProps) => {
   return (
@@ -34,97 +35,88 @@ const CustomTabs = ({
         styles.tabContainer,
         isBorderedBottom && {
           borderBottomWidth: 1,
-          borderBottomColor: "#e0e0e0",
+          borderBottomColor: "#F3F4F6",
         },
       ]}
     >
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.tabScrollContent}
-        decelerationRate="fast"
-        snapToInterval={120}
-        snapToAlignment="start"
-      >
-        {tabs.map((tab) => (
-          <TouchableOpacity
-            key={tab.id}
-            style={[
-              styles.tabButton,
-              activeTab === tab.id && styles.activeTabButton,
-            ]}
-            onPress={() => setActiveTab(tab.id)}
-            activeOpacity={0.7}
-          >
-            {tab.icon && (
-              <Feather
-                name={tab.icon as any}
-                size={16}
-                color={activeTab === tab.id ? activeColor : inactiveColor}
-                style={{ marginRight: 4 }}
-              />
-            )}
-            <Text
-              style={[
-                styles.tabButtonText,
-                activeTab === tab.id && {
-                  color: activeColor,
-                  fontWeight: "600",
-                },
-                activeTab !== tab.id && { color: inactiveColor },
-              ]}
-            >
-              {tab.title}
-            </Text>
-            {activeTab === tab.id && (
-              <View
+      <View style={styles.tabsBackground}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.tabScrollContent}
+          decelerationRate="fast"
+        >
+          {tabs.map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <TouchableOpacity
+                key={tab.id}
                 style={[
-                  styles.activeTabIndicator,
-                  { backgroundColor: activeColor },
+                  styles.tabButton,
+                  isActive && {
+                    backgroundColor: activeColor,
+                  },
                 ]}
-              />
-            )}
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+                onPress={() => setActiveTab(tab.id)}
+                activeOpacity={0.7}
+              >
+                {tab.icon && (
+                  <Feather
+                    name={tab.icon as any}
+                    size={16}
+                    color={isActive ? "#FFFFFF" : inactiveColor}
+                    style={{ marginRight: 6 }}
+                  />
+                )}
+                <Text
+                  style={[
+                    styles.tabButtonText,
+                    isActive
+                      ? {
+                          color: "#FFFFFF",
+                          fontWeight: "700",
+                        }
+                      : { color: inactiveColor, fontWeight: "500" },
+                  ]}
+                >
+                  {tab.title}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </ScrollView>
+      </View>
     </View>
   );
 };
+
 const styles = StyleSheet.create({
   tabContainer: {
-    backgroundColor: "#fff",
-    paddingVertical: 8,
+    backgroundColor: "transparent",
+  },
+  tabsBackground: {
+    backgroundColor: "#F9FAFB",
+    borderRadius: 12,
+    padding: 4,
   },
   tabScrollContent: {
-    paddingHorizontal: 16,
-    paddingRight: 40, // Extra space to indicate scrollable
+    alignItems: "center",
+    gap: 6,
   },
   tabButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    marginRight: 6,
-    position: "relative",
-    minWidth: 80, // Reduced minimum width
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-  },
-  activeTabButton: {
-    // No background color for active state
+    minWidth: 100,
+    backgroundColor: "transparent",
   },
   tabButtonText: {
-    fontSize: 15,
-    fontWeight: "500",
-    color: "#666",
+    fontSize: 14,
     textAlign: "center",
   },
-  activeTabIndicator: {
-    position: "absolute",
-    bottom: 0,
-    left: 12,
-    right: 12,
-    height: 2,
-    borderRadius: 1,
-  },
 });
+
 export default CustomTabs;

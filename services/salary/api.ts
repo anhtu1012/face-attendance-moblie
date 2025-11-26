@@ -14,13 +14,23 @@ export const getSalarySummary = async (userId: string, month: number) => {
 export const getDailySalarySummary = async (
   userId: string,
   fromDate: string,
-  toDate: string,
+  toDate: string
 ) => {
   return await axios.get(`/time-keeping/tong-ket-luong`, {
     params: {
       userId,
       fromDate,
       toDate,
+    },
+  });
+};
+
+// Get yearly salary report
+export const getYearlySalaryReport = async (year: number, userId: string) => {
+  return await axios.get(`/report/bao-cao-luong`, {
+    params: {
+      year,
+      userId,
     },
   });
 };

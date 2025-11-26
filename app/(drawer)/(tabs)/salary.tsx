@@ -1,5 +1,6 @@
 import SalaryHistory from "@/components/Salary/SalaryHistory";
 import SalaryOverview from "@/components/Salary/SalaryOverview";
+import YearlySalaryView from "@/components/Salary/YearlySalaryView";
 import CustomHeaders from "@/components/ui/CustomHeaders";
 import CustomTabs from "@/components/ui/CustomTabs";
 import MonthPickerButton from "@/components/ui/MonthPickerButton";
@@ -16,11 +17,12 @@ export default function SalaryPage() {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(
-    currentDate.getMonth() + 1,
+    currentDate.getMonth() + 1
   );
   const tabs = [
     { id: 0, title: "Tổng quan", icon: "pie-chart" },
     { id: 1, title: "Lịch sử", icon: "bar-chart" },
+    { id: 2, title: "Theo năm", icon: "calendar" },
   ];
   const handleMonthSelect = (year: number, month: number) => {
     setSelectedYear(year);
@@ -39,6 +41,10 @@ export default function SalaryPage() {
     };
   };
   const { startTime, endTime } = getDateRange(selectedYear, selectedMonth);
+
+  const handleYearChange = (year: number) => {
+    setSelectedYear(year);
+  };
 
   const renderTabContent = () => {
     switch (activeTab) {
@@ -60,6 +66,14 @@ export default function SalaryPage() {
             selectedYear={selectedYear}
           />
         );
+      case 2:
+        return (
+          <YearlySalaryView
+            userId={userId || ""}
+            selectedYear={selectedYear}
+            onYearChange={handleYearChange}
+          />
+        );
       default:
         return (
           <SalaryOverview
@@ -77,22 +91,21 @@ export default function SalaryPage() {
         title="Bảng lương"
         onBack={() => router.navigate("/(drawer)/(tabs)")}
       />
-      <View
-        style={{
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <CustomTabs
-          tabs={tabs}
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          inactiveColor="#6B7280"
-          isBorderedBottom={false}
-        />
-
-        <MonthPickerButton setShowMonthPicker={setShowMonthPicker} />
+      <View style={styles.tabsContainer}>
+        <View style={styles.tabsWrapper}>
+          <CustomTabs
+            tabs={tabs}
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+            inactiveColor="#6B7280"
+            isBorderedBottom={false}
+          />
+        </View>
+        {activeTab !== 2 && (
+          <View style={styles.pickerWrapper}>
+            <MonthPickerButton setShowMonthPicker={setShowMonthPicker} />
+          </View>
+        )}
       </View>
       {renderTabContent()}
       <MonthPickerModal
@@ -111,6 +124,22 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#fff",
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: "#FFFFFF",
+    borderBottomWidth: 1,
+    borderBottomColor: "#F3F4F6",
+  },
+  tabsWrapper: {
+    flex: 1,
+  },
+  pickerWrapper: {
+    marginLeft: 12,
   },
   monthSelector: {
     flexDirection: "row",

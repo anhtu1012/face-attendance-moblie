@@ -2,35 +2,36 @@ import { Feather } from "@expo/vector-icons";
 import React from "react";
 import { StyleSheet, TouchableOpacity } from "react-native";
 
-const MonthPickerButton = ({
-  setShowMonthPicker,
+const YearPickerButton = ({
+  setShowYearPicker,
 }: {
-  setShowMonthPicker: (show: boolean) => void;
+  setShowYearPicker: (show: boolean) => void;
 }) => {
   return (
     <TouchableOpacity
-      style={styles.monthSelector}
-      onPress={() => setShowMonthPicker(true)}
+      style={styles.yearSelector}
+      onPress={() => setShowYearPicker(true)}
       activeOpacity={0.7}
     >
       <Feather name="calendar" size={18} color="#3674B5" />
-      <Feather name="chevron-down" size={16} color="#3674B5" />
+      <Feather name="chevron-down" size={18} color="#3674B5" />
     </TouchableOpacity>
   );
 };
 
-export default MonthPickerButton;
+export default YearPickerButton;
 
 const styles = StyleSheet.create({
-  monthSelector: {
+  yearSelector: {
     flexDirection: "row",
     alignItems: "center",
     backgroundColor: "#EFF6FF",
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
+    borderRadius: 12,
+    gap: 8,
     borderWidth: 1,
-    borderColor: "#BFDBFE",
+    borderColor: "#3674B5",
+    width: "20%",
   },
 });

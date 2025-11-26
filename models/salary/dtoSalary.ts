@@ -25,3 +25,27 @@ export interface dailySalaryData {
   totalFine: number;
   isHoliday: boolean;
 }
+
+// Yearly Salary Report Types
+export interface dtoYearlySalaryReport {
+  count: number;
+  limit: number;
+  page: number;
+  data: yearlySalaryData[];
+}
+
+export interface yearlySalaryData {
+  date: string; // Format: "MM/YYYY"
+  totalWorkHour: number;
+  totalWorkDay: number;
+  totalSalary: number;
+  workSalary: number;
+  otSalary: number;
+  lateCount: number;
+  totalFine: number;
+  grossSalary: number;
+  totalAllowance: number;
+  userId: string;
+  fullNameUser: string;
+  departmentName: string;
+}
