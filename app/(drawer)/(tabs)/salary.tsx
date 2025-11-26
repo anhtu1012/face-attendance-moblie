@@ -3,7 +3,7 @@ import SalaryOverview from "@/components/Salary/SalaryOverview";
 import YearlySalaryView from "@/components/Salary/YearlySalaryView";
 import CustomHeaders from "@/components/ui/CustomHeaders";
 import CustomTabs from "@/components/ui/CustomTabs";
-import MonthPickerButton from "@/components/ui/MonthPickerButton";
+import DatePickerButton from "@/components/ui/DatePickerButton";
 import MonthPickerModal from "@/components/ui/MonthPickerModal";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
 import { router } from "expo-router";
@@ -21,7 +21,7 @@ export default function SalaryPage() {
   );
   const tabs = [
     { id: 0, title: "Tổng quan", icon: "pie-chart" },
-    { id: 1, title: "Theo tháng", icon: "bar-chart" },
+    { id: 1, title: "Lịch sử", icon: "bar-chart" },
     { id: 2, title: "Theo năm", icon: "calendar" },
   ];
   const handleMonthSelect = (year: number, month: number) => {
@@ -101,11 +101,14 @@ export default function SalaryPage() {
             isBorderedBottom={false}
           />
         </View>
-        {activeTab !== 2 && (
-          <View style={styles.pickerWrapper}>
-            <MonthPickerButton setShowMonthPicker={setShowMonthPicker} />
-          </View>
-        )}
+        <View style={styles.pickerWrapper}>
+          <DatePickerButton
+            selectedYear={selectedYear}
+            selectedMonth={selectedMonth}
+            activeTab={activeTab}
+            onPress={() => setShowMonthPicker(true)}
+          />
+        </View>
       </View>
       {renderTabContent()}
       <MonthPickerModal
@@ -115,6 +118,7 @@ export default function SalaryPage() {
         selectedMonth={selectedMonth}
         handleMonthSelect={handleMonthSelect}
         currentDate={currentDate}
+        showMonthSelection={activeTab !== 2}
       />
     </View>
   );

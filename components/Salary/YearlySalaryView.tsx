@@ -1,16 +1,13 @@
 import YearlySalaryChart from "@/components/Salary/YearlySalaryChart";
-import YearPickerModal from "@/components/ui/YearPickerModal";
 import { useGetYearlySalaryReport } from "@/hooks/useGetYearlySalaryReport";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
-import { ChevronLeft, ChevronRight } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
   StyleSheet,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 
@@ -33,9 +30,7 @@ const YearlySalaryView: React.FC<YearlySalaryViewProps> = ({
 
   // State for showing/hiding salary amounts (default hidden for privacy)
   const [showSalary, setShowSalary] = useState(false);
-  const [showYearPicker, setShowYearPicker] = useState(false);
   const isFocused = useIsFocused();
-  const currentDate = new Date();
 
   // Reset showSalary to false when screen loses focus
   useEffect(() => {
@@ -54,25 +49,6 @@ const YearlySalaryView: React.FC<YearlySalaryViewProps> = ({
     }).format(amount);
   };
 
-  const handleYearSelect = (year: number) => {
-    onYearChange(year);
-  };
-
-  const handlePrevYear = () => {
-    if (selectedYear > 2020) {
-      onYearChange(selectedYear - 1);
-    }
-  };
-
-  const handleNextYear = () => {
-    if (selectedYear < currentDate.getFullYear() + 1) {
-      onYearChange(selectedYear + 1);
-    }
-  };
-
-  const canGoPrev = selectedYear > 2020;
-  const canGoNext = selectedYear < currentDate.getFullYear() + 1;
-
   return (
     <>
       <ScrollView
@@ -88,43 +64,9 @@ const YearlySalaryView: React.FC<YearlySalaryViewProps> = ({
           />
         }
       >
-        {/* Year Navigation */}
-        <View style={styles.yearNavigationContainer}>
-          <View style={styles.yearNavigation}>
-            <TouchableOpacity
-              onPress={handlePrevYear}
-              style={[styles.navButton, !canGoPrev && styles.navButtonDisabled]}
-              disabled={!canGoPrev}
-            >
-              <ChevronLeft
-                color={canGoPrev ? "#1F2937" : "#D1D5DB"}
-                size={24}
-              />
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => setShowYearPicker(true)}
-              style={styles.yearInfo}
-            >
-              <Text style={styles.yearNavigationText}>Năm {selectedYear}</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={handleNextYear}
-              style={[styles.navButton, !canGoNext && styles.navButtonDisabled]}
-              disabled={!canGoNext}
-            >
-              <ChevronRight
-                color={canGoNext ? "#1F2937" : "#D1D5DB"}
-                size={24}
-              />
-            </TouchableOpacity>
-          </View>
-        </View>
-
         {/* Chart */}
         {yearlySalaryData?.data && yearlySalaryData.data.length > 0 && (
-          <View style={styles.section}>
+          <View style={[styles.section, { marginTop: 20 }]}>
             <YearlySalaryChart
               data={yearlySalaryData.data}
               showSalary={showSalary}
@@ -264,15 +206,6 @@ const YearlySalaryView: React.FC<YearlySalaryViewProps> = ({
           )}
         </View>
       </ScrollView>
-
-      {/* Year Picker Modal */}
-      <YearPickerModal
-        showYearPicker={showYearPicker}
-        setShowYearPicker={setShowYearPicker}
-        selectedYear={selectedYear}
-        handleYearSelect={handleYearSelect}
-        currentDate={currentDate}
-      />
     </>
   );
 };
@@ -286,51 +219,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingBottom: 100,
-  },
-  yearNavigationContainer: {
-    marginHorizontal: 20,
-    marginBottom: 16,
-    marginTop: 10,
-  },
-  yearNavigation: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    backgroundColor: "#FFFFFF",
-    paddingHorizontal: 20,
-    paddingVertical: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: "#E5E7EB",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  navButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#F9FAFB",
-  },
-  navButtonDisabled: {
-    backgroundColor: "#F3F4F6",
-    opacity: 0.5,
-  },
-  yearInfo: {
-    flexDirection: "row",
-    alignItems: "center",
-    flex: 1,
-    justifyContent: "center",
-    gap: 8,
-  },
-  yearNavigationText: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#1F2937",
   },
   section: {
     paddingHorizontal: 20,

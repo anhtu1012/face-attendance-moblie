@@ -16,6 +16,7 @@ interface MonthPickerModalProps {
   selectedMonth: number;
   handleMonthSelect: (year: number, month: number) => void;
   currentDate: Date;
+  showMonthSelection?: boolean; // NEW PROP - defaults to true
 }
 
 const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
@@ -25,6 +26,7 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
   selectedMonth,
   handleMonthSelect,
   currentDate,
+  showMonthSelection = true, // Default to true for backward compatibility
 }) => {
   const [tempYear, setTempYear] = useState(selectedYear);
   const [tempMonth, setTempMonth] = useState(selectedMonth);
@@ -69,11 +71,13 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
   useEffect(() => {
     if (showMonthPicker) {
       setTimeout(() => {
-        // Scroll to selected month (index = month - 1)
-        monthScrollRef.current?.scrollTo({
-          y: (tempMonth - 1) * 50,
-          animated: false, // No animation for instant display
-        });
+        // Only scroll to selected month if month selection is enabled
+        if (showMonthSelection) {
+          monthScrollRef.current?.scrollTo({
+            y: (tempMonth - 1) * 50,
+            animated: false, // No animation for instant display
+          });
+        }
 
         // Scroll to selected year
         const yearIndex = years.indexOf(tempYear);
@@ -85,7 +89,7 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
         }
       }, 100);
     }
-  }, [showMonthPicker]);
+  }, [showMonthPicker, showMonthSelection]);
 
   return (
     <Modal
@@ -99,11 +103,13 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
           {/* Header */}
           <View style={styles.header}>
             <MaterialCommunityIcons
-              name="calendar-month"
+              name={showMonthSelection ? "calendar-month" : "calendar-blank"}
               size={26}
               color="#3674B5"
             />
-            <Text style={styles.headerTitle}>Chọn tháng & năm</Text>
+            <Text style={styles.headerTitle}>
+              {showMonthSelection ? "Chọn tháng & năm" : "Chọn năm"}
+            </Text>
             <TouchableOpacity onPress={handleCancel}>
               <Feather name="x" size={22} color="#6B7280" />
             </TouchableOpacity>
@@ -111,61 +117,68 @@ const MonthPickerModal: React.FC<MonthPickerModalProps> = ({
 
           {/* Body - Wheel Picker Style */}
           <View style={styles.body}>
-            {/* Month Column */}
-            <View style={styles.column}>
-              <Text style={styles.sectionTitle}>Tháng</Text>
-              <View style={styles.pickerWrapper}>
-                {/* Selection Indicator for Month */}
-                <View style={styles.selectionIndicator} />
-                <View style={styles.pickerContainer}>
-                  <ScrollView
-                    ref={monthScrollRef}
-                    style={styles.scrollView}
-                    showsVerticalScrollIndicator={false}
-                    snapToInterval={50} // Height of each item
-                    decelerationRate="fast"
-                    contentContainerStyle={{
-                      paddingVertical: 100, // (250 - 50) / 2 = center first/last item
-                    }}
-                    onScroll={(e) => {
-                      const offsetY = e.nativeEvent.contentOffset.y;
-                      const index = Math.round(offsetY / 50);
-                      const newMonth = Math.max(1, Math.min(12, index + 1));
-                      if (newMonth !== tempMonth) {
-                        setTempMonth(newMonth);
-                      }
-                    }}
-                    scrollEventThrottle={16}
-                  >
-                    {monthNames.map((month, index) => {
-                      const monthValue = index + 1;
-                      const isSelected = tempMonth === monthValue;
-                      return (
-                        <View
-                          key={monthValue}
-                          style={[
-                            styles.wheelItem,
-                            isSelected && styles.wheelItemActive,
-                          ]}
-                        >
-                          <Text
+            {/* Month Column - only show if showMonthSelection is true */}
+            {showMonthSelection && (
+              <View style={styles.column}>
+                <Text style={styles.sectionTitle}>Tháng</Text>
+                <View style={styles.pickerWrapper}>
+                  {/* Selection Indicator for Month */}
+                  <View style={styles.selectionIndicator} />
+                  <View style={styles.pickerContainer}>
+                    <ScrollView
+                      ref={monthScrollRef}
+                      style={styles.scrollView}
+                      showsVerticalScrollIndicator={false}
+                      snapToInterval={50} // Height of each item
+                      decelerationRate="fast"
+                      contentContainerStyle={{
+                        paddingVertical: 100, // (250 - 50) / 2 = center first/last item
+                      }}
+                      onScroll={(e) => {
+                        const offsetY = e.nativeEvent.contentOffset.y;
+                        const index = Math.round(offsetY / 50);
+                        const newMonth = Math.max(1, Math.min(12, index + 1));
+                        if (newMonth !== tempMonth) {
+                          setTempMonth(newMonth);
+                        }
+                      }}
+                      scrollEventThrottle={16}
+                    >
+                      {monthNames.map((month, index) => {
+                        const monthValue = index + 1;
+                        const isSelected = tempMonth === monthValue;
+                        return (
+                          <View
+                            key={monthValue}
                             style={[
-                              styles.wheelText,
-                              isSelected && styles.wheelTextActive,
+                              styles.wheelItem,
+                              isSelected && styles.wheelItemActive,
                             ]}
                           >
-                            {month.short}
-                          </Text>
-                        </View>
-                      );
-                    })}
-                  </ScrollView>
+                            <Text
+                              style={[
+                                styles.wheelText,
+                                isSelected && styles.wheelTextActive,
+                              ]}
+                            >
+                              {month.short}
+                            </Text>
+                          </View>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
                 </View>
               </View>
-            </View>
+            )}
 
             {/* Year Column */}
-            <View style={styles.column}>
+            <View
+              style={[
+                styles.column,
+                !showMonthSelection && styles.columnCentered,
+              ]}
+            >
               <Text style={styles.sectionTitle}>Năm</Text>
               <View style={styles.pickerWrapper}>
                 {/* Selection Indicator for Year */}
@@ -300,6 +313,10 @@ const styles = StyleSheet.create({
   column: {
     flex: 1,
     marginHorizontal: 5,
+  },
+  columnCentered: {
+    marginHorizontal: "auto",
+    maxWidth: 200,
   },
   pickerWrapper: {
     position: "relative",
