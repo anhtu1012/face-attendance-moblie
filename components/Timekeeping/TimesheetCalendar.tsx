@@ -127,10 +127,10 @@ export default function TimesheetCalendar() {
       }
       if (timekeeping?.status === LegacyTimekeepingStatus.FORGET_LOG) {
         backgroundColor = "#C5F0DD";
-        totalWorkHourColor = "#E74C3C";
+        totalWorkHourColor = "#00A854";
         displayValue = timekeeping?.totalWorkHour ?? "0";
       }
-      
+
       return {
         date: date,
         dateString: dateString,

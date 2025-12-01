@@ -89,8 +89,8 @@ const TimesheetWeek = () => {
           statusColor = "#E74C3C";
         } else if (timekeeping.status === LegacyTimekeepingStatus.FORGET_LOG) {
           statusDisplay = timekeeping.totalWorkHour;
-          statusColor = "#E74C3C";
-        }
+          statusColor = "#00A854";
+        } 
       } else if (isFutureDate) {
         statusDisplay = "0";
         statusColor = "#8C8F92";
