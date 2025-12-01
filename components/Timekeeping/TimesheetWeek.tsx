@@ -55,7 +55,7 @@ const TimesheetWeek = () => {
     return weekDays.map((day, index) => {
       const dateString = day.format("YYYY-MM-DD");
       const timekeeping = timekeepingDataList?.data.find(
-        (t: any) => t.date === dateString,
+        (t: any) => t.date === dateString
       );
       const fullDateString = day.format("DD/MM/YYYY");
       // Determine status display based on timekeeping status
@@ -87,6 +87,9 @@ const TimesheetWeek = () => {
         ) {
           statusDisplay = timekeeping.totalWorkHour;
           statusColor = "#E74C3C";
+        } else if (timekeeping.status === LegacyTimekeepingStatus.FORGET_LOG) {
+          statusDisplay = timekeeping.totalWorkHour;
+          statusColor = "#E74C3C";
         }
       } else if (isFutureDate) {
         statusDisplay = "0";
@@ -105,8 +108,8 @@ const TimesheetWeek = () => {
           timekeeping?.checkinTime && timekeeping?.checkoutTime
             ? `${timekeeping.checkinTime} - ${timekeeping.checkoutTime}`
             : timekeeping?.checkinTime
-              ? `${timekeeping.checkinTime} - _ _:_ _`
-              : undefined,
+            ? `${timekeeping.checkinTime} - _ _:_ _`
+            : undefined,
         hasOT: timekeeping?.hasOT,
         isPending: isPending,
         fullDateString: fullDateString,
