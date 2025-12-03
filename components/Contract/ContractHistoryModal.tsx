@@ -33,6 +33,35 @@ const ContractHistoryModal: React.FC<ContractHistoryModalProps> = ({
     });
   };
 
+  const calculateDuration = (startDate: string, endDate: string) => {
+    if (!startDate || !endDate) return "--";
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    let years = end.getFullYear() - start.getFullYear();
+    let months = end.getMonth() - start.getMonth();
+    let days = end.getDate() - start.getDate();
+
+    if (days < 0) {
+      months--;
+      const previousMonth = new Date(end.getFullYear(), end.getMonth(), 0);
+      days += previousMonth.getDate();
+    }
+
+    if (months < 0) {
+      years--;
+      months += 12;
+    }
+
+    const parts = [];
+    if (years > 0) parts.push(`${years} năm`);
+    if (months > 0) parts.push(`${months} tháng`);
+    if (days > 0) parts.push(`${days} ngày`);
+
+    return parts.length > 0 ? parts.join(" ") : "0 ngày";
+  };
+
   const getStatusLabel = (status: string) => {
     switch (status) {
       case "ACTIVE":
@@ -140,7 +169,9 @@ const ContractHistoryModal: React.FC<ContractHistoryModalProps> = ({
             <DetailRow
               label="Thời hạn"
               value={
-                contract.endDate ? `${contract.duration} tháng` : "Vô thời hạn"
+                contract.endDate
+                  ? calculateDuration(contract.startDate, contract.endDate)
+                  : "Vô thời hạn"
               }
               icon="clock"
               iconColor="#8B5CF6"

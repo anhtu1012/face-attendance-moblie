@@ -188,9 +188,9 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
 
           <View style={styles.calculationCard}>
             <View style={styles.calculationRow}>
-              <Text style={styles.calculationLabel}>Lương cơ bản</Text>
+              <Text style={styles.calculationLabel}>Lương công</Text>
               <Text style={styles.calculationValue}>
-                {formatCurrency(data?.grossSalary || 0)}
+                {formatCurrency(data?.totalDailySalary || 0)}
               </Text>
             </View>
             <View style={styles.calculationDivider} />
