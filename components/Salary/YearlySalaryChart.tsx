@@ -33,6 +33,23 @@ const YearlySalaryChart: React.FC<YearlySalaryChartProps> = ({
     return new Intl.NumberFormat("vi-VN").format(Math.round(amount));
   };
 
+  // Format compact for quick stats (shorter version)
+  const formatCompact = (amount: number) => {
+    if (!showSalary) {
+      return "***";
+    }
+    if (amount >= 1000000000) {
+      return `${(amount / 1000000000).toFixed(1)}B`;
+    }
+    if (amount >= 1000000) {
+      return `${(amount / 1000000).toFixed(1)}M`;
+    }
+    if (amount >= 1000) {
+      return `${(amount / 1000).toFixed(0)}K`;
+    }
+    return amount.toString();
+  };
+
   // Format for chart display (shorter version)
   const formatChartValue = (value: number) => {
     if (!showSalary) {
@@ -103,15 +120,15 @@ const YearlySalaryChart: React.FC<YearlySalaryChartProps> = ({
         <View style={styles.quickStatDivider} />
         <View style={styles.quickStatItem}>
           <Text style={[styles.quickStatValue, { color: "#10B981" }]}>
-            {formatCurrency(avgSalary)}
+            {formatCompact(avgSalary)}
           </Text>
-          <Text style={styles.quickStatLabel}>TB/tháng</Text>
+          <Text style={styles.quickStatLabel}>TB</Text>
         </View>
         <View style={styles.quickStatDivider} />
         <View style={styles.quickStatItemWithIcon}>
           <View style={styles.quickStatItem}>
             <Text style={[styles.quickStatValue, { color: "#3674B5" }]}>
-              {formatCurrency(totalSalary)}
+              {formatCompact(totalSalary)}
             </Text>
             <Text style={styles.quickStatLabel}>Tổng</Text>
           </View>
@@ -122,9 +139,9 @@ const YearlySalaryChart: React.FC<YearlySalaryChartProps> = ({
               hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
             >
               {showSalary ? (
-                <Eye size={20} color="#3674B5" />
+                <Eye size={18} color="#3674B5" />
               ) : (
-                <EyeOff size={20} color="#3674B5" />
+                <EyeOff size={18} color="#3674B5" />
               )}
             </TouchableOpacity>
           )}
@@ -366,14 +383,14 @@ const styles = StyleSheet.create({
     backgroundColor: "#E5E7EB",
   },
   quickStatValue: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: "800",
     color: "#1F2937",
     marginBottom: 2,
     textAlign: "center",
   },
   quickStatLabel: {
-    fontSize: 10,
+    fontSize: 9,
     color: "#6B7280",
     fontWeight: "600",
     textAlign: "center",
