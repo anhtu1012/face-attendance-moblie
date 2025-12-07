@@ -1,11 +1,12 @@
 import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
 import { RootState } from "@/lib/store";
 import { LegacyTimekeepingStatus } from "@/models/timesheet/timekeeping";
+import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
 import "dayjs/locale/vi";
 import localeData from "dayjs/plugin/localeData";
 import weekday from "dayjs/plugin/weekday";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   RefreshControl,
@@ -42,6 +43,16 @@ export default function TimesheetCalendar() {
 
   const [selectedTimekeepingId, setSelectedTimekeepingId] = useState<number>(0);
   const [refreshing, setRefreshing] = useState(false);
+
+  // Fetch data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (userId) {
+        refetch();
+      }
+    }, [userId, refetch])
+  );
+
   const calendarDays = useMemo(() => {
     const startOfMonth = currentMonth.startOf("month");
     const endOfMonth = currentMonth.endOf("month");

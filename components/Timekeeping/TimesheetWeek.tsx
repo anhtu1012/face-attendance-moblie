@@ -1,11 +1,12 @@
 import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
 import { RootState } from "@/lib/store";
 import { LegacyTimekeepingStatus } from "@/models/timesheet/timekeeping";
+import { useFocusEffect } from "@react-navigation/native";
 import dayjs from "dayjs";
 import isoWeek from "dayjs/plugin/isoWeek";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
-import React, { useMemo, useState } from "react";
+import React, { useCallback, useMemo, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -33,6 +34,16 @@ const TimesheetWeek = () => {
       startTime: currentWeek.startOf("isoWeek").toISOString(),
       endTime: currentWeek.endOf("isoWeek").toISOString(),
     });
+
+  // Fetch data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (userId) {
+        refetch();
+      }
+    }, [userId, refetch])
+  );
+
   // Tính toán tuần hiện tại
   const weekRange = useMemo(() => {
     const startOfWeek = currentWeek.startOf("isoWeek"); // Bắt đầu từ T.2
@@ -90,7 +101,7 @@ const TimesheetWeek = () => {
         } else if (timekeeping.status === LegacyTimekeepingStatus.FORGET_LOG) {
           statusDisplay = timekeeping.totalWorkHour;
           statusColor = "#00A854";
-        } 
+        }
       } else if (isFutureDate) {
         statusDisplay = "0";
         statusColor = "#8C8F92";

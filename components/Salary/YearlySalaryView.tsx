@@ -1,8 +1,8 @@
 import YearlySalaryChart from "@/components/Salary/YearlySalaryChart";
 import { useGetYearlySalaryReport } from "@/hooks/useGetYearlySalaryReport";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useIsFocused } from "@react-navigation/native";
-import React, { useEffect, useState } from "react";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -31,6 +31,15 @@ const YearlySalaryView: React.FC<YearlySalaryViewProps> = ({
   // State for showing/hiding salary amounts (default hidden for privacy)
   const [showSalary, setShowSalary] = useState(false);
   const isFocused = useIsFocused();
+
+  // Fetch data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (userId) {
+        refetch();
+      }
+    }, [userId, refetch])
+  );
 
   // Reset showSalary to false when screen loses focus
   useEffect(() => {

@@ -5,7 +5,8 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import React, { useState } from "react";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -22,14 +23,23 @@ const TimesheetDashboard: React.FC = () => {
   const currentDate = new Date();
   const [selectedYear, setSelectedYear] = useState(currentDate.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(
-    currentDate.getMonth() + 1,
+    currentDate.getMonth() + 1
   );
   const [showMonthPicker, setShowMonthPicker] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const userId = useSelector((state: RootState) => state.auth.userProfile.id);
   const { timekeepingDashboardData, refetch } = useGetTimekeepingDashboardData(
     userId!,
-    selectedMonth,
+    selectedMonth
+  );
+
+  // Fetch data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (userId) {
+        refetch();
+      }
+    }, [userId, refetch])
   );
 
   const handleMonthSelect = (year: number, month: number) => {

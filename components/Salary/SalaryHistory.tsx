@@ -1,13 +1,13 @@
 import SalaryBarChart from "@/components/Salary/SalaryBarChart";
 import { useGetDailySalarySummary } from "@/hooks/useGetDailySalarySummary";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useIsFocused } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import dayjs from "dayjs";
 import isBetween from "dayjs/plugin/isBetween";
 import isoWeek from "dayjs/plugin/isoWeek";
 import weekOfYear from "dayjs/plugin/weekOfYear";
 import { ChevronLeft, ChevronRight } from "lucide-react-native";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -45,6 +45,15 @@ const SalaryHistory: React.FC<SalaryHistoryProps> = ({
   // State for showing/hiding salary amounts (default hidden for privacy)
   const [showSalary, setShowSalary] = useState(false);
   const isFocused = useIsFocused();
+
+  // Fetch data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (userId) {
+        refetch();
+      }
+    }, [userId, refetch])
+  );
 
   // Reset showSalary to false when screen loses focus
   useEffect(() => {

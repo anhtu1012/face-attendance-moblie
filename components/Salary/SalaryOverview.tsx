@@ -1,9 +1,9 @@
 import { useGetSalarySummary } from "@/hooks/useGetSalarySummary";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useIsFocused } from "@react-navigation/native";
+import { useFocusEffect, useIsFocused } from "@react-navigation/native";
 import { LinearGradient } from "expo-linear-gradient";
 import { Eye, EyeOff } from "lucide-react-native";
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   RefreshControl,
   ScrollView,
@@ -30,7 +30,16 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
 
   const { data, isLoading, refetch } = useGetSalarySummary(
     userId,
-    selectedMonth,
+    selectedMonth
+  );
+
+  // Fetch data when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      if (userId) {
+        refetch();
+      }
+    }, [userId, refetch])
   );
 
   // Reset showSalary to false when screen loses focus
@@ -171,8 +180,8 @@ const SalaryOverview: React.FC<SalaryOverviewProps> = ({
                   {item.amount < 0 || item.label === "Lương cơ bản"
                     ? ""
                     : item.label === "Tiền phạt"
-                      ? ""
-                      : ""}
+                    ? ""
+                    : ""}
                   {formatCurrency(item.amount)}
                 </Text>
               </View>

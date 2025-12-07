@@ -6,7 +6,7 @@ import { useQuery } from "@tanstack/react-query";
 export const useGetSalarySummary = (
   userId: string,
   month: number,
-  enabled = true,
+  enabled = true
 ) => {
   const { data, isLoading, error, refetch } = useQuery<dtoSalarySummary>({
     queryKey: ["salarySummary", userId, month],
