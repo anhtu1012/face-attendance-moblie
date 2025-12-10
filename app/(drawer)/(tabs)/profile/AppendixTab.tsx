@@ -115,6 +115,8 @@ const AppendixTab = ({ userId, gmail }: AppendixTabProps) => {
         return "Chờ giám đốc ký";
       case "PENDING":
         return "Đang xử lý";
+      case "NOT_START":
+        return "Chưa bắt đầu";
       default:
         return status;
     }
@@ -129,10 +131,13 @@ const AppendixTab = ({ userId, gmail }: AppendixTabProps) => {
       case "INACTIVE":
         return "#6B7280";
       case "USER_SIGNED":
+        return "#F59E0B";
       case "DIRECTOR_SIGNED":
         return "#F59E0B";
       case "PENDING":
         return "#3B82F6";
+      case "NOT_START":
+        return "#6B7280";
       default:
         return "#6B7280";
     }
