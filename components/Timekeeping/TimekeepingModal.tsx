@@ -1,7 +1,7 @@
 import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
 import { TimekeepingStatus } from "@/models/timesheet/timekeeping";
 import React from "react";
-import { Modal, ScrollView, StyleSheet, View } from "react-native";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import CheckTimeBox from "../ui/CheckTimeBox";
 import NotWorkNotification from "../ui/NotWorkNotification";
 import TimeDetailBox from "./TimeDetailBox";
@@ -80,6 +80,13 @@ export default function TimekeepingModal({
                 }
               />
             </View>
+            {timekeeping?.status === TimekeepingStatus.FORGET_LOG && (
+              <View style={styles.forgetLogContainer}>
+                <Text style={styles.forgetLogText}>
+                  Bạn đã quên check out vào ngày này!
+                </Text>
+              </View>
+            )}
             {!timekeeping?.isFromOt && (
               <TimeDetailBox
                 title="Ca làm việc"
@@ -245,5 +252,16 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: "600",
     color: "#000",
+  },
+  forgetLogContainer: {
+    backgroundColor: "#FFE5E5",
+    borderRadius: 12,
+    padding: 14,
+    marginTop: 16,
+  },
+  forgetLogText: {
+    fontSize: 14,
+    color: "#DC3545",
+    fontStyle: "italic",
   },
 });
