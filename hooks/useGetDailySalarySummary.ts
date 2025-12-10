@@ -1,17 +1,25 @@
 import { dtoDailySalary } from "@/models/salary/dtoSalary";
 import { getDailySalarySummary } from "@/services/salary/api";
+import { formatSalaryArray } from "@/utils/numberUtils";
 import { useQuery } from "@tanstack/react-query";
 
 export const useGetDailySalarySummary = (
   userId: string,
   fromDate: string,
   toDate: string,
-  enabled = true,
+  enabled = true
 ) => {
   const { data, isLoading, error, refetch } = useQuery<dtoDailySalary>({
     queryKey: ["dailySalarySummary", userId, fromDate, toDate],
     queryFn: async () => {
       const res = await getDailySalarySummary(userId, fromDate, toDate);
+      // Format the array of daily salary data
+      if (res.data && Array.isArray(res.data.data)) {
+        return {
+          ...res.data,
+          data: formatSalaryArray(res.data.data),
+        };
+      }
       return res.data;
     },
     enabled: enabled && !!userId && !!fromDate && !!toDate,

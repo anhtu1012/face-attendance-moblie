@@ -47,7 +47,7 @@ export default function TimekeepingModal({
   });
 
   const dateString = new Date(timekeeping?.date ?? "").toLocaleDateString(
-    "vi-VN",
+    "vi-VN"
   );
   return (
     <Modal

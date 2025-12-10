@@ -1,5 +1,6 @@
 import { dtoDetailTimekeeping } from "@/models/schedule/dtoWorkingSchedule";
 import { getDetailTimekeepingData } from "@/services/timesheet/api";
+import { formatTimekeepingNumbers } from "@/utils/numberUtils";
 import { useQuery } from "@tanstack/react-query";
 
 interface UseGetDetailTimekeepingDataParams {
@@ -16,7 +17,7 @@ export const useGetDetailTimekeepingData = ({
       queryKey: ["timekeepingDetail", timekeepingId],
       queryFn: async () => {
         const response = await getDetailTimekeepingData(timekeepingId);
-        return response.data;
+        return formatTimekeepingNumbers(response.data);
       },
       enabled: enabled && !!timekeepingId,
     });
