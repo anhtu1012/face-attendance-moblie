@@ -12,11 +12,6 @@ export const dependentValidationSchema = Yup.object().shape({
     "Số điện thoại không hợp lệ"
   ),
 
-  dpTaxCode: Yup.string().matches(
-    /^$|^[0-9]{10}([0-9]{3})?$/,
-    "Mã số thuế phải gồm 10 hoặc 13 chữ số"
-  ),
-
   dpCitizenIdentityCard: Yup.string()
     .matches(/^\d{9}$|^\d{12}$/, "Số CMND/CCCD phải gồm 9 hoặc 12 chữ số")
     .required("Số CMND/CCCD là bắt buộc"),

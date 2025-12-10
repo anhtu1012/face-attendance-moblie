@@ -24,7 +24,6 @@ export interface dtoGetUser {
   citizenIdentityCard: string;
   identityCardImgFront: string | null;
   identityCardImgBack: string | null;
-  taxCode: string;
   issueDate: Date;
   issueAt: string;
   nationality: string;
@@ -53,7 +52,6 @@ export interface dtoUpdateUser {
     | "Chưa hoàn thành nghĩa vụ quân sự"
     | "Không có nghĩa vụ quân sự";
   citizenIdentityCard: string; // Số CCCD/CMND
-  taxCode: string;
   issueDate: Date;
   issueAt: string; // Nơi cấp
   nationality: string; // Quốc tịch
@@ -68,7 +66,6 @@ export interface dtoDependent {
   dpUserId: string; // ID của người dùng
   dpFullName: string; // Họ và tên
   dpPhone: string; // Số điện thoại
-  dpTaxCode: string; // Mã số thuế
   dpCitizenIdentityCard: string; // Số CCCD/CMND
   dpIssueDate: Date; // Ngày cấp
   dpIssueAt: string; // Nơi cấp

@@ -25,7 +25,6 @@ export type LoginResponse = {
     citizenIdentityCard?: string | null;
     identityCardImgFront?: string | null;
     identityCardImgBack?: string | null;
-    taxCode?: string | null;
     issueDate?: string | null;
     issueAt?: string | null;
     nationality?: string | null;

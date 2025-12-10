@@ -56,7 +56,10 @@ export const DependentCard: React.FC<DependentCardProps> = React.memo(
               <Feather name="save" size={16} color="orange" />
             </TouchableOpacity>
           )}
-          <TouchableOpacity style={styles.actionButton} onPress={() => onDelete?.(dependent.dpId)}>
+          <TouchableOpacity
+            style={styles.actionButton}
+            onPress={() => onDelete?.(dependent.dpId)}
+          >
             <Feather name="trash-2" size={16} color="#E53E3E" />
           </TouchableOpacity>
         </View>
@@ -85,17 +88,6 @@ export const DependentCard: React.FC<DependentCardProps> = React.memo(
               icon="phone"
               iconColor="#3674B5"
               error={formikErrors?.dpPhone as string}
-              isEditing
-            />
-            <CustomProfileInput
-              label="Mã số thuế"
-              value={formikValues?.dpTaxCode}
-              onChangeText={(text: string) =>
-                setFieldValue && setFieldValue("dpTaxCode", text)
-              }
-              icon="credit-card"
-              iconColor="#3674B5"
-              error={formikErrors?.dpTaxCode as string}
               isEditing
             />
             <CustomProfileInput
@@ -153,12 +145,6 @@ export const DependentCard: React.FC<DependentCardProps> = React.memo(
               <Text style={styles.infoLabel}>Số điện thoại:</Text>
               <Text style={styles.infoValue}>
                 {dependent.dpPhone || "Chưa cập nhật"}
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>Mã số thuế:</Text>
-              <Text style={styles.infoValue}>
-                {dependent.dpTaxCode || "Chưa cập nhật"}
               </Text>
             </View>
             <View style={styles.infoRow}>

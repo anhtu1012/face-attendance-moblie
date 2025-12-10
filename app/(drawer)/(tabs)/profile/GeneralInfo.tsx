@@ -100,17 +100,6 @@ const GeneralInfo: React.FC<GeneralInfoProps> = ({ formik, isEditing }) => {
             keyboardType="phone-pad"
             isEditing={isEditing}
           />
-          <CustomProfileInput
-            error={formik.errors.taxCode as string}
-            icon="credit-card"
-            label="Mã số thuế"
-            value={formik.values.taxCode}
-            onChangeText={(text: string) =>
-              formik.setFieldValue("taxCode", text)
-            }
-            iconColor="#D69E2E"
-            isEditing={isEditing}
-          />
 
           <CustomDropdown
             error={formik.errors.militaryStatus}

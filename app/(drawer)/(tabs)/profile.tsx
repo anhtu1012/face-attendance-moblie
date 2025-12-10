@@ -66,7 +66,6 @@ export default function ProfilePage() {
     bankingAccountNo: userData?.bankingAccountNo || "",
     bankingAccountName: userData?.bankingAccountName || "",
     bankingName: userData?.bankingName || "",
-    taxCode: userData?.taxCode || "",
     militaryStatus: userData?.militaryStatus || "",
     citizenIdentityCard: userData?.citizenIdentityCard || "",
     issueDate: userData?.issueDate ? new Date(userData.issueDate) : new Date(),
@@ -86,7 +85,7 @@ export default function ProfilePage() {
       .required("Email là bắt buộc")
       .matches(
         /^$|^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/,
-        "Bạn phải cung cấp một địa chỉ email hợp lệ",
+        "Bạn phải cung cấp một địa chỉ email hợp lệ"
       ),
     phone: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
@@ -105,18 +104,11 @@ export default function ProfilePage() {
       .trim("Không được chứa khoảng trắng thừa")
       .required("Tên ngân hàng là bắt buộc")
       .matches(/^[\p{L}\s'-]+$/u, "Tên không được chứa ký tự đặc biệt hoặc số"),
-    taxCode: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Mã số thuế là bắt buộc")
-      .matches(
-        /^[0-9]{10}([0-9]{3})?$/,
-        "Mã số thuế phải gồm 10 hoặc 13 chữ số",
-      ),
     militaryStatus: Yup.string()
       .required("Tình trạng quân dịch là bắt buộc")
       .oneOf(
         MILITARY_STATUS_OPTIONS.map((option) => option.value),
-        "Tình trạng quân dịch không hợp lệ",
+        "Tình trạng quân dịch không hợp lệ"
       ),
     citizenIdentityCard: Yup.string()
       .matches(/^\d{9}$|^\d{12}$/, "Số CMND/CCCD phải gồm 9 hoặc 12 chữ số")
@@ -165,7 +157,6 @@ export default function ProfilePage() {
       bankingAccountName: values.bankingAccountName.trim(),
       bankingName: values.bankingName.trim(),
       dependent: [],
-      taxCode: values.taxCode.trim(),
       militaryStatus: values.militaryStatus,
       citizenIdentityCard: values.citizenIdentityCard.trim(),
       nationality: values.nationality,
@@ -202,7 +193,7 @@ export default function ProfilePage() {
             title: "Thông báo",
           });
         },
-      },
+      }
     );
     setIsEditing(false);
   };
@@ -221,7 +212,7 @@ export default function ProfilePage() {
         Alert.alert(
           "Quyền truy cập",
           "Vui lòng cấp quyền truy cập thư viện ảnh để thay đổi ảnh đại diện",
-          [{ text: "OK" }],
+          [{ text: "OK" }]
         );
         return;
       }

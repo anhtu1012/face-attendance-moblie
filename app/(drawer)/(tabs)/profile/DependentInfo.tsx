@@ -49,7 +49,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
     dpUserId: "",
     dpFullName: "",
     dpPhone: "",
-    dpTaxCode: "",
     dpCitizenIdentityCard: "",
     dpIssueDate: new Date(),
     dpIssueAt: "",
@@ -60,7 +59,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
     dpUserId: userId,
     dpFullName: "",
     dpPhone: "",
-    dpTaxCode: "",
     dpCitizenIdentityCard: "",
     dpIssueDate: new Date(),
     dpIssueAt: "",
@@ -76,13 +74,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
       .trim("Không được chứa khoảng trắng thừa")
       .matches(/^[0-9]{10,11}$/, "Số điện thoại phải gồm 10 hoặc 11 chữ số")
       .required("Số điện thoại là bắt buộc"),
-    dpTaxCode: Yup.string()
-      .trim("Không được chứa khoảng trắng thừa")
-      .required("Mã số thuế là bắt buộc")
-      .matches(
-        /^[0-9]{10}([0-9]{3})?$/,
-        "Mã số thuế phải gồm 10 hoặc 13 chữ số"
-      ),
     dpCitizenIdentityCard: Yup.string()
       .trim("Không được chứa khoảng trắng thừa")
       .matches(/^\d{9}$|^\d{12}$/, "Số CMND/CCCD phải gồm 9 hoặc 12 chữ số")
@@ -142,7 +133,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
       ...values,
       dpFullName: values.dpFullName.trim(),
       dpPhone: values.dpPhone.trim(),
-      dpTaxCode: values.dpTaxCode.trim(),
       dpCitizenIdentityCard: values.dpCitizenIdentityCard.trim(),
       dpIssueAt: values.dpIssueAt.trim(),
     };
@@ -190,7 +180,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
       ...values,
       dpFullName: values.dpFullName.trim(),
       dpPhone: values.dpPhone.trim(),
-      dpTaxCode: values.dpTaxCode.trim(),
       dpCitizenIdentityCard: values.dpCitizenIdentityCard.trim(),
       dpIssueAt: values.dpIssueAt.trim(),
     };
@@ -215,7 +204,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
             dpUserId: userId,
             dpFullName: "",
             dpPhone: "",
-            dpTaxCode: "",
             dpCitizenIdentityCard: "",
             dpIssueDate: new Date(),
             dpIssueAt: "",
@@ -251,7 +239,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
       dpUserId: dep.dpUserId ?? "",
       dpFullName: dep.dpFullName ?? "",
       dpPhone: dep.dpPhone ?? "",
-      dpTaxCode: dep.dpTaxCode ?? "",
       dpCitizenIdentityCard: dep.dpCitizenIdentityCard ?? "",
       dpIssueDate: dep.dpIssueDate ? new Date(dep.dpIssueDate) : new Date(),
       dpIssueAt: dep.dpIssueAt ?? "",
@@ -346,7 +333,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
                     dpUserId: userId,
                     dpFullName: "",
                     dpPhone: "",
-                    dpTaxCode: "",
                     dpCitizenIdentityCard: "",
                     dpIssueDate: new Date(),
                     dpIssueAt: "",
@@ -389,18 +375,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
                   error={addFormik.errors.dpPhone as string}
                   isEditing
                   keyboardType="phone-pad"
-                />
-                <CustomProfileInput
-                  label="Mã số thuế"
-                  value={addFormik.values.dpTaxCode}
-                  onChangeText={(text: string) =>
-                    addFormik.setFieldValue("dpTaxCode", text)
-                  }
-                  icon="credit-card"
-                  iconColor="#3674B5"
-                  error={addFormik.errors.dpTaxCode as string}
-                  isEditing
-                  keyboardType="numeric"
                 />
                 <CustomProfileInput
                   label="Số CMND/CCCD"
@@ -460,7 +434,6 @@ const DependentInfo: React.FC<DependentInfoProps> = ({ userId }) => {
                     dpUserId: userId,
                     dpFullName: "",
                     dpPhone: "",
-                    dpTaxCode: "",
                     dpCitizenIdentityCard: "",
                     dpIssueDate: new Date(),
                     dpIssueAt: "",
