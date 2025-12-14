@@ -5,10 +5,11 @@ import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Animated,
   Dimensions,
   Keyboard,
-  KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -51,7 +52,6 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
   const [userName, setUserName] = useState("");
   const [password, setPassword] = React.useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
@@ -61,6 +61,8 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
   const [isResetLoading, setIsResetLoading] = useState(false);
   const insets = useSafeAreaInsets();
   const dispatch = useDispatch();
+  const scrollViewRef = React.useRef<ScrollView>(null);
+  const keyboardOffset = React.useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const handleIsLogin = async () => {
@@ -98,26 +100,31 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
   }, []);
 
   useEffect(() => {
-    const onKeyboardShow = (event: any) => {
-      setKeyboardHeight(event.endCoordinates.height);
-    };
-
-    const onKeyboardHide = () => {
-      setKeyboardHeight(0);
-    };
-
-    const keyboardDidShowListener = Keyboard.addListener(
-      "keyboardDidShow",
-      onKeyboardShow,
+    const keyboardWillShow = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillShow" : "keyboardDidShow",
+      (event) => {
+        Animated.timing(keyboardOffset, {
+          duration: event.duration || 250,
+          toValue: -event.endCoordinates.height * 0.3,
+          useNativeDriver: true,
+        }).start();
+      },
     );
-    const keyboardDidHideListener = Keyboard.addListener(
-      "keyboardDidHide",
-      onKeyboardHide,
+
+    const keyboardWillHide = Keyboard.addListener(
+      Platform.OS === "ios" ? "keyboardWillHide" : "keyboardDidHide",
+      (event) => {
+        Animated.timing(keyboardOffset, {
+          duration: event.duration || 250,
+          toValue: 0,
+          useNativeDriver: true,
+        }).start();
+      },
     );
 
     return () => {
-      keyboardDidShowListener.remove();
-      keyboardDidHideListener.remove();
+      keyboardWillShow.remove();
+      keyboardWillHide.remove();
     };
   }, []);
 
@@ -258,24 +265,27 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
   };
 
   return (
-    <KeyboardAvoidingView
+    <LinearGradient
+      colors={["#5B7FD8", "#3674B5"]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
       style={styles.container}
-      behavior={Platform.OS === "ios" ? "padding" : "height"}
-      keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 0}
     >
-      {/*
-      <StatusBar style="dark" backgroundColor="#3674B5" />
-      */}
-      <LinearGradient
-        colors={["#5B7FD8", "#3674B5"]}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.gradientContainer}
-      >
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.scrollContainer}>
-            <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-              <View style={styles.contentContainer}>
+      <SafeAreaView style={styles.safeArea}>
+        <ScrollView
+          ref={scrollViewRef}
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+          showsVerticalScrollIndicator={false}
+          bounces={false}
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <Animated.View
+              style={[
+                styles.contentContainer,
+                { transform: [{ translateY: keyboardOffset }] },
+              ]}
+            >
                 {/* Illustration */}
                 <View style={styles.illustrationContainer}>
                   <CustomClock />
@@ -454,32 +464,29 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                     </>
                   )}
                 </View>
-              </View>
+              </Animated.View>
             </TouchableWithoutFeedback>
-          </View>
+          </ScrollView>
         </SafeAreaView>
       </LinearGradient>
-    </KeyboardAvoidingView>
-  );
+    );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  gradientContainer: {
-    flex: 1,
-  },
   safeArea: {
     flex: 1,
   },
   scrollContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
+    flexGrow: 1,
+    minHeight: height,
   },
   contentContainer: {
     flex: 1,
     justifyContent: "space-between",
+    minHeight: height * 0.85,
   },
   // Illustration styles
   illustrationContainer: {

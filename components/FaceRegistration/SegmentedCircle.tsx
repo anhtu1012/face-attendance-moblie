@@ -22,8 +22,8 @@ interface SegmentedCircleProps {
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 
 const SegmentedCircleProps = {
-  top: SCREEN_HEIGHT * 0.18,
-  left: SCREEN_WIDTH * 0.042,
+  top: SCREEN_HEIGHT * 0.169,
+  left: SCREEN_WIDTH * 0.027,
 };
 
 const SegmentedCircle: React.FC<SegmentedCircleProps> = ({
