@@ -4,27 +4,28 @@ import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
-  Animated,
-  Dimensions,
-  Keyboard,
-  Platform,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View,
+    ActivityIndicator,
+    Animated,
+    Dimensions,
+    Keyboard,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
 } from "react-native";
 import {
-  SafeAreaView,
-  useSafeAreaInsets,
+    SafeAreaView,
+    useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
 import { loginUser } from "@/api/auth";
 import { setToken } from "@/api/axios";
 import { CustomClock } from "@/components/Login/CustomClock";
+import { reconnectSocketWithNewToken } from "@/hooks/useSocket";
 import { setAuthData } from "@/lib/features/loginSlice";
 import { LoginResponse } from "@/models/auth/login";
 import Toast from "react-native-toast-message";
@@ -233,6 +234,9 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
       );
       dispatch(setAuthData(loginResponse));
 
+      // Reconnect socket with new token for the new user
+      reconnectSocketWithNewToken();
+
       Toast.show({
         type: "success",
         text1: "Đăng nhập thành công!",
@@ -286,190 +290,186 @@ const LoginScreen: React.FC<ILoginScreenProps> = ({ onEyePress }) => {
                 { transform: [{ translateY: keyboardOffset }] },
               ]}
             >
-                {/* Illustration */}
-                <View style={styles.illustrationContainer}>
-                  <CustomClock />
-                </View>
+              {/* Illustration */}
+              <View style={styles.illustrationContainer}>
+                <CustomClock />
+              </View>
 
-                {/* White Card Container */}
-                <View style={styles.cardContainer}>
-                  {!showForgotPasswordModal ? (
-                    <>
-                      {/* Login Form */}
-                      {/* Username Input */}
-                      <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Tên đăng nhập</Text>
-                        <View style={styles.inputWrapper}>
-                          <TextInput
-                            value={userName}
-                            onChangeText={setUserName}
-                            placeholder="Nhập tên đăng nhập"
-                            placeholderTextColor="#B0B0B0"
-                            style={styles.input}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                          />
-                        </View>
+              {/* White Card Container */}
+              <View style={styles.cardContainer}>
+                {!showForgotPasswordModal ? (
+                  <>
+                    {/* Login Form */}
+                    {/* Username Input */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Tên đăng nhập</Text>
+                      <View style={styles.inputWrapper}>
+                        <TextInput
+                          value={userName}
+                          onChangeText={setUserName}
+                          placeholder="Nhập tên đăng nhập"
+                          placeholderTextColor="#B0B0B0"
+                          style={styles.input}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                        />
                       </View>
+                    </View>
 
-                      {/* Password Input */}
-                      <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Mật khẩu</Text>
-                        <View style={styles.inputWrapper}>
-                          <TextInput
-                            value={password}
-                            onChangeText={setPassword}
-                            placeholder="Nhập mật khẩu"
-                            placeholderTextColor="#B0B0B0"
-                            secureTextEntry={!isPasswordVisible}
-                            style={styles.input}
-                            autoCapitalize="none"
-                          />
-                          <TouchableOpacity
-                            onPress={() =>
-                              setIsPasswordVisible(!isPasswordVisible)
-                            }
-                            style={styles.eyeIcon}
-                          >
-                            <Feather
-                              name={isPasswordVisible ? "eye" : "eye-off"}
-                              size={20}
-                              color="#666"
-                            />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-
-                      {/* Forgot Password Link */}
-                      <TouchableOpacity
-                        style={styles.forgotPasswordLink}
-                        onPress={() => setShowForgotPasswordModal(true)}
-                      >
-                        <Text style={styles.forgotPasswordText}>
-                          Quên mật khẩu?
-                        </Text>
-                      </TouchableOpacity>
-
-                      {/* Login Button */}
-                      <TouchableOpacity
-                        style={styles.loginButton}
-                        onPress={handleLogin}
-                        activeOpacity={0.8}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? (
-                          <ActivityIndicator color="#fff" />
-                        ) : (
-                          <Text style={styles.loginButtonText}>Đăng nhập</Text>
-                        )}
-                      </TouchableOpacity>
-                    </>
-                  ) : (
-                    <>
-                      {/* Reset Password Form */}
-                      <View style={styles.resetHeader}>
+                    {/* Password Input */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Mật khẩu</Text>
+                      <View style={styles.inputWrapper}>
+                        <TextInput
+                          value={password}
+                          onChangeText={setPassword}
+                          placeholder="Nhập mật khẩu"
+                          placeholderTextColor="#B0B0B0"
+                          secureTextEntry={!isPasswordVisible}
+                          style={styles.input}
+                          autoCapitalize="none"
+                        />
                         <TouchableOpacity
-                          onPress={() => {
-                            setShowForgotPasswordModal(false);
-                            setNewPassword("");
-                            setConfirmPassword("");
-                          }}
-                          style={styles.backButton}
+                          onPress={() =>
+                            setIsPasswordVisible(!isPasswordVisible)
+                          }
+                          style={styles.eyeIcon}
                         >
                           <Feather
-                            name="arrow-left"
-                            size={24}
-                            color="#3674B5"
+                            name={isPasswordVisible ? "eye" : "eye-off"}
+                            size={20}
+                            color="#666"
                           />
                         </TouchableOpacity>
-                        <Text style={styles.resetTitle}>Đặt lại mật khẩu</Text>
                       </View>
+                    </View>
 
-                      <Text style={styles.resetDescription}>
-                        Nhập mật khẩu mới cho tài khoản{" "}
-                        <Text style={styles.resetUsername}>{userName}</Text>
+                    {/* Forgot Password Link */}
+                    <TouchableOpacity
+                      style={styles.forgotPasswordLink}
+                      onPress={() => setShowForgotPasswordModal(true)}
+                    >
+                      <Text style={styles.forgotPasswordText}>
+                        Quên mật khẩu?
                       </Text>
+                    </TouchableOpacity>
 
-                      {/* New Password Input */}
-                      <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Mật khẩu mới</Text>
-                        <View style={styles.inputWrapper}>
-                          <TextInput
-                            value={newPassword}
-                            onChangeText={setNewPassword}
-                            placeholder="Nhập mật khẩu mới"
-                            placeholderTextColor="#B0B0B0"
-                            secureTextEntry={!showNewPassword}
-                            style={styles.input}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                          />
-                          <TouchableOpacity
-                            onPress={() => setShowNewPassword(!showNewPassword)}
-                            style={styles.eyeIcon}
-                          >
-                            <Feather
-                              name={showNewPassword ? "eye" : "eye-off"}
-                              size={20}
-                              color="#666"
-                            />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-
-                      {/* Confirm Password Input */}
-                      <View style={styles.inputGroup}>
-                        <Text style={styles.label}>Xác nhận mật khẩu</Text>
-                        <View style={styles.inputWrapper}>
-                          <TextInput
-                            value={confirmPassword}
-                            onChangeText={setConfirmPassword}
-                            placeholder="Nhập lại mật khẩu mới"
-                            placeholderTextColor="#B0B0B0"
-                            secureTextEntry={!showConfirmPassword}
-                            style={styles.input}
-                            autoCapitalize="none"
-                            autoCorrect={false}
-                          />
-                          <TouchableOpacity
-                            onPress={() =>
-                              setShowConfirmPassword(!showConfirmPassword)
-                            }
-                            style={styles.eyeIcon}
-                          >
-                            <Feather
-                              name={showConfirmPassword ? "eye" : "eye-off"}
-                              size={20}
-                              color="#666"
-                            />
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-
-                      {/* Reset Password Button */}
+                    {/* Login Button */}
+                    <TouchableOpacity
+                      style={styles.loginButton}
+                      onPress={handleLogin}
+                      activeOpacity={0.8}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text style={styles.loginButtonText}>Đăng nhập</Text>
+                      )}
+                    </TouchableOpacity>
+                  </>
+                ) : (
+                  <>
+                    {/* Reset Password Form */}
+                    <View style={styles.resetHeader}>
                       <TouchableOpacity
-                        style={styles.loginButton}
-                        onPress={handleForgotPassword}
-                        activeOpacity={0.8}
-                        disabled={isResetLoading}
+                        onPress={() => {
+                          setShowForgotPasswordModal(false);
+                          setNewPassword("");
+                          setConfirmPassword("");
+                        }}
+                        style={styles.backButton}
                       >
-                        {isResetLoading ? (
-                          <ActivityIndicator color="#fff" />
-                        ) : (
-                          <Text style={styles.loginButtonText}>
-                            Đặt lại mật khẩu
-                          </Text>
-                        )}
+                        <Feather name="arrow-left" size={24} color="#3674B5" />
                       </TouchableOpacity>
-                    </>
-                  )}
-                </View>
-              </Animated.View>
-            </TouchableWithoutFeedback>
-          </ScrollView>
-        </SafeAreaView>
-      </LinearGradient>
-    );
+                      <Text style={styles.resetTitle}>Đặt lại mật khẩu</Text>
+                    </View>
+
+                    <Text style={styles.resetDescription}>
+                      Nhập mật khẩu mới cho tài khoản{" "}
+                      <Text style={styles.resetUsername}>{userName}</Text>
+                    </Text>
+
+                    {/* New Password Input */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Mật khẩu mới</Text>
+                      <View style={styles.inputWrapper}>
+                        <TextInput
+                          value={newPassword}
+                          onChangeText={setNewPassword}
+                          placeholder="Nhập mật khẩu mới"
+                          placeholderTextColor="#B0B0B0"
+                          secureTextEntry={!showNewPassword}
+                          style={styles.input}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                        />
+                        <TouchableOpacity
+                          onPress={() => setShowNewPassword(!showNewPassword)}
+                          style={styles.eyeIcon}
+                        >
+                          <Feather
+                            name={showNewPassword ? "eye" : "eye-off"}
+                            size={20}
+                            color="#666"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* Confirm Password Input */}
+                    <View style={styles.inputGroup}>
+                      <Text style={styles.label}>Xác nhận mật khẩu</Text>
+                      <View style={styles.inputWrapper}>
+                        <TextInput
+                          value={confirmPassword}
+                          onChangeText={setConfirmPassword}
+                          placeholder="Nhập lại mật khẩu mới"
+                          placeholderTextColor="#B0B0B0"
+                          secureTextEntry={!showConfirmPassword}
+                          style={styles.input}
+                          autoCapitalize="none"
+                          autoCorrect={false}
+                        />
+                        <TouchableOpacity
+                          onPress={() =>
+                            setShowConfirmPassword(!showConfirmPassword)
+                          }
+                          style={styles.eyeIcon}
+                        >
+                          <Feather
+                            name={showConfirmPassword ? "eye" : "eye-off"}
+                            size={20}
+                            color="#666"
+                          />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+
+                    {/* Reset Password Button */}
+                    <TouchableOpacity
+                      style={styles.loginButton}
+                      onPress={handleForgotPassword}
+                      activeOpacity={0.8}
+                      disabled={isResetLoading}
+                    >
+                      {isResetLoading ? (
+                        <ActivityIndicator color="#fff" />
+                      ) : (
+                        <Text style={styles.loginButtonText}>
+                          Đặt lại mật khẩu
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </Animated.View>
+          </TouchableWithoutFeedback>
+        </ScrollView>
+      </SafeAreaView>
+    </LinearGradient>
+  );
 };
 
 const styles = StyleSheet.create({

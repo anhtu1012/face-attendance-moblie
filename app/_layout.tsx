@@ -14,11 +14,11 @@ import {
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
 
-import { Provider } from "react-redux";
+import { Provider, useSelector } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
 import { useColorScheme } from "../hooks/use-color-scheme";
 import { usePushNotifications } from "../hooks/usePushNotifications";
-import { persistor, store } from "../lib/store";
+import { persistor, store, RootState } from "../lib/store";
 // import { NotificationProvider } from '@/contexts/NotificationContext';
 import { toastConfig } from "@/components/CustomToast";
 import useSocket from "@/hooks/useSocket";
@@ -37,14 +37,18 @@ export const unstable_settings = {
 function AppContent() {
   const colorScheme = useColorScheme();
   const insets = useSafeAreaInsets();
+  const userId = useSelector((state: RootState) => state.auth.userProfile.id);
   usePushNotifications();
   const socket = useSocket();
 
   // Socket listener effect
   useEffect(() => {
-    if (!socket) return;
+    if (!socket || !userId) {
+      console.log("⚠️ Socket or userId not available");
+      return;
+    }
 
-    console.log("🔌 Socket connected");
+    console.log("🔌 Socket connected for user:", userId);
 
     const handleGetSocketData = (data: dtoSocketNotification) => {
       console.log("📨 Notification:", data.description);
@@ -59,9 +63,10 @@ function AppContent() {
     socket.on("NOTIFICATION_SENT", handleGetSocketData);
 
     return () => {
+      console.log("🧹 Cleaning up notification listener for user:", userId);
       socket.off("NOTIFICATION_SENT", handleGetSocketData);
     };
-  }, [socket, insets]);
+  }, [socket, insets, userId]);
 
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>

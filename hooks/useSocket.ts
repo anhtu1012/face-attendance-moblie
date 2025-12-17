@@ -5,6 +5,12 @@ import { socketRoomManager } from "./socketRoomManager";
 
 let socketInstance: Socket | null = null;
 let isInitialized = false;
+let socketUpdateListeners: ((socket: Socket | null) => void)[] = [];
+
+// Notify all listeners when socket changes
+const notifySocketUpdate = (socket: Socket | null) => {
+  socketUpdateListeners.forEach(listener => listener(socket));
+};
 
 const createSocketInstance = (): Socket => {
   if (socketInstance) {
@@ -55,14 +61,21 @@ const createSocketInstance = (): Socket => {
   return s;
 };
 
-const useSocket = (): Socket => {
-  const [socket] = useState<Socket>(() => createSocketInstance());
+const useSocket = (): Socket | null => {
+  const [socket, setSocket] = useState<Socket | null>(() => socketInstance || createSocketInstance());
 
   useEffect(() => {
-    // Cleanup on unmount (chỉ khi component cuối cùng unmount)
+    // Subscribe to socket updates
+    const listener = (newSocket: Socket | null) => {
+      console.log("[useSocket] Updating socket in component");
+      setSocket(newSocket);
+    };
+    
+    socketUpdateListeners.push(listener);
+
     return () => {
-      // Không disconnect socket vì có thể components khác vẫn đang dùng
-      // Socket sẽ được cleanup khi logout hoặc page unload
+      // Unsubscribe on unmount
+      socketUpdateListeners = socketUpdateListeners.filter(l => l !== listener);
     };
   }, []);
 
@@ -85,11 +98,16 @@ export const reconnectSocketWithNewToken = () => {
     // Tạo lại socket instance với token mới
     const newSocket = createSocketInstance();
 
+    // Notify all components using the socket
+    notifySocketUpdate(newSocket);
+
     console.log("[useSocket] Socket reconnected with new token");
     return newSocket;
   } else {
     console.log("[useSocket] Creating new socket instance with token...");
-    return createSocketInstance();
+    const newSocket = createSocketInstance();
+    notifySocketUpdate(newSocket);
+    return newSocket;
   }
 };
 
@@ -101,6 +119,10 @@ export const disconnectSocket = () => {
     socketInstance.disconnect();
     socketInstance = null;
     isInitialized = false;
+    
+    // Notify all components
+    notifySocketUpdate(null);
+    
     console.log("[useSocket] Socket disconnected and cleaned up");
   }
 };

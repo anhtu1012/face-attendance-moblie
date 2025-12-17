@@ -69,6 +69,7 @@ export const useTimekeep = (options?: UseSingleFaceCaptureOptions) => {
   const capturePhoto = useCallback(async (): Promise<string | null> => {
     if (!cameraRef.current || isCapturingRef.current) return null;
 
+    // Make sure only one state running
     isCapturingRef.current = true;
 
     try {

@@ -108,7 +108,7 @@ function HomePage() {
       console.log("🧹 Cleaning up socket listener");
       socket.off("UPDATE_FORM_STATUS_NOTIFICATION", handleGetSocketData);
     };
-  }, [socket]);
+  }, [socket, userId, userProfileLocal, dispatch]);
 
   useEffect(() => {
     handleRefetchSubmittedFormData();
