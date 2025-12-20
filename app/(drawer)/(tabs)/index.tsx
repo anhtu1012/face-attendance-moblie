@@ -15,11 +15,14 @@ import {
   Octicons,
 } from "@expo/vector-icons";
 import { DrawerActions } from "@react-navigation/native";
+import dayjs from "dayjs";
+import "dayjs/locale/vi";
 import { LinearGradient } from "expo-linear-gradient";
 import { router, useLocalSearchParams, useNavigation } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Dimensions,
   Image,
   Modal,
   RefreshControl,
@@ -31,7 +34,25 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import Animated, {
+  cancelAnimation,
+  Easing,
+  runOnJS,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
+} from "react-native-reanimated";
 import { useDispatch, useSelector } from "react-redux";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+
+const MOTIVATIONAL_MESSAGES = [
+  "Chúc bạn một ngày tràn đầy năng lượng!",
+  "Sự nỗ lực của bạn là chìa khóa thành công!",
+  "Hãy cùng nhau chinh phục mục tiêu hôm nay nhé!",
+  "Hãy luôn giữ vững tinh thần lạc quan và sáng tạo!",
+  "Thành công bắt đầu từ những hành động nhỏ nhất!",
+];
 
 function HomePage() {
   const dispatch = useDispatch();
@@ -59,8 +80,65 @@ function HomePage() {
   const [selectedFormId, setSelectedFormId] = useState<string | null>(null);
   const [cancelReason, setCancelReason] = useState("");
   const [isSubmittingCancel, setIsSubmittingCancel] = useState(false);
+  const [currentTime, setCurrentTime] = useState(dayjs());
   const navigation = useNavigation();
   const socket = useSocket();
+
+  const [currentMessageIndex, setCurrentMessageIndex] = useState(0);
+  const translateX = useSharedValue(SCREEN_WIDTH);
+  const marqueeWidth = useSharedValue(0);
+
+  // Clock effect
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentTime(dayjs());
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const nextMessage = React.useCallback(() => {
+    setCurrentMessageIndex((prev) => (prev + 1) % MOTIVATIONAL_MESSAGES.length);
+  }, []);
+
+  const runMarquee = React.useCallback(() => {
+    "worklet";
+    cancelAnimation(translateX);
+    translateX.value = SCREEN_WIDTH;
+    const duration = (SCREEN_WIDTH + marqueeWidth.value) * 15; // Speed adjustment
+
+    translateX.value = withTiming(
+      -marqueeWidth.value,
+      {
+        duration: duration,
+        easing: Easing.linear,
+      },
+      (finished) => {
+        if (finished) {
+          runOnJS(nextMessage)();
+        }
+      },
+    );
+  }, [nextMessage, marqueeWidth]);
+
+  useEffect(() => {
+    if (marqueeWidth.value > 0) {
+      runMarquee();
+    }
+  }, [currentMessageIndex]);
+
+  const onMarqueeLayout = (e: any) => {
+    const { width } = e.nativeEvent.layout;
+    if (width > 0 && marqueeWidth.value === 0) {
+      marqueeWidth.value = width;
+      runMarquee();
+    }
+  };
+
+  const animatedMarqueeStyle = useAnimatedStyle(() => {
+    return {
+      transform: [{ translateX: translateX.value }],
+    };
+  });
 
   const handleGetSubmittedForm = async () => {
     try {
@@ -199,38 +277,79 @@ function HomePage() {
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <View style={styles.header}>
-        <TouchableOpacity
-          onPress={() => {
-            navigation.dispatch(DrawerActions.openDrawer());
-          }}
-        >
-          <Feather name="menu" size={24} color="black" />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.avatarContainer}
-          onPress={() => router.push("/(drawer)/(tabs)/profile")}
-        >
-          <Image
-            source={
-              userProfileLocal?.faceImg
-                ? {
-                    uri: userProfileLocal?.faceImg,
-                  }
-                : require("@/assets/images/empty-avatar.png")
-            }
-            style={styles.avatar}
-          />
-        </TouchableOpacity>
-      </View>
-
       <ScrollView
-        style={styles.container}
+        style={styles.mainContainer}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={handleRefresh} />
         }
       >
+        {/* Modern Page Header */}
+        <LinearGradient
+          colors={["#003c97", "#0056d6"]}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.pageHeader}
+        >
+          <View style={styles.headerTopActions}>
+            <TouchableOpacity
+              onPress={() => {
+                navigation.dispatch(DrawerActions.openDrawer());
+              }}
+              style={styles.headerIconButton}
+            >
+              <Feather name="menu" size={24} color="white" />
+            </TouchableOpacity>
+
+            {/* Motivational Marquee */}
+            <View style={styles.marqueeWrapper}>
+              <Animated.View
+                style={[styles.marqueeContainer, animatedMarqueeStyle]}
+              >
+                <Text style={styles.marqueeText} onLayout={onMarqueeLayout} numberOfLines={1}>
+                  {MOTIVATIONAL_MESSAGES[currentMessageIndex]}
+                </Text>
+              </Animated.View>
+            </View>
+
+            <TouchableOpacity
+              style={styles.avatarWrapper}
+              onPress={() => router.push("/(drawer)/(tabs)/profile")}
+            >
+              <Image
+                source={
+                  userProfileLocal?.faceImg
+                    ? {
+                        uri: userProfileLocal?.faceImg,
+                      }
+                    : require("@/assets/images/empty-avatar.png")
+                }
+                style={styles.headerAvatar}
+              />
+              <View style={styles.onlineStatusDot} />
+            </TouchableOpacity>
+          </View>
+
+          <View style={styles.headerMainContent}>
+            <View style={styles.headerTextGroup}>
+              <Text style={styles.dateRange}>
+                {currentTime.locale("vi").format("dddd, DD/MM/YYYY")}
+              </Text>
+              <Text style={styles.realTimeClock}>
+                {currentTime.format("HH:mm:ss")}
+              </Text>
+            </View>
+
+            <View style={styles.totalSummaryCard}>
+              <Text style={styles.summaryLabel}>Trạng thái</Text>
+              <Text style={styles.summaryValue}>
+                {userProfileLocal?.isRegisterFace ?  "Hoạt động" : "Chưa ĐK"}
+              </Text>
+            </View>
+          </View>
+        </LinearGradient>
+
+        <View style={styles.contentPadding}>
         {/* Register face widget */}
         {!userProfileLocal?.isRegisterFace ? (
           <View style={styles.widgetContainer}>
@@ -395,7 +514,6 @@ function HomePage() {
                       </Text>
                     </View>
                   </View>
-
                   {/* Action Buttons */}
                   <View style={styles.formCardActions}>
                     <TouchableOpacity
@@ -444,6 +562,7 @@ function HomePage() {
           )}
         </View>
 
+        </View>
         {/* Bottom space */}
         <View style={styles.bottomSpace} />
       </ScrollView>
@@ -457,7 +576,6 @@ function HomePage() {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContainer}>
-            {/* Modal Header with Gradient */}
             <LinearGradient
               colors={["#FF5252", "#F44336"]}
               style={styles.modalHeader}
@@ -487,7 +605,6 @@ function HomePage() {
               </TouchableOpacity>
             </LinearGradient>
 
-            {/* Modal Body */}
             <View style={styles.modalBody}>
               <View style={styles.inputContainer}>
                 <View style={styles.inputLabelContainer}>
@@ -516,7 +633,6 @@ function HomePage() {
                 </Text>
               </View>
 
-              {/* Action Buttons */}
               <View style={styles.modalActions}>
                 <TouchableOpacity
                   style={styles.modalCancelButton}
@@ -577,48 +693,134 @@ function HomePage() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#f8fbff",
   },
-  container: {
+  mainContainer: {
     flex: 1,
+  },
+  contentPadding: {
     padding: 16,
   },
-  header: {
+  pageHeader: {
+    padding: 20,
+    paddingTop: 40,
+    borderBottomLeftRadius: 30,
+    borderBottomRightRadius: 30,
+    marginBottom: 20,
+    shadowColor: "#003c97",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.3,
+    shadowRadius: 15,
+    elevation: 10,
+  },
+  headerTopActions: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 8,
-    backgroundColor: "#fff",
+    marginBottom: 24,
   },
-  greeting: {
-    fontSize: 14,
-    color: "#666",
-  },
-  userName: {
-    fontSize: 18,
-    fontWeight: "bold",
-    color: "#333",
-  },
-  avatarContainer: {
-    position: "relative",
-  },
-  avatar: {
+  headerIconButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    justifyContent: "center",
+    alignItems: "center",
   },
-  statusDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
+  marqueeWrapper: {
+    flex: 1,
+    height: 36,
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    borderRadius: 18,
+    marginHorizontal: 12,
+    overflow: "hidden",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  marqueeContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  marqueeText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "600",
+    paddingHorizontal: 20,
+  },
+  avatarWrapper: {
+    position: "relative",
+  },
+  headerAvatar: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 2,
+    borderColor: "rgba(255, 255, 255, 0.5)",
+  },
+  onlineStatusDot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
     backgroundColor: "#4CAF50",
     position: "absolute",
     bottom: 0,
     right: 0,
     borderWidth: 2,
-    borderColor: "#fff",
+    borderColor: "#0056d6",
+  },
+  headerMainContent: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  headerTextGroup: {
+    flex: 1,
+  },
+  pageTitle: {
+    fontSize: 28,
+    fontWeight: "800",
+    color: "white",
+    marginBottom: 4,
+    letterSpacing: 0.5,
+  },
+  dateRange: {
+    fontSize: 14,
+    color: "rgba(255, 255, 255, 0.8)",
+    fontWeight: "500",
+    textTransform: "capitalize",
+  },
+  realTimeClock: {
+    fontSize: 18,
+    color: "#fff",
+    fontWeight: "700",
+    marginTop: 4,
+    opacity: 0.9,
+  },
+  totalSummaryCard: {
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.2)",
+    alignItems: "center",
+  },
+  summaryLabel: {
+    fontSize: 11,
+    color: "rgba(255, 255, 255, 0.7)",
+    fontWeight: "700",
+    textTransform: "uppercase",
+    letterSpacing: 1,
+    marginBottom: 4,
+  },
+  summaryValue: {
+    fontSize: 18,
+    fontWeight: "800",
+    color: "white",
+  },
+  container: {
+    flex: 1,
+    padding: 16,
   },
   widgetContainer: {
     backgroundColor: "#fff",
@@ -641,12 +843,12 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 8,
   },
-  summaryValue: {
+  summaryItemValue: {
     fontSize: 20,
     fontWeight: "bold",
     color: "#3674B5",
   },
-  summaryLabel: {
+  summaryItemLabel: {
     fontSize: 12,
     color: "#666",
     marginTop: 4,
@@ -929,7 +1131,7 @@ const styles = StyleSheet.create({
   },
   formItemBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: "#f5f5f5",
+    borderBottomColor: "#f0f0f0",
   },
   formItemLeft: {
     flexDirection: "row",
@@ -1014,127 +1216,7 @@ const styles = StyleSheet.create({
     color: "#999",
     textAlign: "center",
   },
-  // New Design Form Section Styles
-  formSectionContainer: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  formSimpleHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-  formSimpleTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1a1a1a",
-  },
-  viewAllLinkText: {
-    fontSize: 14,
-    color: "#3674B5",
-    fontWeight: "500",
-  },
-  formCardsContainer: {
-    gap: 12,
-  },
-  formCard: {
-    backgroundColor: "#fff",
-    borderRadius: 8,
-    padding: 12,
-    marginBottom: 12,
-    borderLeftWidth: 4,
-    borderColor: "#f0f0f0",
-    borderWidth: 1,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
-  },
-  formCardHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  formCardTitle: {
-    flex: 1,
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginRight: 8,
-  },
-  formStatusPill: {
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    marginRight: 8,
-  },
-  formStatusText: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: "#fff",
-  },
-  formCardMenu: {
-    padding: 4,
-  },
-  formCardReason: {
-    fontSize: 14,
-    color: "#666",
-    marginBottom: 12,
-    lineHeight: 20,
-  },
-  formCardInfo: {
-    marginBottom: 12,
-  },
-  formInfoRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  formInfoIcon: {
-    marginRight: 6,
-  },
-  formInfoText: {
-    fontSize: 13,
-    color: "#666",
-    flex: 1,
-  },
-  formCardActions: {
-    flexDirection: "row",
-    gap: 8,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-  },
-  formActionButton: {
-    flex: 1,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    borderRadius: 6,
-    borderWidth: 1,
-    borderColor: "#3674B5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  formActionButtonText: {
-    fontSize: 14,
-    fontWeight: "500",
-    color: "#3674B5",
-  },
-  formActionButtonDanger: {
-    borderColor: "#F44336",
-  },
-  formActionButtonDangerText: {
-    color: "#F44336",
-  },
+
   // Cancel Modal Styles
   modalOverlay: {
     flex: 1,
@@ -1278,6 +1360,118 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: "bold",
     color: "#fff",
+  },
+  // Form Section Styles
+  formSectionContainer: {
+    // paddingHorizontal: 20,
+    marginBottom: 20,
+  },
+  formSimpleHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+  formSimpleTitle: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1E293B",
+  },
+  viewAllLinkText: {
+    fontSize: 14,
+    color: "#3B82F6",
+    fontWeight: "600",
+  },
+  formCardsContainer: {
+    gap: 16,
+  },
+  formCard: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 16,
+    elevation: 18,
+    borderLeftWidth: 4,
+  },
+  formCardHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  formCardTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1E293B",
+    flex: 1,
+    marginRight: 8,
+  },
+  formStatusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    marginRight: 8,
+  },
+  formStatusText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#fff",
+  },
+  formCardMenu: {
+    padding: 4,
+  },
+  formCardReason: {
+    fontSize: 14,
+    color: "#64748B",
+    marginBottom: 12,
+    lineHeight: 20,
+  },
+  formCardInfo: {
+    flexDirection: "column",
+    gap: 16,
+    marginBottom: 16,
+  },
+  formInfoRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  formInfoIcon: {
+    opacity: 0.8,
+  },
+  formInfoText: {
+    fontSize: 13,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  formCardActions: {
+    flexDirection: "row",
+    gap: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#F1F5F9",
+    paddingTop: 12,
+  },
+  formActionButton: {
+    flex: 1,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: "#EFF6FF",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  formActionButtonText: {
+    fontSize: 13,
+    fontWeight: "600",
+    color: "#3B82F6",
+  },
+  formActionButtonDanger: {
+    backgroundColor: "#FFF1F2",
+  },
+  formActionButtonDangerText: {
+    color: "#EF4444",
   },
 });
 

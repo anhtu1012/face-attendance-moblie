@@ -1,4 +1,4 @@
-import { Clock } from "lucide-react-native";
+import { Hourglass } from "lucide-react-native";
 import React from "react";
 import { StyleSheet, Text, View } from "react-native";
 
@@ -11,24 +11,24 @@ const TimesheetTotalHourBox = ({
   totalTimekeepingNumber,
 }: Props) => {
   return (
-    <View style={[styles.cardFull, { backgroundColor: "#F5EEFF" }]}>
-      <View style={styles.cardRow}>
-        <Clock color="#7E57C2" size={18} />
-        <Text style={styles.totalHourText}>
-          {totalWorkHour?.toFixed(1) ?? "0"} giờ
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.label}>Tổng giờ</Text>
+        <Hourglass color="#7C3AED" size={18} />
+      </View>
+
+      <View style={styles.content}>
+        <Text style={styles.value}>
+          {totalWorkHour?.toFixed(1) ?? "0"}
+          <Text style={styles.unit}> h</Text>
         </Text>
       </View>
-      <View
-        style={{
-          backgroundColor: "#7E57C2",
-          height: 5,
-          borderRadius: 5,
-          width: "100%",
-          marginTop: 6,
-          marginBottom: 6,
-        }}
-      />
-      <Text style={styles.totalHourValue}>{totalTimekeepingNumber ?? 0}</Text>
+      
+      <View style={styles.footer}>
+        <View style={styles.badge}>
+           <Text style={styles.badgeText}>{totalTimekeepingNumber ?? 0} công</Text>
+        </View>
+      </View>
     </View>
   );
 };
@@ -36,26 +36,54 @@ const TimesheetTotalHourBox = ({
 export default TimesheetTotalHourBox;
 
 const styles = StyleSheet.create({
-  cardFull: {
-    borderRadius: 12,
-    padding: 14,
-  },
-  totalHourText: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginLeft: 4,
-    color: "#7E57C2",
-  },
-  totalHourValue: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: "#7E57C2",
-    textAlign: "center",
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
+  container: {
+    flex: 1,
+    borderRadius: 16,
+    padding: 12,
+    backgroundColor: "#F5F3FF",
+    borderWidth: 1,
+    borderColor: "rgba(124, 58, 237, 0.2)",
+    minHeight: 110,
     justifyContent: "space-between",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  label: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#7C3AED",
+    textTransform: "uppercase",
+  },
+  content: {
+    justifyContent: "center",
     marginVertical: 4,
   },
+  value: {
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#7C3AED",
+    letterSpacing: 0.5,
+  },
+  unit: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#8B5CF6",
+  },
+  footer: {
+    alignItems: "flex-start",
+  },
+  badge: {
+    backgroundColor: "rgba(124, 58, 237, 0.1)",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  badgeText: {
+    fontSize: 11,
+    fontWeight: "600",
+    color: "#7C3AED",
+  }
 });

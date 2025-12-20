@@ -1,17 +1,19 @@
 import { useGetDetailTimekeepingData } from "@/hooks/useGetDetailTimekeepingData";
 import { useGetTimekeepingData } from "@/hooks/useGetTimekeepingData";
 import { useGetUserProfile } from "@/hooks/useGetUserProfile";
-import { AntDesign } from "@expo/vector-icons";
+import { TimekeepingStatus } from "@/models/timesheet/timekeeping";
+import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { useIsFocused } from "@react-navigation/native";
+import { LinearGradient } from "expo-linear-gradient";
 import { router } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import {
   ActivityIndicator,
+  Image,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Image,
 } from "react-native";
 import Animated, {
   useAnimatedStyle,
@@ -21,7 +23,7 @@ import Animated, {
 } from "react-native-reanimated";
 import TimesheetTotalHourBox from "../Timekeeping/TimesheetTotalHourBox";
 import CheckTimeBox from "../ui/CheckTimeBox";
-import { TimekeepingStatus } from "@/models/timesheet/timekeeping";
+
 interface TodayWidgetProps {
   loadingSchedule: boolean;
   refetchCurrentTimekeeping: string;
@@ -35,7 +37,7 @@ const TodayWidget = ({
 }: TodayWidgetProps) => {
   // Pulse animation for check-in button
   const pulse = useSharedValue(1);
-  const { userId, userProfile } = useGetUserProfile();
+  const { userId } = useGetUserProfile();
   const isFocused = useIsFocused();
   const today = new Date();
   const yesterday = new Date(today);
@@ -66,8 +68,9 @@ const TodayWidget = ({
     timekeepingId: timekeepingId || "",
     enabled: !!timekeepingId,
   });
+
   useEffect(() => {
-    pulse.value = withRepeat(withTiming(1.08, { duration: 800 }), -1, true);
+    pulse.value = withRepeat(withTiming(1.05, { duration: 1000 }), -1, true);
   }, []);
 
   // refetch when navigate back from useTimekeeping
@@ -83,28 +86,20 @@ const TodayWidget = ({
     transform: [{ scale: pulse.value }],
   }));
 
-  // Lấy ngày hiện tại theo định dạng chuẩn
-  const getCurrentDateString = () => {
-    const today = new Date();
-    // Trả về ngày hiện tại theo định dạng YYYY-MM-DD
-    return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(
-      2,
-      "0",
-    )}-${String(today.getDate()).padStart(2, "0")}`;
-  };
-
   // Format date to Thứ X, DD/MM/YYYY
   const formatDateWithDay = (dateString: string) => {
+    if (!dateString) return "";
     const date = new Date(dateString);
-
-    return `${date.getDate()}/${date.getMonth() + 1}/${date.getFullYear()}`;
+    const day = date.getDay();
+    const dayNames = ["Chủ Nhật", "Thứ 2", "Thứ 3", "Thứ 4", "Thứ 5", "Thứ 6", "Thứ 7"];
+    return `${dayNames[day]}, ${date.getDate()}/${date.getMonth() + 1}`;
   };
 
   if (loadingSchedule || isLoadingTimekeeping || isLoading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="small" color="#3674B5" />
-        <Text style={styles.loadingText}>Đang tải lịch làm việc...</Text>
+        <Text style={styles.loadingText}>Đang tải dữ liệu chấm công...</Text>
       </View>
     );
   }
@@ -112,93 +107,85 @@ const TodayWidget = ({
   if (!todayTimekeepingData) {
     return (
       <View style={styles.emptyContainer}>
-        <Image
-          source={require("../../assets/images/day-off.jpg")}
-          style={{
-            width: 150,
-            height: 150,
-          }}
-        />
+        <View style={styles.emptyImageWrapper}>
+            <Image
+            source={require("../../assets/images/day-off.jpg")}
+            style={styles.emptyImage}
+            />
+        </View>
+        <Text style={styles.emptyTitle}>Hôm nay bạn được nghỉ!</Text>
         <Text style={styles.emptyText}>
-          Bạn không có lịch làm việc ngày hôm nay
+          Tận hưởng ngày nghỉ của bạn nhé.
         </Text>
       </View>
     );
   }
-  // Sử dụng phương thức getCurrentDateString để lấy ngày hiện tại
-  const currentDateString = getCurrentDateString();
-  // Xác định trạng thái check-in
-  let checkInButtonColor = "#1e86e3";
-  let checkInTime = null;
-  let checkOutTime = null;
-  if (todayTimekeepingData.checkinTime) {
-    checkInTime = todayTimekeepingData.checkinTime;
-  }
 
-  if (todayTimekeepingData.checkOutTime) {
-    checkOutTime = todayTimekeepingData.checkOutTime;
-  }
+  const isPending =
+    todayTimekeepingData.status !== TimekeepingStatus.PENDING &&
+    todayTimekeepingData.status !== TimekeepingStatus.START_LATE &&
+    todayTimekeepingData.status !== TimekeepingStatus.START_ONTIME;
+
+  const buttonGradientColors = todayTimekeepingData?.checkinTime === null
+        ? (["#3B82F6", "#2563EB"] as const) // Blue for Check-in
+        : (["#F59E0B", "#D97706"] as const); // Orange for Check-out
+  
+  const buttonText = todayTimekeepingData?.checkinTime === null ? "Check-in" : "Check-out";
 
   return (
     <View style={styles.todayContainer}>
-      <View style={styles.todayHeader}>
-        <View style={{ flexDirection: "row", gap: "10%" }}>
-          <AntDesign name="calendar" size={24} color="#1e86e3" />
-          <View>
-            <Text style={styles.currentDate}>
-              {formatDateWithDay(todayTimekeepingData.date)}
-            </Text>
-            <Text style={styles.shiftTime}>
-              {todayTimekeepingData?.shiftInfor?.shiftStartTime
-                ? todayTimekeepingData.shiftInfor.shiftStartTime
-                : ""}{" "}
-              -{" "}
-              {todayTimekeepingData?.shiftInfor?.shiftEndTime
-                ? todayTimekeepingData.shiftInfor.shiftEndTime
-                : ""}
-            </Text>
-          </View>
+      {/* Header Section */}
+      <View style={styles.header}>
+        <View>
+             <Text style={styles.dateText}>{formatDateWithDay(todayTimekeepingData.date)}</Text>
+             <View style={styles.shiftContainer}>
+                <Feather name="clock" size={14} color="#64748B" />
+                <Text style={styles.shiftText}>
+                    {todayTimekeepingData?.shiftInfor?.shiftStartTime || "--:--"} -{" "}
+                    {todayTimekeepingData?.shiftInfor?.shiftEndTime || "--:--"}
+                </Text>
+                 <View style={styles.shiftBadge}>
+                    <Text style={styles.shiftBadgeText}>{todayTimekeepingData?.shiftInfor?.shiftName || "Ca làm việc"}</Text>
+                 </View>
+             </View>
         </View>
-        <View style={styles.attendanceActions}>
-          <Animated.View style={animatedButtonStyle}>
+        
+        {/* Animated Check-in/out Button */}
+        <Animated.View style={!isPending ? animatedButtonStyle : null}>
             <TouchableOpacity
-              style={[
-                styles.checkinButton,
-                { backgroundColor: checkInButtonColor },
-
-                todayTimekeepingData.status !== TimekeepingStatus.PENDING &&
-                todayTimekeepingData.status !== TimekeepingStatus.START_LATE &&
-                todayTimekeepingData.status !== TimekeepingStatus.START_ONTIME
-                  ? { opacity: 0.7 }
-                  : null,
-              ]}
-              disabled={
-                todayTimekeepingData.status !== TimekeepingStatus.PENDING &&
-                todayTimekeepingData.status !== TimekeepingStatus.START_LATE &&
-                todayTimekeepingData.status !== TimekeepingStatus.START_ONTIME
-              }
-              onPress={() =>
-                router.push({
-                  pathname: "/(drawer)/(tabs)/timekeep-camera",
-                  params: {
-                    mode:
-                      todayTimekeepingData?.checkinTime === null
-                        ? "check-in"
-                        : "check-out",
-                    timekeepingId: todayTimekeepingData?.timeKeepingId,
-                  },
-                })
-              }
-              activeOpacity={0.8}
+                disabled={isPending}
+                onPress={() =>
+                    router.push({
+                        pathname: "/(drawer)/(tabs)/timekeep-camera",
+                        params: {
+                        mode:
+                            todayTimekeepingData?.checkinTime === null
+                            ? "check-in"
+                            : "check-out",
+                        timekeepingId: todayTimekeepingData?.timeKeepingId,
+                        },
+                    })
+                }
+                activeOpacity={0.9}
+                style={styles.buttonShadow}
             >
-              <Text style={styles.checkinText}>Chấm công</Text>
+                <LinearGradient
+                    colors={isPending ? (["#94A3B8", "#64748B"] as const) : buttonGradientColors}
+                    start={{ x: 0, y: 0 }}
+                    end={{ x: 1, y: 1 }}
+                    style={styles.actionButton}
+                >
+                    <MaterialCommunityIcons name="face-recognition" size={20} color="white" />
+                    <Text style={styles.actionButtonText}>{buttonText}</Text>
+                </LinearGradient>
             </TouchableOpacity>
-          </Animated.View>
-        </View>
+        </Animated.View>
       </View>
-      {/* content */}
 
-      <View style={styles.attendanceDetails}>
+      <View style={styles.divider} />
+
+      {/* Timekeeping Details */}
+      <View style={styles.detailsContainer}>
         <CheckTimeBox
           type="in"
           time={todayTimekeepingData.checkinTime!}
@@ -225,245 +212,132 @@ const TodayWidget = ({
 const styles = StyleSheet.create({
   todayContainer: {
     backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    elevation: 2,
+    borderRadius: 24,
+    padding: 20,
+    marginBottom: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
+    shadowRadius: 12,
+    elevation: 4,
+    borderWidth: 1,
+    borderColor: "rgba(0,0,0,0.03)",
   },
-  timeDetailCardHeader: {
+  header: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 8,
+    marginBottom: 16,
   },
-  todayHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  currentDate: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#333",
-  },
-  shiftTime: {
-    fontSize: 14,
-    color: "#666",
-    marginTop: 4,
-  },
-  attendanceActions: {
-    alignItems: "center",
-  },
-  checkinButton: {
-    backgroundColor: "#3674B5",
-    // backgroundColor: "#1e86e3",
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
+  dateText: {
+    fontSize: 18,
+    fontWeight: "700",
+    color: "#1E293B",
     marginBottom: 4,
   },
-  checkinText: {
+  shiftContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  shiftText: {
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  shiftBadge: {
+    backgroundColor: "#F1F5F9",
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  shiftBadgeText: {
+    fontSize: 10,
+    fontWeight: "600",
+    color: "#475569",
+  },
+  buttonShadow: {
+    shadowColor: "#2563EB",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 6,
+  },
+  actionButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 12,
+    gap: 8,
+  },
+  actionButtonText: {
     color: "#fff",
     fontWeight: "600",
+    fontSize: 14,
   },
-  checkinStatus: {
-    fontSize: 12,
-    color: "#F57C00",
+  divider: {
+    height: 1,
+    backgroundColor: "#F1F5F9",
+    marginBottom: 16,
+  },
+  detailsContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    gap: 12,
   },
   loadingContainer: {
-    padding: 20,
-    alignItems: "center",
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-  },
-  loadingText: {
-    marginTop: 10,
-    fontSize: 14,
-    color: "#666",
-  },
-  emptyContainer: {
-    padding: 20,
+    padding: 24,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: "#fff",
-    borderRadius: 12,
+    borderRadius: 24,
     marginBottom: 16,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: "#64748B",
+    fontWeight: "500",
+  },
+  emptyContainer: {
+    padding: 30,
+    alignItems: "center",
+    justifyContent: "center",
+    backgroundColor: "#fff",
+    borderRadius: 24,
+    marginBottom: 16,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 3,
+  },
+  emptyImageWrapper: {
+    width: 120,
+    height: 120,
+    borderRadius: 60,
+    overflow: "hidden",
+    marginBottom: 16,
+    backgroundColor: "#F8FAFC",
+  },
+  emptyImage: {
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
+  },
+  emptyTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#334155",
+    marginBottom: 4,
   },
   emptyText: {
     fontSize: 14,
-    color: "#666",
+    color: "#64748B",
     textAlign: "center",
-  },
-  attendanceDetails: {
-    marginTop: 20,
-    paddingTop: 20,
-    borderTopWidth: 1,
-    borderTopColor: "#F1F5F9",
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 10,
-  },
-  timeDetailCard: {
-    borderRadius: 16,
-    padding: 14,
-    flex: 1,
-    elevation: 3,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-
-  // Check-in card styles (Green theme)
-  checkInCard: {
-    backgroundColor: "#ECFDF5",
-    borderWidth: 1.5,
-    borderColor: "#A7F3D0",
-  },
-  checkInTitle: {
-    fontSize: 12,
-    color: "#065F46",
-    fontWeight: "600",
-  },
-  checkInIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "#D1FAE5",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkInValue: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#10B981",
-    marginBottom: 4,
-    paddingBottom: 6,
-  },
-  checkInDashes: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#9CA3AF",
-    marginBottom: 4,
-    paddingBottom: 6,
-  },
-  checkInStatus: {
-    fontSize: 10,
-    color: "#6B7280",
-    fontWeight: "500",
-  },
-
-  // Check-out card styles (Orange theme)
-  checkOutCard: {
-    backgroundColor: "#FFFBEB",
-    borderWidth: 1.5,
-    borderColor: "#FCD34D",
-  },
-  checkOutTitle: {
-    fontSize: 12,
-    color: "#92400E",
-    fontWeight: "600",
-  },
-  checkOutIcon: {
-    width: 22,
-    height: 22,
-    borderRadius: 11,
-    backgroundColor: "#FEF3C7",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  checkOutValue: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#F59E0B",
-    marginBottom: 4,
-    paddingBottom: 6,
-  },
-  checkOutDashes: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#9CA3AF",
-    marginBottom: 4,
-    paddingBottom: 6,
-  },
-  checkOutStatus: {
-    fontSize: 10,
-    color: "#6B7280",
-    fontWeight: "500",
-  },
-
-  // Working hours card styles (Purple theme)
-  workingHoursCard: {
-    borderRadius: 16,
-    padding: 14,
-    flex: 1,
-    backgroundColor: "#FAF5FF",
-    borderWidth: 1.5,
-    borderColor: "#C4B5FD",
-    alignItems: "center",
-    elevation: 3,
-    shadowColor: "#8B5CF6",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  workingHoursHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 10,
-  },
-  workingHoursTitle: {
-    fontSize: 12,
-    color: "#581C87",
-    fontWeight: "600",
-  },
-  workingHoursIcon: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    backgroundColor: "#EDE9FE",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  workingHoursContent: {
-    alignItems: "center",
-    marginBottom: 6,
-  },
-  workingHoursNumber: {
-    fontSize: 28,
-    fontWeight: "800",
-    color: "#8B5CF6",
-    textAlign: "center",
-    lineHeight: 32,
-  },
-  workingHoursUnit: {
-    fontSize: 12,
-    color: "#8B5CF6",
-    fontWeight: "600",
-    marginTop: -2,
-  },
-  workingHoursStatus: {
-    fontSize: 10,
-    color: "#6B7280",
-    textAlign: "center",
-    fontWeight: "500",
   },
 });
 

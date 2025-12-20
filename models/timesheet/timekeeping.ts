@@ -47,6 +47,7 @@ export interface TimekeepingResponse {
 }
 
 export interface ShiftInfo {
+  shiftName?: string;
   shiftStartTime: string; // "08:00"
   shiftEndTime: string; // "17:00"
   shiftWorkHour: number; // 8

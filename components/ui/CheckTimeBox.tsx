@@ -1,17 +1,14 @@
 import {
-  CheckinStatus,
-  CheckoutStatus,
-  TimekeepingStatus,
+    CheckinStatus,
+    CheckoutStatus,
+    TimekeepingStatus,
 } from "@/models/timesheet/timekeeping";
-import { CheckCircle, CircleAlert, XCircle } from "lucide-react-native";
+import { CheckCircle, CircleAlert, Clock, XCircle } from "lucide-react-native";
 import React from "react";
 import {
-  StyleProp,
-  StyleSheet,
-  Text,
-  TextStyle,
-  View,
-  ViewStyle,
+    StyleSheet,
+    Text,
+    View
 } from "react-native";
 
 interface CheckTimeBoxProps {
@@ -31,82 +28,84 @@ const CheckTimeBox = ({
 }: CheckTimeBoxProps) => {
   const isCheckinOntime = checkinStatus === CheckinStatus.START_ONTIME;
   const isCheckoutOntime = checkoutStatus === CheckoutStatus.END_ONTIME;
-  const handleRenderCardBackground = (
-    type: CheckTimeBoxProps["type"]
-  ): StyleProp<ViewStyle> => {
-    // Render if status is not work
-    if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
-      return { backgroundColor: "#FFE8E8" };
 
+  const getStatusColor = () => {
+    if (timekeepingStatus === TimekeepingStatus.NOT_WORK) return "#EF4444"; // Red
+    
     if (type === "in") {
-      if (!checkinStatus) return { backgroundColor: "#FFF4E0" };
-      if (isCheckinOntime) return { backgroundColor: "#E9F7EF" };
-      return { backgroundColor: "#FFE8E8" };
+      if (!checkinStatus) return "#F59E0B"; // Orange/Yellow
+      if (isCheckinOntime) return "#10B981"; // Green
+      return "#EF4444"; // Red (Late)
+    } else {
+      if (!checkoutStatus) return "#F59E0B";
+      if (isCheckoutOntime) return "#10B981";
+      return "#EF4444"; // Early leave
     }
-    if (!checkoutStatus) return { backgroundColor: "#FFF4E0" };
-    if (isCheckoutOntime) return { backgroundColor: "#E9F7EF" };
-    return { backgroundColor: "#FFE8E8" };
   };
 
-  const handleRenderCardColor = (
-    type: CheckTimeBoxProps["type"]
-  ): StyleProp<TextStyle> => {
-    // Render if status is not work
-    if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
-      return { color: "#E74C3C" };
-
-    if (type === "in") {
-      if (!checkinStatus) return { color: "#F59E0B" };
-      if (isCheckinOntime) return { color: "#2ECC71" };
-      return { color: "#E74C3C" };
-    }
-    if (!checkoutStatus) return { color: "#F59E0B" };
-    if (isCheckoutOntime) return { color: "#2ECC71" };
-    return { color: "#E74C3C" };
+  const getBackgroundColor = () => {
+     if (timekeepingStatus === TimekeepingStatus.NOT_WORK) return "#FEF2F2";
+     
+     if (type === "in") {
+       if (!checkinStatus) return "#FFFBEB";
+       if (isCheckinOntime) return "#ECFDF5";
+       return "#FEF2F2";
+     } else {
+       if (!checkoutStatus) return "#FFFBEB";
+       if (isCheckoutOntime) return "#ECFDF5";
+       return "#FEF2F2";
+     }
   };
 
-  const handleRenderCardIcon = (type: CheckTimeBoxProps["type"]) => {
-    // Render if status is not work
-    if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
-      return <XCircle color="#E74C3C" size={18} />;
+  const statusColor = getStatusColor();
+  const backgroundColor = getBackgroundColor();
 
-    if (type === "in") {
-      if (!checkinStatus) return <CircleAlert color="#F59E0B" size={18} />;
-      if (isCheckinOntime) return <CheckCircle color="#2ECC71" size={18} />;
-      return <XCircle color="#E74C3C" size={18} />;
-    }
-    if (!checkoutStatus) return <CircleAlert color="#F59E0B" size={18} />;
-    if (isCheckoutOntime) return <CheckCircle color="#2ECC71" size={18} />;
-    return <XCircle color="#E74C3C" size={18} />;
+  const renderIcon = () => {
+     if (timekeepingStatus === TimekeepingStatus.NOT_WORK) return <XCircle color={statusColor} size={18} />;
+     
+     if (type === "in") {
+       if (!checkinStatus) return <CircleAlert color={statusColor} size={18} />;
+       if (isCheckinOntime) return <CheckCircle color={statusColor} size={18} />;
+       return <Clock color={statusColor} size={18} />;
+     } else {
+       if (!checkoutStatus) return <CircleAlert color={statusColor} size={18} />;
+       if (isCheckoutOntime) return <CheckCircle color={statusColor} size={18} />;
+       return <Clock color={statusColor} size={18} />;
+     }
   };
 
-  const handleRenderContent = (type: CheckTimeBoxProps["type"]) => {
-    // Render if status is not work
-    if (timekeepingStatus && timekeepingStatus === TimekeepingStatus.NOT_WORK)
-      return "Không làm việc";
+  const renderStatusText = () => {
+    if (timekeepingStatus === TimekeepingStatus.NOT_WORK) return "Không làm việc";
 
     if (type === "in") {
-      if (!checkinStatus) return "Chưa check-in";
-      if (isCheckinOntime) return "Đến đúng giờ";
+      if (!checkinStatus) return "Chưa vào";
+      if (isCheckinOntime) return "Đúng giờ";
       return "Đến trễ";
+    } else {
+      if (!checkoutStatus) return "Chưa ra";
+      if (isCheckoutOntime) return "Đúng giờ";
+      return "Về sớm";
     }
-    if (!checkoutStatus) return "Chưa check-out";
-    if (isCheckoutOntime) return "Về đúng giờ";
-    return "Về sớm";
   };
 
   return (
-    <View style={[styles.card, handleRenderCardBackground(type)]}>
-      <Text style={styles.cardLabel}>
-        {type === "in" ? "Giờ vào" : "Giờ ra"}
-      </Text>
-      <View style={styles.cardRow}>
-        <Text style={[styles.cardValue, handleRenderCardColor(type)]}>
-          {time ? time : "--:--"}
+    <View style={[styles.container, { backgroundColor, borderColor: statusColor + "40" }]}>
+      <View style={styles.header}>
+        <Text style={[styles.label, { color: statusColor }]}>
+          {type === "in" ? "Giờ vào" : "Giờ ra"}
         </Text>
-        {handleRenderCardIcon(type)}
+        {renderIcon()}
       </View>
-      <Text style={[styles.cardNote]}>{handleRenderContent(type)}</Text>
+      
+      <Text style={[styles.timeValue, { color: statusColor }]}>
+        {time ? time : "--:--"}
+      </Text>
+      
+      <View style={[styles.statusBadge, { backgroundColor: statusColor + "20" }]}>
+        <Text style={[styles.statusText, { color: statusColor }]}>
+          {renderStatusText()}
+        </Text>
+      </View>
     </View>
   );
 };
@@ -114,28 +113,39 @@ const CheckTimeBox = ({
 export default CheckTimeBox;
 
 const styles = StyleSheet.create({
-  card: {
+  container: {
     flex: 1,
-    borderRadius: 12,
-    padding: 14,
-  },
-  cardLabel: {
-    fontSize: 13,
-    color: "#000",
-  },
-  cardRow: {
-    flexDirection: "row",
-    alignItems: "center",
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    minHeight: 110,
     justifyContent: "space-between",
-    marginVertical: 4,
   },
-  cardValue: {
-    fontSize: 23,
-    fontWeight: "700",
-    color: "#2C3E50",
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 4,
   },
-  cardNote: {
+  label: {
     fontSize: 12,
-    color: "#7A7A7A",
+    fontWeight: "600",
+    textTransform: "uppercase",
+  },
+  timeValue: {
+    fontSize: 22,
+    fontWeight: "800",
+    marginVertical: 4,
+    letterSpacing: 0.5,
+  },
+  statusBadge: {
+    alignSelf: "flex-start",
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  statusText: {
+    fontSize: 11,
+    fontWeight: "600",
   },
 });

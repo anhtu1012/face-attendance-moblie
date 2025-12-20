@@ -10,12 +10,12 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import {
   ActivityIndicator,
-  Linking,
+  Modal,
   ScrollView,
   StyleSheet,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 export default function FormDetailScreen() {
@@ -25,6 +25,9 @@ export default function FormDetailScreen() {
   const [imageStates, setImageStates] = useState<{
     [key: number]: "loading" | "loaded" | "error";
   }>({});
+
+  const [isImageViewerVisible, setIsImageViewerVisible] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const getStatusConfig = () => {
     if (formData.status === "PENDING") {
@@ -64,6 +67,36 @@ export default function FormDetailScreen() {
   const statusConfig = getStatusConfig();
 
   console.log("formData: ", formData.file.split(",")[0]);
+
+  // Image Viewer Helpers
+  const images = formData.file
+    ? formData.file.split(",").map((path: string) => {
+        let cleanPath = path.trim();
+        if (cleanPath.startsWith("http://")) {
+          cleanPath = cleanPath.replace("http://", "https://");
+        }
+        return cleanPath;
+      })
+    : [];
+
+  const handleOpenImage = (index: number) => {
+    setSelectedImageIndex(index);
+    setIsImageViewerVisible(true);
+  };
+
+  const handleCloseImage = () => {
+    setIsImageViewerVisible(false);
+  };
+
+  const handleNextImage = () => {
+    setSelectedImageIndex((prev) => (prev + 1) % images.length);
+  };
+
+  const handlePrevImage = () => {
+    setSelectedImageIndex((prev) =>
+      prev === 0 ? images.length - 1 : prev - 1,
+    );
+  };
 
   return (
     <View style={styles.container}>
@@ -265,124 +298,99 @@ export default function FormDetailScreen() {
                 marginTop: 8,
               }}
             >
-              {formData.file
-                .split(",")
-                .map((imagePath: string, index: number) => {
-                  // Clean and potentially fix the URL
-                  let cleanPath = imagePath.trim();
+              {images.map((cleanPath: string, index: number) => {
+                console.log(`🖼️ Loading image ${index}:`, cleanPath);
 
-                  // Convert HTTP to HTTPS if needed
-                  if (cleanPath.startsWith("http://")) {
-                    cleanPath = cleanPath.replace("http://", "https://");
-                    console.log(`� Converted to HTTPS: ${cleanPath}`);
-                  }
-
-                  console.log(`�🖼️ Loading image ${index}:`, cleanPath);
-
-                  return (
-                    <TouchableOpacity
-                      key={index}
-                      style={{
-                        width: "30%",
-                        aspectRatio: 1,
-                        borderRadius: 8,
-                        overflow: "hidden",
-                        backgroundColor: "#f0f0f0",
-                        justifyContent: "center",
-                        alignItems: "center",
+                return (
+                  <TouchableOpacity
+                    key={index}
+                    style={{
+                      width: "30%",
+                      aspectRatio: 1,
+                      borderRadius: 8,
+                      overflow: "hidden",
+                      backgroundColor: "#f0f0f0",
+                      justifyContent: "center",
+                      alignItems: "center",
+                    }}
+                    onPress={() => handleOpenImage(index)}
+                    activeOpacity={0.7}
+                  >
+                    <Image
+                      source={{ uri: cleanPath }}
+                      style={{ width: "100%", height: "100%" }}
+                      contentFit="cover"
+                      transition={200}
+                      cachePolicy="none"
+                      onLoadStart={() => {
+                        console.log(`⏳ Image ${index} loading started`);
+                        setImageStates((prev) => ({
+                          ...prev,
+                          [index]: "loading",
+                        }));
                       }}
-                      onPress={() => {
-                        Linking.openURL(cleanPath).catch((err) => {
-                          console.error("Failed to open URL:", err);
-                        });
+                      onLoad={() => {
+                        console.log(`✅ Image ${index} loaded successfully`);
+                        setImageStates((prev) => ({
+                          ...prev,
+                          [index]: "loaded",
+                        }));
                       }}
-                      activeOpacity={0.7}
-                    >
-                      <Image
-                        source={{ uri: cleanPath }}
-                        style={{ width: "100%", height: "100%" }}
-                        contentFit="cover"
-                        transition={200}
-                        cachePolicy="none"
-                        onLoadStart={() => {
-                          console.log(`⏳ Image ${index} loading started`);
-                          setImageStates((prev) => ({
-                            ...prev,
-                            [index]: "loading",
-                          }));
+                      onError={(error) => {
+                        console.error(`❌ Image ${index} error:`, error);
+                        console.error(`URL was:`, cleanPath);
+                        setImageStates((prev) => ({
+                          ...prev,
+                          [index]: "error",
+                        }));
+                      }}
+                    />
+                    {imageStates[index] === "loading" && (
+                      <View
+                        style={{
+                          position: "absolute",
+                          width: "100%",
+                          height: "100%",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          backgroundColor: "rgba(0,0,0,0.1)",
                         }}
-                        onLoad={() => {
-                          console.log(`✅ Image ${index} loaded successfully`);
-                          setImageStates((prev) => ({
-                            ...prev,
-                            [index]: "loaded",
-                          }));
+                      >
+                        <ActivityIndicator size="small" color="#3674B5" />
+                      </View>
+                    )}
+                    {imageStates[index] === "error" && (
+                      <View
+                        style={{
+                          position: "absolute",
+                          width: "100%",
+                          height: "100%",
+                          justifyContent: "center",
+                          alignItems: "center",
+                          backgroundColor: "#ffe0e0",
+                          padding: 8,
                         }}
-                        onError={(error) => {
-                          console.error(`❌ Image ${index} error:`, error);
-                          console.error(`URL was:`, cleanPath);
-                          setImageStates((prev) => ({
-                            ...prev,
-                            [index]: "error",
-                          }));
-                        }}
-                      />
-                      {imageStates[index] === "loading" && (
-                        <View
+                      >
+                        <Feather
+                          name="alert-circle"
+                          size={20}
+                          color="#F44336"
+                        />
+                        <Text
                           style={{
-                            position: "absolute",
-                            width: "100%",
-                            height: "100%",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            backgroundColor: "rgba(0,0,0,0.1)",
+                            fontSize: 9,
+                            color: "#F44336",
+                            marginTop: 4,
+                            textAlign: "center",
                           }}
                         >
-                          <ActivityIndicator size="small" color="#3674B5" />
-                        </View>
-                      )}
-                      {imageStates[index] === "error" && (
-                        <View
-                          style={{
-                            position: "absolute",
-                            width: "100%",
-                            height: "100%",
-                            justifyContent: "center",
-                            alignItems: "center",
-                            backgroundColor: "#ffe0e0",
-                            padding: 8,
-                          }}
-                        >
-                          <Feather
-                            name="alert-circle"
-                            size={20}
-                            color="#F44336"
-                          />
-                          <Text
-                            style={{
-                              fontSize: 9,
-                              color: "#F44336",
-                              marginTop: 4,
-                              textAlign: "center",
-                            }}
-                          >
-                            404
-                          </Text>
-                          <Text
-                            style={{
-                              fontSize: 8,
-                              color: "#666",
-                              marginTop: 2,
-                              textAlign: "center",
-                            }}
-                          >
-                            Tap to open
-                          </Text>
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
+                          404
+                        </Text>
+                      </View>
+                    )}
+                  </TouchableOpacity>
+                );
+              })}
             </View>
           </View>
         )}
@@ -390,6 +398,56 @@ export default function FormDetailScreen() {
         {/* Bottom spacing */}
         <View style={styles.bottomSpace} />
       </ScrollView>
+
+      {/* Image Viewer Modal */}
+      <Modal
+        visible={isImageViewerVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={handleCloseImage}
+      >
+        <View style={styles.imageViewerContainer}>
+          <View style={styles.imageViewerOverlay} />
+          <TouchableOpacity
+            style={styles.imageViewerCloseButton}
+            onPress={handleCloseImage}
+          >
+            <AntDesign name="close" size={24} color="#fff" />
+          </TouchableOpacity>
+
+          <View style={styles.imageViewerContent}>
+             <Image
+                source={{ uri: images[selectedImageIndex] }}
+                style={{ width: "100%", height: "80%" }}
+                contentFit="contain"
+            />
+          </View>
+            
+          {/* Navigation Buttons */}
+          {images.length > 1 && (
+            <>
+              <TouchableOpacity
+                style={[styles.navButton, styles.prevButton]}
+                onPress={handlePrevImage}
+              >
+                <Feather name="chevron-left" size={32} color="#fff" />
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.navButton, styles.nextButton]}
+                onPress={handleNextImage}
+              >
+                <Feather name="chevron-right" size={32} color="#fff" />
+              </TouchableOpacity>
+
+              <View style={styles.imageCounter}>
+                <Text style={styles.imageCounterText}>
+                  {selectedImageIndex + 1} / {images.length}
+                </Text>
+              </View>
+            </>
+          )}
+        </View>
+      </Modal>
     </View>
   );
 }
@@ -397,18 +455,19 @@ export default function FormDetailScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#f5f5f5",
-    marginBottom: "10%",
+    backgroundColor: "#F8FAFC",
   },
   header: {
     backgroundColor: "#fff",
     paddingTop: 16,
     paddingBottom: 12,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.05,
-    shadowRadius: 3,
-    elevation: 3,
+    shadowRadius: 2,
+    elevation: 2,
+    borderBottomWidth: 1,
+    borderBottomColor: "#F1F5F9",
   },
   headerTop: {
     flexDirection: "row",
@@ -419,7 +478,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "#f5f5f5",
+    backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -428,85 +487,84 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   headerTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: "700",
-    color: "#1a1a1a",
-    marginBottom: 2,
+    color: "#1E293B",
   },
   headerSubtitle: {
     fontSize: 14,
-    color: "#666",
-    fontWeight: "400",
-  },
-  placeholder: {
-    width: 40,
+    color: "#64748B",
+    fontWeight: "500",
   },
   scrollView: {
     flex: 1,
   },
   scrollContent: {
-    padding: 16,
+    padding: 20,
   },
   // Status Card
   statusCard: {
     flexDirection: "row",
     alignItems: "center",
-    padding: 20,
-    borderRadius: 16,
-    marginBottom: 16,
+    padding: 24,
+    borderRadius: 24,
+    marginBottom: 20,
     shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 12,
+    elevation: 4,
   },
   statusIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: "rgba(255, 255, 255, 0.3)",
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 16,
+    marginRight: 20,
   },
   statusContent: {
     flex: 1,
   },
   statusLabel: {
-    fontSize: 13,
-    color: "#666",
+    fontSize: 14,
+    color: "rgba(0,0,0,0.6)",
     marginBottom: 4,
-    fontWeight: "500",
+    fontWeight: "600",
   },
   statusText: {
-    fontSize: 20,
-    fontWeight: "700",
+    fontSize: 24,
+    fontWeight: "800",
+    color: "#fff",
   },
   // Card
   card: {
     backgroundColor: "#fff",
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 20,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
-    shadowRadius: 4,
+    shadowRadius: 8,
     elevation: 2,
+    borderWidth: 1,
+    borderColor: "#F1F5F9",
   },
   cardHeader: {
     flexDirection: "row",
     alignItems: "center",
     marginBottom: 16,
-    paddingBottom: 12,
+    paddingBottom: 16,
     borderBottomWidth: 1,
-    borderBottomColor: "#f0f0f0",
+    borderBottomColor: "#F1F5F9",
   },
   cardTitle: {
     fontSize: 16,
-    fontWeight: "600",
-    color: "#1a1a1a",
-    marginLeft: 8,
+    fontWeight: "700",
+    color: "#1E293B",
+    marginLeft: 10,
   },
   // Info Grid
   infoGrid: {
@@ -517,117 +575,152 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   infoIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: "#f5f5f5",
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
   infoTextContainer: {
     flex: 1,
   },
   infoLabel: {
     fontSize: 13,
-    color: "#999",
+    color: "#94A3B8",
     marginBottom: 2,
+    fontWeight: "500",
   },
   infoValue: {
     fontSize: 15,
-    color: "#1a1a1a",
-    fontWeight: "500",
+    color: "#334155",
+    fontWeight: "600",
   },
   // People
   peopleContainer: {
-    gap: 12,
+    gap: 16,
   },
   personItem: {
     flexDirection: "row",
     alignItems: "center",
   },
   personIconContainer: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: "#f5f5f5",
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: "#F1F5F9",
     justifyContent: "center",
     alignItems: "center",
-    marginRight: 12,
+    marginRight: 16,
   },
   personInfo: {
     flex: 1,
   },
   personLabel: {
     fontSize: 13,
-    color: "#999",
+    color: "#94A3B8",
     marginBottom: 2,
+    fontWeight: "500",
   },
   personName: {
     fontSize: 15,
-    color: "#1a1a1a",
+    color: "#1E293B",
     fontWeight: "600",
   },
   dividerHorizontal: {
     height: 1,
-    backgroundColor: "#f0f0f0",
+    backgroundColor: "#F1F5F9",
     marginVertical: 4,
   },
   // Content Box
   contentBox: {
-    backgroundColor: "#f8f9fa",
-    borderRadius: 12,
+    backgroundColor: "#F8FAFC",
+    borderRadius: 16,
     padding: 16,
     minHeight: 80,
   },
   contentText: {
     fontSize: 15,
-    color: "#333",
-    lineHeight: 22,
+    color: "#334155",
+    lineHeight: 24,
   },
   // Empty State
   emptyState: {
     alignItems: "center",
-    paddingVertical: 20,
+    paddingVertical: 24,
   },
   emptyText: {
     fontSize: 14,
-    color: "#999",
+    color: "#94A3B8",
     marginTop: 8,
     fontStyle: "italic",
-  },
-  // File Item
-  fileItem: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#f8f9fa",
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 8,
-  },
-  fileIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: "#E3F2FD",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-  },
-  fileInfo: {
-    flex: 1,
-  },
-  fileName: {
-    fontSize: 15,
-    color: "#3674B5",
     fontWeight: "500",
-    marginBottom: 2,
-  },
-  fileAction: {
-    fontSize: 12,
-    color: "#999",
   },
   bottomSpace: {
-    height: 20,
+    height: 40,
+  },
+  // Image Viewer Styles
+  imageViewerContainer: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    zIndex: 9999,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageViewerOverlay: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.95)",
+  },
+  imageViewerContent: {
+    width: "100%",
+    height: "100%",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  imageViewerCloseButton: {
+    position: "absolute",
+    top: 48,
+    right: 24,
+    zIndex: 10000,
+    padding: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 24,
+  },
+  navButton: {
+    position: "absolute",
+    top: "50%",
+    marginTop: -24,
+    zIndex: 10000,
+    padding: 12,
+    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    borderRadius: 30,
+  },
+  prevButton: {
+    left: 16,
+  },
+  nextButton: {
+    right: 16,
+  },
+  imageCounter: {
+    position: "absolute",
+    bottom: 40,
+    alignSelf: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
+    borderRadius: 20,
+  },
+  imageCounterText: {
+    color: "#fff",
+    fontWeight: "600",
+    fontSize: 14,
   },
 });
